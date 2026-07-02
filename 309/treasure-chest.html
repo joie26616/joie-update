@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>开启宝箱(还原 V2 + 309 优化)</title>
+<style>
+  :root{--red:#F5564E;--org:#ED8B0F;--gold:#F0A93A;--t1:#1f2330;--t2:#8a93a6;--bd:#eef0f4;--amber:#854F0B;--amberbg:#FAEEDA;--amberbd:#BA7517;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:#9a9a9a;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);}
+  .stage{display:flex;gap:30px;flex-wrap:wrap;align-items:flex-start;padding:24px;}
+  .phone{width:360px;height:700px;background:#f4f5f7;border-radius:22px;border:8px solid #1d1d1f;position:relative;overflow:hidden}
+
+  /* 首页背景(虚化,仅作底)*/
+  .home{position:absolute;inset:0;filter:saturate(.9)}
+  .home .hd{display:flex;justify-content:space-between;padding:12px 14px;font-weight:800;color:var(--red);font-size:18px}
+  .home .banner{height:90px;margin:0 12px;border-radius:10px;background:linear-gradient(120deg,#2b3a67,#445)}
+  .home .row{display:flex;gap:10px;padding:10px 12px}
+  .home .side{width:54px;display:flex;flex-direction:column;gap:10px}
+  .home .side .s{height:54px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+  .home .games{flex:1;display:flex;flex-direction:column;gap:10px}
+  .home .g{height:64px;background:linear-gradient(120deg,#ff8f87,#F5564E);border-radius:10px}
+  .home .tab{position:absolute;left:0;right:0;bottom:0;height:54px;background:#fff;display:flex;justify-content:space-around;align-items:center;font-size:11px;color:#999}
+
+  /* 宝箱弹框(还原 V2 全屏弹窗)*/
+  .chestmask{position:absolute;inset:0;background:rgba(120,20,10,.55);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:30;text-align:center;padding:0 24px}
+  .chestmask .congrats{color:#FFE08A;font-weight:800;font-size:16px;text-shadow:0 1px 3px rgba(0,0,0,.4);line-height:1.5}
+  .chestmask .range{color:#fff;font-size:14px;margin-top:10px;text-shadow:0 1px 3px rgba(0,0,0,.4)}
+  .chestmask .cd{color:#fff;font-size:12px;margin-top:10px;background:rgba(0,0,0,.28);border:1px solid rgba(255,208,120,.6);border-radius:12px;padding:8px 14px;line-height:1.6}
+  .chestmask .cd b{color:#FFE08A}
+  .chestwrap{position:relative;margin:18px 0 6px}
+  .ray{position:absolute;left:50%;top:50%;width:280px;height:280px;margin:-140px 0 0 -140px;border-radius:50%;background:conic-gradient(rgba(255,221,120,.55),transparent 30%,rgba(255,221,120,.55) 60%,transparent 90%);animation:spin 6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .chest{position:relative;font-size:120px;z-index:2;line-height:1}
+  .shake{animation:shake .5s ease-in-out 2}
+  @keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-10deg) scale(1.05)}50%{transform:rotate(10deg) scale(1.05)}75%{transform:rotate(-7deg)}}
+  .pop{animation:pop .4s ease-out forwards}
+  @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.35)}100%{transform:scale(1.12)}}
+  .openbtn{margin-top:12px;background:linear-gradient(180deg,#ff867a,#F5564E);color:#fff;border:none;border-radius:26px;padding:14px 44px;font-size:17px;font-weight:800;box-shadow:0 5px 14px rgba(0,0,0,.3);cursor:pointer}
+  .qcnt{color:#FFE08A;font-size:12px;margin-top:14px}
+  .coin{position:absolute;left:50%;top:50%;font-weight:800;color:#b07d12;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Arial;
+    background:radial-gradient(circle at 37% 30%,#fff7c4,#ffe06a 40%,#ffc01f 70%,#e8920f);box-shadow:inset 0 -2px 3px rgba(180,110,10,.5),0 2px 4px rgba(0,0,0,.3);opacity:0}
+  @keyframes burst{0%{opacity:1;transform:translate(0,0) scale(.6)}100%{opacity:0;transform:var(--end) scale(1.1)}}
+
+  /* 统一成功弹窗 */
+  .mask{position:absolute;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:40}
+  .dlg{width:280px;background:#fff;border-radius:16px;overflow:hidden;text-align:center}
+  .dlg .top2{padding:18px 0 4px} .dlg .ok{width:64px;height:64px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:34px;background:radial-gradient(circle at 38% 32%,#7ee0a3,#2e9e5b)}
+  .dlg h3{margin:10px 0 0;font-size:18px} .dlg .nm{font-size:13px;color:#888;margin-top:6px}
+  .dlg .big{font-size:32px;font-weight:800;color:var(--org);margin:8px 0 2px} .dlg .sum{font-size:12px;color:#888}
+  .dlg .btns{padding:12px 18px 18px} .dlg .btns button{width:100%;padding:11px;border-radius:22px;border:none;font-size:14px;font-weight:700;background:var(--red);color:#fff;cursor:pointer}
+
+  .note{max-width:340px;background:#fff;border:1px solid var(--bd);border-radius:10px;padding:14px 16px;font-size:13px;color:#444;line-height:1.7}
+  .note h3{margin:0 0 6px;font-size:14px} .note h3.opt{margin-top:14px;color:var(--amber)} .note code{background:#f4f4f4;border-radius:3px;padding:0 4px;font-size:12px}
+  .ctrl{margin-bottom:10px} .ctrl button{background:var(--red);color:#fff;border:none;border-radius:18px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;margin-right:8px}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <div class="phone">
+    <!-- 首页底(虚化)-->
+    <div class="home">
+      <div class="hd"><span>LOGO</span><span>✉ ⬇</span></div>
+      <div class="banner"></div>
+      <div class="row">
+        <div class="side"><div class="s">🔥</div><div class="s">♟️</div><div class="s">🎟️</div><div class="s">📺</div><div class="s">⚽</div></div>
+        <div class="games"><div class="g"></div><div class="g"></div><div class="g"></div></div>
+      </div>
+      <div class="tab"><span>🏠首页</span><span>🎁活动</span><span>🎡</span><span>💸推广</span><span>👤我的</span></div>
+    </div>
+
+    <!-- 宝箱全屏弹框(还原 V2)-->
+    <div class="chestmask" id="chestmask">
+      <div class="congrats" id="congrats">恭喜您完成 每日(Kollbet–充值投注) 奖励任务</div>
+      <div class="range" id="range">开启宝箱可获得 0.01~15 的彩金</div>
+      <div class="cd" id="cd" style="display:none"></div>
+      <div class="chestwrap"><div class="ray"></div><div class="chest" id="chest">🧰</div></div>
+      <button class="openbtn" id="openbtn" onclick="openChest()">开启宝箱</button>
+      <div class="qcnt" id="qcnt"></div>
+    </div>
+
+    <!-- 统一成功弹窗 -->
+    <div class="mask" id="mask"><div class="dlg" id="dlg"></div></div>
+  </div>
+
+  <!-- 说明 -->
+  <div class="note">
+    <div class="ctrl">
+      <button onclick="start(1)">1 个任务完成</button>
+      <button onclick="start(3)">3 个任务同时完成(连弹3次)</button>
+    </div>
+    <h3>还原 · V2 宝箱弹框规则</h3>
+    <ul style="padding-left:18px;margin:6px 0">
+      <li><b>触发</b>:在<b>首页 / 我的</b>完成任务时<b>自动弹出</b>全屏宝箱弹框(非列表);文案「恭喜您完成 X 奖励任务 / 开启宝箱可获得 A~B 的彩金」(展示区间)。</li>
+      <li><b>多任务</b>:同时完成 N 个 → 宝箱<b>弹出 N 次</b>(逐个开,开完一个弹下一个)。</li>
+      <li><b>优先级</b>:宝箱与通知同时触发 → <b>优先宝箱弹框</b>,通知排队等宝箱关闭后再弹。</li>
+      <li><b>开箱</b>:点「开启宝箱」→ 抖动→弹开→金币迸出 → 揭晓<b>实际随机金额</b>(真实区间 <code>ActualReward</code> 内随机,非展示区间)→ 统一成功弹窗显实际额。</li>
+    </ul>
+    <h3 class="opt">309 优化(在 V2 规则上叠加)</h3>
+    <ul style="padding-left:18px;margin:6px 0">
+      <li><b>领取形式(#4)</b>:开宝箱 = <code>ReceiveType=2</code>;后端从 <code>ActualReward</code> 随机,<code>DisplayReward</code> 仅用于「可获得 A~B」文案。</li>
+      <li><b>领取方式(#4)</b>:<b>即时类</b>宝箱→完成即弹开;<b>任务结束类</b>宝箱→任务结束后才可开,<b>领取有效期内每天登录仅自动弹一次</b>(弹框显实时倒计时:剩 N 天 HH:MM:SS),也可随时在领奖中心(bonus collection)开箱;过期回收、不再弹。</li>
+      <li><b>统一去重</b>:开箱发奖幂等,与统一领取状态机一致;漏开的任务结束类宝箱可在 bonus collection 待开。</li>
+    </ul>
+    <p style="font-size:11px;color:#aaa">点上方按钮演示;实际开出额每次随机。底为虚化首页,仅示意弹框位置。</p>
+  </div>
+
+</div>
+
+<script>
+  var queue=[], cur=null;
+  var TASKS=[
+    {nm:'每日(Kollbet–充值投注)', min:0.01, max:15, end:false, expDays:7},
+    {nm:'每日签到', min:1, max:10, end:false, expDays:7},
+    {nm:'周存款任务', min:50, max:500, end:true, expDays:2}
+  ];
+  function fmt(n){ return '₹'+Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function rand(min,max){ var v=min+Math.random()*(max-min); return Math.round(v*100)/100; }
+  // 任务结束类宝箱:领取有效期内每天登录仅弹一次 + 实时倒计时
+  var cdTimer=null;
+  function startCd(el, isEnd, days){
+    clearInterval(cdTimer);
+    var pad=function(n){return (n<10?'0':'')+n;};
+    var target=Date.now()+((days||2)*86400+23*3600+59*60)*1000;
+    function tick(){
+      var s=Math.max(0,Math.floor((target-Date.now())/1000));
+      var d=Math.floor(s/86400); s%=86400; var h=Math.floor(s/3600); s%=3600; var m=Math.floor(s/60); var ss=s%60;
+      var line2 = isEnd ? '有效期内<b>每天登录仅弹一次</b>;也可随时在领奖中心开箱,过期回收'
+                        : '请在领取有效期内开启,过期未开自动回收';
+      el.innerHTML='⏳ 领取有效期剩 <b>'+d+'</b> 天 '+pad(h)+':'+pad(m)+':'+pad(ss)+
+        '<br><span style="opacity:.9">'+line2+'</span>';
+    }
+    tick(); cdTimer=setInterval(tick,1000);
+  }
+
+  function start(n){ queue=TASKS.slice(0,n).map(function(t){return Object.assign({},t);}); showNext(); }
+  function showNext(){
+    document.getElementById('mask').style.display='none';
+    if(!queue.length){ document.getElementById('chestmask').style.display='none'; return; }
+    cur=queue.shift();
+    var m=document.getElementById('chestmask');
+    document.getElementById('congrats').textContent='恭喜您完成 '+cur.nm+' 奖励任务';
+    document.getElementById('range').textContent='开启宝箱可获得 '+cur.min+'~'+cur.max+' 的彩金';
+    var cd=document.getElementById('cd');
+    cd.style.display='block'; startCd(cd, cur.end, cur.expDays);
+    document.getElementById('chest').className='chest'; document.getElementById('chest').textContent='🧰';
+    document.getElementById('openbtn').style.display='';
+    document.getElementById('qcnt').textContent = queue.length>0 ? ('还有 '+ (queue.length) +' 个宝箱待开') : '';
+    m.style.display='flex';
+  }
+  function coinsBurst(){
+    var box=document.getElementById('chestmask');
+    for(var i=0;i<14;i++){(function(){
+      var c=document.createElement('div'); c.className='coin'; c.textContent='$';
+      var ang=Math.random()*Math.PI*2, d=70+Math.random()*90;
+      c.style.setProperty('--end','translate('+(Math.cos(ang)*d)+'px,'+(Math.sin(ang)*d-40)+'px)');
+      c.style.animation='burst '+(0.7+Math.random()*0.4)+'s ease-out forwards';
+      box.appendChild(c); setTimeout(function(){c.remove();},1200);
+    })();}
+  }
+  function openChest(){
+    var chest=document.getElementById('chest'), btn=document.getElementById('openbtn');
+    btn.style.display='none'; chest.className='chest shake';
+    setTimeout(function(){ chest.className='chest pop'; chest.textContent='🎉'; coinsBurst(); },1000);
+    setTimeout(function(){
+      var amt=rand(cur.min,cur.max);
+      document.getElementById('dlg').innerHTML=
+        '<div class="top2"><div class="ok">🎉</div><h3>开宝箱成功</h3></div>'+
+        '<div class="body"><div class="nm">'+cur.nm+'</div><div class="big">+ '+fmt(amt)+'</div><div class="sum">已到账(真实区间随机)</div></div>'+
+        '<div class="btns"><button onclick="showNext()">'+(queue.length>0?'开下一个':'完成')+'</button></div>';
+      document.getElementById('mask').style.display='flex';
+    },1850);
+  }
+</script>
+</body>
+</html>

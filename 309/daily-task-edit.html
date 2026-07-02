@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>309 · 任务配置(V1 表单不变 + 309 新增字段)</title>
+<style>
+  :root{--bg:#fff;--t1:#1f1e1c;--t2:#555;--t3:#8a8980;--bd:#dcdcdc;--p:#7752FD;--err:#e24b4a;
+    --amber:#854F0B;--amberbg:#FAEEDA;--amberbd:#BA7517;}
+  *{box-sizing:border-box;}
+  body{margin:0;padding:24px;background:#fff;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);line-height:1.5;}
+  .legend{display:flex;gap:14px;font-size:12px;margin-bottom:10px;flex-wrap:wrap;}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:2px;vertical-align:-1px;margin-right:5px;}
+  .simbar{background:#f7f7fb;border:1px dashed #b9b3d9;border-radius:6px;padding:10px 12px;margin-bottom:18px;font-size:13px;}
+  .simbar .tit{font-size:12px;color:#5b3bb5;margin-bottom:6px;}
+  .simbar .ents{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .ent{height:30px;padding:0 12px;border:1px solid var(--bd);border-radius:4px;background:#fff;font-size:13px;cursor:pointer;}
+  .ent.on{background:var(--p);color:#fff;border-color:var(--p);}
+  .cyc{margin-left:18px;}
+  .cols{display:flex;gap:48px;flex-wrap:wrap;}
+  .col{flex:1;min-width:360px;}
+  .row{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+  .row.top{align-items:flex-start;}
+  label.lb{width:150px;font-size:14px;color:var(--t1);text-align:right;flex:none;}
+  .req::before{content:"* ";color:var(--err);}
+  input,select{flex:1;height:38px;border:1px solid var(--bd);border-radius:4px;padding:0 12px;font-size:14px;background:#fff;color:var(--t1);}
+  input:focus,select:focus{outline:none;border-color:var(--p);}
+  input:disabled{background:#f4f4f4;color:#999;}
+  input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  input[type=number]{-moz-appearance:textfield;}
+  .radio{display:flex;gap:20px;font-size:14px;align-items:center;flex-wrap:wrap;}
+  .radio input{flex:none;width:16px;height:16px;}
+  .cats{font-size:13px;}
+  .cats .warn{color:#d33;font-size:12px;display:block;margin-bottom:4px;}
+  .cats label{margin-right:14px;white-space:nowrap;}
+  .cats input{width:14px;height:14px;vertical-align:-2px;}
+  .rng{display:flex;align-items:center;gap:8px;flex:1;}
+  .rng input{max-width:150px;}
+  .ml label.lb{width:64px;font-size:13px;}
+  .ml .row{margin-bottom:12px;gap:8px;}
+  .ml .row label.lb2{width:74px;font-size:13px;color:var(--t2);text-align:right;flex:none;}
+  .new{background:var(--amberbg);border:1px solid var(--amberbd);border-radius:4px;padding:10px 12px;margin:-4px 0 16px 0;}
+  .new .r{display:flex;align-items:center;gap:12px;}
+  .new label.lb{color:var(--amber);}
+  .new .desc{font-size:12px;color:var(--amber);margin-top:6px;padding-left:162px;}
+  .badge{background:var(--amberbd);color:#fff;padding:1px 7px;border-radius:6px;font-size:11px;}
+  .btns{margin-top:8px;}
+  .btn{height:36px;padding:0 18px;border:none;border-radius:4px;font-size:14px;cursor:pointer;margin-right:10px;color:#fff;}
+  .btn.save{background:var(--p);} .btn.back{background:#3b3b3b;}
+</style>
+</head>
+<body>
+<div class="legend">
+  <span style="color:var(--t2)"><i style="background:#fff;border:1px solid var(--bd)"></i>V1 现有字段(入口 / 任务类型 / 任务名称 / 任务分类 / 目标类型 / 任务目标 / 领取方式 / 任务排序 / 开启状态 等,一律不变)</span>
+  <span style="color:var(--amber)"><i style="background:var(--amberbg);border:1px solid var(--amberbd)"></i>309 新增(只加字段,不改 V1)</span>
+</div>
+
+<div class="simbar">
+  <div class="tit">▼ 原型模拟入口 —— 对应 V1「活动奖励 / 每日·每周任务列表」的 4 个新增按钮(GetDailyConfig?projectID=1/2/3/5),入口本身与各配置页 V1 字段均不变,切换仅用于预览各入口页面:</div>
+  <div class="ents">
+    <button class="ent on" id="ent1" onclick="setProject(1)">新增充提任务</button>
+    <button class="ent" id="ent2" onclick="setProject(2)">新增投注任务</button>
+    <button class="ent" id="ent3" onclick="setProject(3)">新增邀请任务</button>
+    <button class="ent" id="ent5" onclick="setProject(5)">新增充值投注任务</button>
+    <span class="cyc">
+      周期:<button class="ent on" id="cycD" onclick="setCycle('d')">每日任务列表</button>
+      <button class="ent" id="cycW" onclick="setCycle('w')">每周任务列表</button>
+    </span>
+  </div>
+</div>
+
+<div class="cols">
+  <div class="col">
+    <div class="row"><label class="lb">任务类型:</label><span style="font-size:14px" id="tpName">充提任务</span></div>
+    <div class="row"><label class="lb req">任务名称:</label><input /></div>
+    <div class="row"><label class="lb req">任务分类:</label><select id="taskItem" onchange="onItemChange()"></select></div>
+    <div class="row"><label class="lb req">目标类型:</label><select id="taskSub" onchange="onSubChange()"></select></div>
+
+    <div class="row top" id="validCats"><label class="lb">有效大类:</label>
+      <div class="cats">
+        <span class="warn">不勾选代表全部类型都可参与任务。勾选后只有选中的类型才能参与任务</span>
+        <span id="payList"><label><input type="checkbox">在线支付</label><label><input type="checkbox">银行卡转账</label><label><input type="checkbox">USDT</label><label><input type="checkbox">UPI</label><span style="color:var(--t3);font-size:12px">(占位·实际读支付方式列表)</span></span>
+        <span id="wdList" style="display:none"><label><input type="checkbox">银行卡提现</label><label><input type="checkbox">USDT提现</label><span style="color:var(--t3);font-size:12px">(占位·实际读提现方式列表)</span></span>
+      </div>
+    </div>
+
+    <div class="row"><label class="lb" id="targetLb">任务目标:</label><input type="number" value="0" /></div>
+
+    <div id="p5block" style="display:none">
+      <div class="row"><label class="lb">投注大类:</label><select><option>请选择</option><option>彩票</option><option>电子游戏</option><option>真人视讯</option><option>体育</option><option>棋牌</option></select></div>
+      <div class="row top"><label class="lb">玩法大类:</label>
+        <div class="cats"><span class="warn">不勾选代表全部游戏都可参与任务。勾选后只有选中的游戏才能参与任务</span><span style="color:var(--t3);font-size:12px">(占位·按投注大类联动)</span></div>
+      </div>
+      <div class="row"><label class="lb">投注目标:</label><input type="number" value="0" /></div>
+    </div>
+
+    <div class="new">
+      <div class="r"><label class="lb">展示条件:</label>
+        <select id="showCond" onchange="toggleShowCond()" style="max-width:160px"><option value="all">全员</option><option value="recharge">充值要求</option></select>
+        <span id="showFirstLb" style="font-size:14px;color:var(--amber);display:none">首充/人</span>
+        <input id="showAmt" type="number" placeholder="金额" style="max-width:140px;display:none" />
+      </div>
+      <div class="desc"><span class="badge">309 新增 · #1</span> 默认「全员」可见;选「充值要求」→ 显示 [首充/人] + 金额输入框,首充达到该金额的会员才能看到此任务</div>
+    </div>
+
+    <div class="row"><label class="lb">领取方式:</label>
+      <div class="radio">
+        <label><input type="radio" name="rt" value="now" checked onclick="onReceiveChange()"> 即时发放</label>
+        <label style="background:var(--amberbg);border:1px solid var(--amberbd);border-radius:4px;padding:2px 10px;color:var(--amber)"><input type="radio" name="rt" value="end" onclick="onReceiveChange()"> 任务结束发放 <span class="badge">309 新增 · #4</span></label>
+      </div>
+    </div>
+
+    <div class="new" id="endBlock">
+      <div class="r"><label class="lb req">领取形式:</label>
+        <div class="radio">
+          <label><input type="radio" name="rf" value="direct" checked onclick="onReceiveChange()"> 直接领取</label>
+          <label><input type="radio" name="rf" value="box" onclick="onReceiveChange()"> 宝箱领取</label>
+        </div>
+      </div>
+      <div class="r" id="claimValid" style="display:none;margin-top:8px"><label class="lb req">领取有效时间:</label><input type="number" value="0" style="max-width:120px" /><span style="font-size:13px;color:var(--amber);margin-left:8px">天(默认 0 = 无有效期,可随时领取)</span></div>
+      <div class="desc"><span class="badge">309 新增 · #4</span> V1 领取方式(直接领取 / 开宝箱领取)不变,仅新增「任务结束」:以任务结束时间为准,选中出 2 个选项 <b>直接领取 / 宝箱领取</b>,并可设领取有效时间(天)</div>
+    </div>
+
+    <div class="new" id="claimCond" style="display:none">
+      <div class="r"><label class="lb">领取条件:</label>
+        <span style="font-size:14px;color:var(--amber)">充值/人</span>
+        <input type="number" placeholder="金额" style="max-width:180px" />
+      </div>
+      <div class="desc"><span class="badge">309 新增</span> 充值/人:被邀请人每人充值达到该金额,会员才可领取此任务奖励(仅「新增邀请任务」入口·任务分类=邀请人)</div>
+    </div>
+
+    <div class="row" id="directAward"><label class="lb req">奖励金额:</label><input type="number" value="0" /></div>
+
+    <div id="boxAward" style="display:none">
+      <div class="row"><label class="lb req">实际奖励金额:</label><div class="rng"><input type="number" placeholder="最小金额" /> ~ <input type="number" placeholder="最大金额" /></div></div>
+      <div class="row"><label class="lb">前台展示中奖金额:</label><div class="rng"><input type="number" placeholder="最小金额" /> ~ <input type="number" placeholder="最大金额" /></div></div>
+      <div class="row"><label class="lb">活动中心展示最高金额:</label><input type="number" style="max-width:150px;flex:none" /></div>
+    </div>
+
+    <div class="row"><label class="lb">生效时间:</label><input id="effTime" value="明天生效" disabled /></div>
+    <div class="row"><label class="lb">任务排序:</label><input type="number" value="0" /></div>
+    <div class="row"><label class="lb">开启状态:</label><div class="radio"><label><input type="radio" name="st" checked> 禁用</label><label><input type="radio" name="st"> 启用</label></div></div>
+    <div class="btns"><button class="btn save">保存</button><button class="btn back" onclick="history.back()">返回</button></div>
+  </div>
+
+  <div class="col ml">
+    <div class="row"><label class="lb">英语</label><label class="lb2">任务名称:</label><input /><label class="lb2">任务描述:</label><input /></div>
+    <div class="row"><label class="lb">泰语</label><label class="lb2">任务名称:</label><input /><label class="lb2">任务描述:</label><input /></div>
+    <div class="row"><label class="lb">中文简体</label><label class="lb2">任务名称:</label><input /><label class="lb2">任务描述:</label><input /></div>
+    <div class="row"><label class="lb">马来语</label><label class="lb2">任务名称:</label><input /><label class="lb2">任务描述:</label><input /></div>
+    <div class="row"><label class="lb">阿拉伯语</label><label class="lb2">任务名称:</label><input /><label class="lb2">任务描述:</label><input /></div>
+    <div class="row"><label class="lb">泰米尔语</label><label class="lb2">任务名称:</label><input /><label class="lb2">任务描述:</label><input /></div>
+    <div class="row"><label class="lb">泰卢固语</label><label class="lb2">任务名称:</label><input /><label class="lb2">任务描述:</label><input /></div>
+  </div>
+</div>
+
+<script>
+  // V1 级联(TreasureController.TaskItemType / TaskSubItemType,原样照搬)
+  var PROJECTS = {
+    1:{name:'充提任务', items:[[1,'充值'],[2,'提现']]},
+    2:{name:'投注任务', items:[[3,'彩票'],[4,'电子游戏'],[5,'真人视讯'],[6,'体育'],[7,'棋牌']]},
+    3:{name:'邀请任务', items:[[8,'邀请人']]},
+    5:{name:'充值投注', items:[[13,'充值投注']]}
+  };
+  var SUBS = {
+    1:[[1,'充值金额'],[2,'充值次数']], 2:[[3,'提现金额'],[4,'提现次数']],
+    3:[[5,'投注金额'],[6,'投注次数']], 4:[[5,'投注金额'],[6,'投注次数']], 5:[[5,'投注金额'],[6,'投注次数']],
+    6:[[5,'投注金额'],[6,'投注次数']], 7:[[5,'投注金额'],[6,'投注次数']],
+    8:[[7,'邀请人数']], 13:[[12,'充值投注金额']]
+  };
+  var curProject = 1, curCycle = 'd';
+
+  function fill(sel, list){
+    sel.innerHTML = '<option value="">请选择</option>' + list.map(function(o){return '<option value="'+o[0]+'">'+o[1]+'</option>';}).join('');
+  }
+  function setProject(p){
+    curProject = p;
+    [1,2,3,5].forEach(function(i){document.getElementById('ent'+i).className = 'ent' + (i===p?' on':'');});
+    document.getElementById('tpName').textContent = PROJECTS[p].name;
+    fill(document.getElementById('taskItem'), PROJECTS[p].items);
+    document.getElementById('taskSub').innerHTML = '<option value="">请选择</option>';
+    document.getElementById('validCats').style.display = (p===1||p===5)?'flex':'none';
+    document.getElementById('p5block').style.display = (p===5)?'block':'none';
+    document.getElementById('targetLb').textContent = (p===5)?'充值目标:':'任务目标:';
+    onItemChange();
+  }
+  function onItemChange(){
+    var item = Number(document.getElementById('taskItem').value)||0;
+    fill(document.getElementById('taskSub'), SUBS[item]||[]);
+    document.getElementById('payList').style.display = (item===1||item===13)?'inline':'none';
+    document.getElementById('wdList').style.display = (item===2)?'inline':'none';
+    document.getElementById('claimCond').style.display = (item===8)?'block':'none';
+    onSubChange();
+  }
+  function onSubChange(){}
+  function toggleShowCond(){
+    var rc = document.getElementById('showCond').value==='recharge';
+    document.getElementById('showAmt').style.display = rc?'block':'none';
+    document.getElementById('showFirstLb').style.display = rc?'inline':'none';
+  }
+  function onReceiveChange(){
+    // 第一层:结算时机(即时发放/任务结束发放)→ 仅控制 领取有效时间 显隐
+    var end = document.querySelector('input[name=rt]:checked').value==='end';
+    document.getElementById('claimValid').style.display = end?'flex':'none';
+    // 第二层:领取形式(直接/宝箱)→ 任一结算时机下均可配置,控制奖励金额区块
+    var form = document.querySelector('input[name=rf]:checked').value;
+    document.getElementById('directAward').style.display = form==='direct'?'flex':'none';
+    document.getElementById('boxAward').style.display = form==='box'?'block':'none';
+  }
+  function setCycle(c){
+    curCycle = c;
+    document.getElementById('cycD').className = 'ent' + (c==='d'?' on':'');
+    document.getElementById('cycW').className = 'ent' + (c==='w'?' on':'');
+    document.getElementById('effTime').value = c==='d' ? '明天生效' : '下周生效';
+  }
+  setProject(1);
+  onReceiveChange();
+</script>
+</body>
+</html>

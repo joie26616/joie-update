@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>月签到升级 · 需求文档</title>
+<style>
+  :root{--prim:#6f42c1;--blue:#1456d8;--grn:#2E9C5B;--red:#E8505B;--amber:#854F0B;--amberbg:#FBF1DE;--bd:#e6e8ee;--t1:#2a2a33;--t2:#777;--bg:#eef0f4;
+    --done:#2E9C5B;--wait:#E8505B;--going:#C8941A;--fail:#9aa0ab;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);font-size:14px;line-height:1.7;}
+  .layout{display:flex;max-width:1200px;margin:0 auto;min-height:100vh;}
+  /* 左侧菜单 */
+  .side{width:210px;flex:0 0 210px;background:#1f1d2b;color:#cfcadf;padding:18px 0;position:sticky;top:0;height:100vh;overflow:auto;}
+  .side .brand{font-size:17px;font-weight:800;color:#fff;padding:0 20px 14px;border-bottom:1px solid #36334a;margin-bottom:10px;}
+  .side .brand small{display:block;font-size:11px;color:#8a85a3;font-weight:400;margin-top:3px;}
+  .mi{display:flex;align-items:center;gap:9px;padding:11px 20px;cursor:pointer;font-size:14px;border-left:3px solid transparent;}
+  .mi:hover{background:#2a2740;}
+  .mi.on{background:#2a2740;border-left-color:var(--prim);color:#fff;font-weight:700;}
+  .mi .ic{font-size:16px;width:20px;text-align:center;}
+  /* 右侧内容 */
+  .main{flex:1;padding:26px 34px;overflow:auto;}
+  .pane{display:none;}
+  .pane.on{display:block;animation:fade .2s;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  h2{font-size:21px;margin:0 0 4px;display:flex;align-items:center;gap:8px;}
+  .lead{color:var(--t2);font-size:13px;margin:0 0 18px;}
+  h3{font-size:15px;margin:20px 0 8px;color:var(--prim);}
+  ul{margin:6px 0;padding-left:20px;} li{margin:4px 0;}
+  table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13px;}
+  th,td{border:1px solid var(--bd);padding:7px 10px;text-align:left;vertical-align:top;}
+  th{background:#f5f6fa;color:#555;font-weight:600;}
+  code{background:#f2eefb;color:var(--prim);border-radius:3px;padding:1px 5px;font-size:12px;}
+  .tag{display:inline-block;font-size:11px;border-radius:5px;padding:1px 8px;margin-left:4px;}
+  .t-done{background:#e9f7ef;color:var(--done);} .t-wait{background:#fdeef0;color:var(--wait);} .t-going{background:#FBF1DE;color:var(--going);} .t-fail{background:#eef0f3;color:var(--fail);}
+  .note{background:var(--amberbg);border:1px solid #e7cf9e;border-radius:8px;padding:11px 14px;color:var(--amber);font-size:13px;margin:12px 0;}
+  .ok{background:#e9f7ef;border:1px solid #bce3cd;color:#226c42;border-radius:8px;padding:11px 14px;font-size:13px;margin:12px 0;}
+  .open{background:#fdeef0;border:1px solid #f3c6cd;color:#9c2f3d;border-radius:8px;padding:6px 12px;margin:8px 0;font-size:13px;}
+  a.golink{color:var(--prim);text-decoration:none;font-weight:600;border:1px solid var(--prim);border-radius:16px;padding:5px 13px;font-size:12px;display:inline-block;margin:4px 6px 4px 0;}
+
+  /* 流程图 */
+  .flow{display:flex;flex-direction:column;gap:0;align-items:flex-start;}
+  .fbox{background:#fff;border:2px solid var(--prim);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;display:inline-block;}
+  .fbox.s{border-color:var(--grn);} .fbox.e{border-color:#888;} .fbox.w{border-color:var(--red);}
+  .farr{color:#aaa;font-size:18px;margin:2px 0 2px 28px;}
+  .frow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .fnote{font-size:12px;color:var(--t2);}
+  .branch{border-left:2px dashed #ccc;margin-left:28px;padding-left:18px;margin-top:4px;}
+
+  /* 阶梯条 */
+  .ladder{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;}
+  .lstep{flex:1;min-width:120px;border:1px solid var(--bd);border-radius:10px;padding:10px 12px;background:#fff;}
+  .lstep .lh{font-weight:700;font-size:13px;display:flex;justify-content:space-between;align-items:center;}
+  .lstep .lr{font-size:18px;font-weight:800;color:var(--prim);margin:4px 0;}
+  .lstep .ld{font-size:11px;color:var(--t2);}
+  .lstep.done{border-color:#bce3cd;background:#f1faf4;} .lstep.wait{border-color:#f3c6cd;background:#fdf2f4;}
+  .lstep.going{border-color:#e7cf9e;background:#fffaf0;} .lstep.fail{border-color:#e3e4e8;background:#f6f7f9;opacity:.7;}
+  .pill{font-size:10px;border-radius:8px;padding:1px 7px;}
+  .pill.done{background:var(--done);color:#fff;} .pill.wait{background:var(--wait);color:#fff;} .pill.going{background:var(--going);color:#fff;} .pill.fail{background:var(--fail);color:#fff;}
+
+  /* 时序图 */
+  .seq{display:grid;grid-template-columns:repeat(4,1fr);gap:0 10px;margin-top:10px;position:relative;}
+  .seqh{text-align:center;font-weight:700;font-size:12px;color:#fff;background:var(--prim);border-radius:6px;padding:7px 4px;position:sticky;top:0;}
+  .seqh.a{background:#3a6df0;} .seqh.b{background:#6f42c1;} .seqh.c{background:#2E9C5B;} .seqh.d{background:#c77f1a;}
+  .seqstep{grid-column:1/-1;display:flex;align-items:center;gap:10px;border-bottom:1px dashed #e3e3ec;padding:9px 4px;font-size:12.5px;}
+  .seqstep .n{flex:0 0 22px;height:22px;border-radius:50%;background:var(--prim);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700;}
+  .seqstep .ar{color:var(--prim);font-weight:700;}
+  .small{font-size:12px;color:var(--t2);}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:760px){.two{grid-template-columns:1fr;} .side{display:none;}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="side">
+    <div class="brand">📅 月签到升级<small>需求文档 · 310 · #19</small></div>
+    <div class="mi on" data-p="req"><span class="ic">📖</span>需求说明</div>
+    <div class="mi" data-p="state"><span class="ic">📊</span>状态流程图</div>
+    <div class="mi" data-p="admin"><span class="ic">⚙️</span>后台配置(方案2)</div>
+    <div class="mi" data-p="ladder"><span class="ic">🏅</span>满签阶梯(连续签到)</div>
+    <div class="mi" data-p="retro"><span class="ic">↩️</span>补签机制</div>
+    <div class="mi" data-p="claim"><span class="ic">🎁</span>领取模型</div>
+    <div class="mi" data-p="db"><span class="ic">🗄️</span>数据库设计</div>
+    <div class="mi" data-p="seq"><span class="ic">📋</span>时序图</div>
+    <div class="mi" data-p="risk"><span class="ic">⚠️</span>风险与建议</div>
+    <div class="mi" data-p="open"><span class="ic">❓</span>待确认问题</div>
+  </nav>
+
+  <main class="main">
+    <!-- 需求说明 -->
+    <section class="pane on" id="p-req">
+      <h2>📖 需求说明</h2>
+      <p class="lead">V1 现状签到为「<b>周 7 天单套</b>」(<code>tab_SignInRecharges</code>,无 VIP 维度、断签清零、无补签)。本期升级为「<b>月 31 天 · 分 VIP 路线 · 满签阶梯 · 补签</b>」。</p>
+      <h3>玩法总览</h3>
+      <ul>
+        <li><b>周期</b>:按<b>自然月</b>。每月 1 号(或当月首次签到)选「当前 VIP 等级<b>及以下</b>」路线,<b>当月锁定不可改</b>;月底清零;下月 1 号重选。</li>
+        <li><b>当月升级</b>:升级<b>不影响</b>已锁定的本月路线,不可中途改;下月 1 号重选更高路线。</li>
+        <li><b>基础签到</b>:每个 VIP 等级自由配每日「<b>充值门槛 + 奖励</b>」;同一路线 1–31 天每天条件一致(可按天改)。建议值:vip1 充 100 送 2 / vip5 充 1000 送 30 / vip10 充 10000 送 500。</li>
+        <li><b>满签阶梯(连续签到模型)</b>:节点 = <b>连续 3 天 / 7 天 / 15 天 / 当月最后一天大奖</b>(进度 = 连续签到天数含补签)。</li>
+        <li><b>补签</b>:只能往前补 N 天(后台「补签天数」默认 5);分段倍数门槛 + <b>奖励半额</b>;确认补签<b>跳存款页</b>。</li>
+        <li><b>领取</b>:分两类 —— 每日签到奖(签到页弹框)/ 满签里程碑奖(纳入 309 一键领取)。详见「领取模型」。</li>
+      </ul>
+      <div class="ok">与七日集星 #36 区分:<b>#19 月签到</b> = 自然月 · VIP 路线 · 补签 · 连续满签;<b>七日集星</b> = 7 自然日 · 任务难度档 · 集星。二者并存、各自独立活动(月签占原签到位,集星归活动配置)。</div>
+      <div>
+        <a class="golink" href="monthly-signin.html" target="_blank">前台原型 ↗</a>
+        <a class="golink" href="monthly-signin-admin-v2.html" target="_blank">后台·配置(方案2·VIP×3模版) ↗</a>
+        <a class="golink" href="http://localhost:8901/Admin_UERP/UserInfo/SinIn" target="_blank">数据统计·会员签到记录(V1) ↗</a>
+        <a class="golink" href="recharge-page.html" target="_blank">补签跳转·存款页 ↗</a>
+      </div>
+    </section>
+
+    <!-- 状态流程图 -->
+    <section class="pane" id="p-state">
+      <h2>📊 状态流程图(自然月生命周期)</h2>
+      <p class="lead">月周期状态机:月初选线 → 进行中(每日签到 / 漏签可补 / 漏签超期)→ 连续中断 → 月末清零 → 下月重选。</p>
+      <div class="flow">
+        <div class="fbox s">① 月初 / 当月首签 · 选 VIP 路线(当前等级及以下)</div>
+        <div class="farr">↓ 选定即锁定本月路线(不可改)· 首签日 = 第 1 天</div>
+        <div class="fbox">② 进行中 · 已锁路线</div>
+        <div class="farr">↓ 每天循环</div>
+        <div class="frow">
+          <div class="fbox" style="border-color:#ccc">每日:充值达门槛 → 签到打钩 → 发当日奖 → 连续天数 +1</div>
+        </div>
+        <div class="branch">
+          <div class="frow"><span class="fnote">分支 a · 某天漏签(5 天窗口内)= </span><div class="fbox w">漏签·可补</div><span class="fnote">→ 补签(倍数门槛·跳存款页·半额发奖)→ 计入连续</span></div>
+          <div class="frow" style="margin-top:8px"><span class="fnote">分支 b · 漏签超过 5 天补签期 = </span><div class="fbox w">连续中断</div><span class="fnote">→ 阶梯进度<b>回落为当下实际连续天数</b>,断点之后阶梯置「不可达」</span></div>
+        </div>
+        <div class="farr">↓ 连续天数达 3 / 7 / 15 / 月末</div>
+        <div class="fbox">领满签里程碑奖(纳入一键领取)</div>
+        <div class="farr">↓ 月末 23:59</div>
+        <div class="fbox e">③ 月末清零(历史留档)</div>
+        <div class="farr">↓ 下月 1 号</div>
+        <div class="fbox s">① 重选路线(可选更高 VIP 路线)</div>
+      </div>
+      <div class="note">跨月清零;沿用 V1「次日快照表」模式存历史;月末连续签压力大 → 配红点/推送提醒,大奖按当月最后一天已降低门槛。</div>
+    </section>
+
+    <!-- 后台配置 -->
+    <section class="pane" id="p-admin">
+      <h2>⚙️ 后台配置(方案2·模版制)</h2>
+      <p class="lead">结构 = 活动设置 + VIP 路线 × 月 × 天明细(满签阶梯<b>同表录入</b>)+ 补签分段。</p>
+      <div class="ok">✅ 配置方案<b>已确定:方案2 · 模版制(VIP×3 模版)</b>。原方案1(VIP×12 月各月独立)已弃用,8309 不再展示(文件留存备查)。</div>
+      <h3>方案 2 · VIP×3 模版(31/29/30 天)</h3>
+      <ul>
+        <li>VIP × <b>3 模版</b>:模版1=31 天 / 模版2=29 天 / 模版3=30 天。</li>
+        <li>自然月按天数<b>自动套用</b>:1/3/5/7/8/10/12 月→模版1;2 月→模版2;4/6/9/11 月→模版3。</li>
+        <li>录入量 <b>12 → 3</b>,复制本模版 → 本 VIP 其他模版。</li>
+        <li>取舍:省事、维护成本低;同 VIP 各月无法差异化(本期可接受)。</li>
+      </ul>
+      <a class="golink" href="monthly-signin-admin-v2.html" target="_blank">打开方案 2 配置原型 ↗</a>
+      <h3>每日签到明细(以 VIP5 · 某月为例)</h3>
+      <table>
+        <tr><th>天</th><th>充值门槛</th><th>奖励</th><th>是否满签节点</th></tr>
+        <tr><td>1</td><td>1000</td><td>30</td><td>—</td></tr>
+        <tr><td>3</td><td>1000</td><td>30</td><td>连续 3 天 → 阶梯奖 30</td></tr>
+        <tr><td>7</td><td>1000</td><td>30</td><td>连续 7 天 → 阶梯奖 100</td></tr>
+        <tr><td>15</td><td>1000</td><td>30</td><td>连续 15 天 → 阶梯奖 300</td></tr>
+        <tr><td>月末(28/29/30/31)</td><td>1000</td><td>30</td><td>大奖 1000(连签至月末)</td></tr>
+      </table>
+      <p class="small">满签阶梯奖与「每日签到明细」<b>同表录入</b>:某天填了阶梯奖即为满签节点,留空 = 非节点。默认推荐 3/7/15/月末。建议值 vip1 大奖 100 / vip8 6000 / vip10 15000。</p>
+      <div class="note">配置矩阵膨胀(VIP 数 × 31 天 + 满签 + 补签 6 段)→ 后台提供「基础值批量填充 / 复制路线」;校验「等级越高条件不低于低等级」= <b>非强制 · 软提示</b>(以运营配置为准)。</div>
+    </section>
+
+    <!-- 满签阶梯 -->
+    <section class="pane" id="p-ladder">
+      <h2>🏅 满签阶梯(连续签到模型)</h2>
+      <p class="lead">阶梯进度 = <b>连续签到天数(含补签)</b>,从「第 1 天」(当月首签 / 选线日)起算。节点:连续 3 / 7 / 15 / 当月最后一天大奖。</p>
+      <h3>节点说明</h3>
+      <ul>
+        <li><b>连续 3 / 7 / 15 天</b>:固定不变;连续天数达此即可领该档阶梯奖。</li>
+        <li><b>月末大奖</b>:连续签到至<b>当月最后一天</b>(2 月连签 28/29 天即得,30 天月连签 30 天即得)。</li>
+        <li><b>连续中断</b>:某天漏签且<b>超过 5 天补签期</b> → 连续中断,阶梯进度变为「当下实际连续天数」,断点及之后阶梯置<b>「不可达」</b>。</li>
+        <li>窗口内有漏签(可补)该节点仍「进行中」并提示「需补签 N 天达成」。</li>
+      </ul>
+      <h3>前台阶梯条 4 状态(节点圆点动效表达 · 无单节点按键)</h3>
+      <div class="ladder">
+        <div class="lstep going"><div class="lh">① 未达标 <span class="pill going">进行中</span></div><div class="lr">+300</div><div class="ld"><b>金色描边圆点</b> · 连续未到本节点;窗口内有可补漏签则提示「需补签 N 天达成」</div></div>
+        <div class="lstep wait"><div class="lh">② 可领取 <span class="pill wait">达成未领</span></div><div class="lr">+100</div><div class="ld"><b>红色脉冲圆点</b> · 连续达节点未领;领取走底部「一键领取」(无单节点领取键)</div></div>
+        <div class="lstep done"><div class="lh">③ 已领取 <span class="pill done">已领 ✓</span></div><div class="lr">+30</div><div class="ld"><b>金色实心 ✓ 圆点</b> · 本档已领取</div></div>
+        <div class="lstep fail"><div class="lh">④ 不可达 <span class="pill fail">无法连到</span></div><div class="lr">+1000</div><div class="ld"><b>灰色圆点</b> · 连续中断、或月中首签无法连到该节点(如第 31 天)</div></div>
+      </div>
+      <div class="note"><b>领取动作统一由底部「一键领取」按键</b>:有可领取项 → 按键<b>启用</b>(显示「N 项 · 合计 X」);无可领取项 → 按键<b>禁用</b>(「暂无可领取的满签奖」)。<b>节点本身只用圆点动效表达状态,无单节点领取按键</b>。阶梯奖<b>每月每档限领一次</b>(已确认 · 连续中断重累计后<b>不可再领同档</b>);里程碑奖纳入 309 一键领取;当日签到同时达成阶梯奖时,弹框合并提示「阶梯奖一并领取」、一次确认同步发当日奖 + 阶梯奖并变更阶梯状态。</div>
+    </section>
+
+    <!-- 补签机制 -->
+    <section class="pane" id="p-retro">
+      <h2>↩️ 补签机制</h2>
+      <p class="lead">漏签可补,<b>只能往前补 N 天</b>(后台「补签天数」配置·默认 5·0 = 关闭·<b>无次数上限</b>)。</p>
+      <h3>分段倍数(按当月实际天数动态)</h3>
+      <table>
+        <tr><th>漏签日区间</th><th>充值门槛倍数</th><th>说明</th></tr>
+        <tr><td>1–5 天</td><td>×2</td><td>越早漏签成本越低</td></tr>
+        <tr><td>6–10 天</td><td>×3</td><td></td></tr>
+        <tr><td>11–15 天</td><td>×4</td><td></td></tr>
+        <tr><td>16–20 天</td><td>×5</td><td></td></tr>
+        <tr><td>21–25 天</td><td>×7</td><td></td></tr>
+        <tr><td>26–31 天</td><td>×10</td><td>小月不存在则该段不出现</td></tr>
+      </table>
+      <h3>补签规则</h3>
+      <ul>
+        <li>补签条件 = 基础充值 × 区间倍数;<b>确认补签 → 跳转存款页</b>(<code>recharge-page.html</code>),先充值达倍数门槛。</li>
+        <li>补签成功后该日<b>打钩、计入连续</b>;但补签的<b>单日奖励只补发一半</b>(30 → 15)。</li>
+        <li>前台<b>删除「剩余 N/N 次」次数额度显示</b>,改按「补签天数」窗口展示可补范围。</li>
+        <li>日历格区分两态:<b>漏签·可补</b>(可点补签)/ <b>漏签·超 5 天不可补</b>(置灰)。</li>
+      </ul>
+      <h3>月中首签者</h3>
+      <ul>
+        <li>首签 / 选线日 = 打卡卡片「第 1 天」,阶段从该日起算。</li>
+        <li>当月日历仍展示之前日期:首签日<b>前 5 天内 = 可补签</b>;<b>更早 = 置灰不可补</b>。</li>
+        <li>例:6/10 首签选线 → 6/5–6/9 显示可补,6/1–6/4 置灰不可补。</li>
+      </ul>
+      <div class="note">补签倍数高(26–31 天 ×10)+ 补发半额 → 补签率低,本意即抬高补签成本、以防刷为先;文案明示「补签需更高充值、奖励减半」。</div>
+    </section>
+
+    <!-- 领取模型 -->
+    <section class="pane" id="p-claim">
+      <h2>🎁 领取模型(两类两条路)</h2>
+      <p class="lead">每日签到奖与满签里程碑奖走不同领取路径。</p>
+      <div class="two">
+        <div>
+          <h3>A · 每日签到奖(当天即得)</h3>
+          <ul>
+            <li>领取 / 反馈在<b>签到页自身弹框</b>完成(在现有弹框基础上优化)。</li>
+            <li>bonus collection 中<b>沿用现状</b>:作为「跳转参加(Check)」项,点击跳转签到页;<b>不</b>内联领取、<b>不</b>纳入一键领取。</li>
+            <li>补签的单日奖(补发半额)同走此路,签到页弹框反馈。</li>
+          </ul>
+        </div>
+        <div>
+          <h3>B · 满签里程碑奖(3/7/15/月末)</h3>
+          <ul>
+            <li>满足条件时,签到页提示「点击领取」(走优化后反馈弹框)。</li>
+            <li>bonus collection <b>新增「待领取」状态</b>项,可在此领取。</li>
+            <li><b>纳入「一键领取」</b>,与其他活动奖聚合领取,体验统一。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="ok">复用 309 统一领取规范:领取成功弹窗(单项 / 多项 + 合计)+ 一键领取;沿用 V1 <code>msgCode</code>(已领 / 不满足 / 已过期 / 未到时间 / 勿重复提交);幂等去重。</div>
+      <div>
+        <a class="golink" href="bonus-collection.html" target="_blank">bonus collection ↗</a>
+        <a class="golink" href="claim-unified.html" target="_blank">一键领取 ↗</a>
+      </div>
+    </section>
+
+    <!-- 数据库设计 -->
+    <section class="pane" id="p-db">
+      <h2>🗄️ 数据库设计</h2>
+      <p class="lead">配置 5 表 + 运行 2 表(字段名待开发期对齐 V1 命名,本原型用占位名)。<b>不破坏 <code>tab_SignInRecharges</code> 现状</b>。</p>
+      <h3>配置表(5)</h3>
+      <table>
+        <tr><th>表</th><th>主要字段</th></tr>
+        <tr><td><code>act_msign_activity</code> 活动主表</td><td>周期类型(自然月)、起止、补签开关 + <b>补签天数</b>(默认 5·无次数上限)、首日选路线开关</td></tr>
+        <tr><td><code>act_msign_route</code> VIP 路线表</td><td>活动 × VIP 等级 × <b>3 模版</b>(31/29/30 天·方案2);自然月按天数自动套用对应模版</td></tr>
+        <tr><td><code>act_msign_day</code> 按天明细表</td><td>(VIP路线 × 月)× 第 1–N 天 → 充值门槛 + 奖励;大奖落月末第 N 天</td></tr>
+        <tr><td><code>act_msign_ladder</code> 满签阶梯表</td><td>路线 × 任意天(可配)→ 奖励(填写即节点,与按天明细同表录入;默认 3/7/15/月末)</td></tr>
+        <tr><td><code>act_msign_retro</code> 补签分段表</td><td>活动 × 区间(1-5/6-10/.../26-31)→ 倍数</td></tr>
+      </table>
+      <h3>运行表(2)</h3>
+      <table>
+        <tr><th>表</th><th>主要字段</th></tr>
+        <tr><td><code>act_msign_user</code> 会员月主记录</td><td>会员 × 年月 → 选定 VIP 路线、<b>首签日(第 1 天)</b>、<b>当下连续签到天数</b>、各阶梯领取状态</td></tr>
+        <tr><td><code>act_msign_user_day</code> 每天状态明细</td><td>主记录 × 当月每一天 → 状态(已签 / 漏签可补 / 漏签超期不可补 / 补签)、是否打钩、当日奖励、补签扣款</td></tr>
+      </table>
+      <div class="note">选定路线 / 首签日在「首签」时写入,本月不可变;补签计入满签 → 满签判定需补签成功后实时重算;领取 / 派彩接口幂等去重。</div>
+    </section>
+
+    <!-- 时序图 -->
+    <section class="pane" id="p-seq">
+      <h2>📋 时序图(签到 + 补签 + 领取)</h2>
+      <p class="lead">参与方:会员 / 前端页 / 后端 API / 结算 Job。</p>
+      <div class="seq">
+        <div class="seqh a">会员</div><div class="seqh b">前端页</div><div class="seqh c">后端 API</div><div class="seqh d">结算 Job</div>
+        <div class="seqstep"><span class="n">1</span> 进入签到页 <span class="ar">→</span> 前端 <span class="ar">→</span> <code>GetMonthlySignIn</code> <span class="ar">→</span> 返回当月配置 + 我的状态 + 第1天/当下连续天数 + 可补签项 + 超期不可补项 + 阶梯进度/可领</div>
+        <div class="seqstep"><span class="n">2</span> (当月首签)前端弹「选路线」<span class="ar">→</span> 会员选「当前 VIP 及以下」路线 <span class="ar">→</span> 写入并锁定本月路线</div>
+        <div class="seqstep"><span class="n">3</span> 当日签到 <span class="ar">→</span> <code>DoSignIn</code>:校验当日充值门槛 → 打钩 + 发当日奖(签到页弹框)。<b>若同时达成阶梯奖 → 合并提示「阶梯奖一并领取」</b></div>
+        <div class="seqstep"><span class="n">4</span> 漏签补签 <span class="ar">→</span> <code>DoRetroSignIn</code>:校验 5 天窗口 + 区间倍数 → <b>充值不足跳存款页</b> → 满足后打钩、计入连续、<b>半额</b>发奖、实时重算连续与阶梯</div>
+        <div class="seqstep"><span class="n">5</span> 连续达 3/7/15/月末 <span class="ar">→</span> 领里程碑 <span class="ar">→</span> <code>ClaimMilestone</code>(每档每月一次)<span class="ar">→</span> 走 309 统一领取 / 一键领取,幂等去重</div>
+        <div class="seqstep"><span class="n">6</span> 漏签超 5 天补签期 → 连续中断 → 阶梯回落实际连续天数,断点后阶梯置「不可达」</div>
+        <div class="seqstep"><span class="n">7</span> 月末 23:59 <span class="ar">→</span> <code>结算 Job</code>(或登录时判周期):本月清零、历史留档(次日快照表模式)</div>
+        <div class="seqstep"><span class="n">8</span> 下月 1 号 <span class="ar">→</span> 会员重新选路线(可选更高 VIP 路线),第 1 天重新起算</div>
+      </div>
+    </section>
+
+    <!-- 风险与建议 -->
+    <section class="pane" id="p-risk">
+      <h2>⚠️ 风险与优化建议</h2>
+      <h3>业务风险</h3>
+      <table>
+        <tr><th>风险</th><th>建议</th></tr>
+        <tr><td>跨月清零,月末连续签压力大 → 月末易弃签</td><td>月末红点 / 推送提醒;大奖按当月最后一天已降低门槛</td></tr>
+        <tr><td>补签仅 5 天,长断签用户挽不回 → 投诉</td><td>文案明示补签窗口;以防刷为先的取舍</td></tr>
+        <tr><td>补签倍数高(26–31 ×10)+ 半额 → 补签率低</td><td>文案明示「补签需更高充值、奖励减半」,本意即抬高成本</td></tr>
+        <tr><td>升级当月路线锁定 → 升级用户当月拿不到更高奖</td><td>文案标「下月可选更高路线」</td></tr>
+        <tr><td>首日选「当前 VIP 及以下」路线</td><td>防低充值用户硬选高路线刷奖;UI 默认推荐当前等级</td></tr>
+        <tr><td>连续中断 → 阶梯回落、断点后不可达</td><td>阶梯条明示「已失败 / 不可达」+ 当下连续天数;红点 / 补签提醒在窗口内挽回</td></tr>
+        <tr><td>月中首签者早期日不可补 → 难达高阶梯 / 月末大奖</td><td>选线日为第 1 天起算,弱化「错过早期」挫败;文案「越早签越易满签」</td></tr>
+      </table>
+      <h3>技术风险</h3>
+      <table>
+        <tr><th>风险</th><th>建议</th></tr>
+        <tr><td>配置矩阵膨胀(VIP × 31 天 + 满签 4 档 + 补签 6 段)</td><td>后台「基础值批量填充 / 复制路线」;方案2 模版制把录入量 12→3</td></tr>
+        <tr><td>自然月天数动态(28/29/30/31)</td><td>大奖节点、补签区间按当月天数实时计算;SP 与前端统一口径</td></tr>
+        <tr><td>补签计入满签 → 满签需补签成功后实时重算</td><td>补签 / 领取接口幂等 + 去重,防并发重复发奖</td></tr>
+        <tr><td>跨月清零 + 历史留档</td><td>Job 或登录时判周期归零;沿用 V1「次日快照表」模式存历史</td></tr>
+        <tr><td>V1 现状无 VIP 维度、无补签</td><td>新增多表;不破坏 <code>tab_SignInRecharges</code> 现状</td></tr>
+      </table>
+    </section>
+
+    <!-- 待确认问题 -->
+    <section class="pane" id="p-open">
+      <h2>❓ 待确认问题</h2>
+      <p class="lead">规则主体已由产品 2026-06-29 拍板;以下为开发期 / 产品最终确认项。</p>
+      <h3 style="color:var(--grn)">✅ 已确认</h3>
+      <div class="ok">周期 = 自然月;首日选「当前 VIP 及以下」路线,<b>当月锁定不可改</b>。</div>
+      <div class="ok">满签改「<b>连续签到模型</b>」,节点连续 3/7/15/月末大奖;漏签超 5 天补签期 → 连续中断。</div>
+      <div class="ok">补签「上限 N 次」→「<b>补签天数</b>」(默认 5·无次数上限);补发半额;确认补签跳存款页。</div>
+      <div class="ok">领取分两类:每日奖签到页弹框 / 满签奖纳入 309 一键领取。</div>
+      <div class="ok">后台配置<b>已确定采用方案2 · 模版制(VIP×3 模版 31/29/30 天)</b>;方案1(VIP×12 月)弃用,8309 不再展示。</div>
+      <div class="ok">会员签到记录(8901 <code>UserInfo/SinIn</code>)<b>只加字段不改结构</b>(新增搜索项 / 统计小结 / 字段,沿用<b>会员ID维度</b>)。</div>
+      <div class="ok">「等级越高条件不低于低等级」= <b>非强制(软提示)</b>,<b>以运营配置为准</b>。</div>
+      <div class="ok"><b>阶梯奖每月每档限领一次</b>;连续中断重累计后<b>不可再领同档</b>(每月每档仅一次)。</div>
+      <div class="ok">三星签到(#36)<b>已独立为「七日集星」</b>;本期 310 仅做现状 / 优化分区同步,详见七日集星需求文档。</div>
+      <h3 style="color:var(--red)">❓ 待定(开发期)</h3>
+      <div class="open">数据库新增表 / 字段命名待开发期对齐 V1 实际命名(本原型用占位名)。</div>
+    </section>
+  </main>
+</div>
+
+<script>
+  document.querySelectorAll('.mi').forEach(function(mi){
+    mi.onclick=function(){
+      document.querySelectorAll('.mi').forEach(function(x){x.classList.remove('on');});
+      document.querySelectorAll('.pane').forEach(function(x){x.classList.remove('on');});
+      mi.classList.add('on');
+      document.getElementById('p-'+mi.dataset.p).classList.add('on');
+      document.querySelector('.main').scrollTo(0,0);
+    };
+  });
+</script>
+</body>
+</html>

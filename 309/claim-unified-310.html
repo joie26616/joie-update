@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>310 · Bonus collection(月签到满签阶梯奖纳入 · 基于309统一领取)</title>
+<style>
+  :root{--red:#F95959;--org:#ED8B0F;--amberbg:#FAEEDA;--amberbd:#BA7517;--amber:#854F0B;--t1:#222;--t2:#888;--bd:#eee;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:#9a9a9a;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);}
+  .stage{display:flex;gap:30px;flex-wrap:wrap;align-items:flex-start;padding:24px;}
+
+  .phone{width:380px;height:680px;background:linear-gradient(180deg,#f7f5ff,#f1eefc);border-radius:22px;border:8px solid #1d1d1f;position:relative;overflow:hidden;}
+
+  /* ===== 底层:游戏页(#21 触发场景) ===== */
+  .gamebg{position:absolute;inset:0;background:linear-gradient(180deg,#2a1a4a,#160d2a);color:#fff;display:flex;flex-direction:column;padding:16px;}
+  .gtop{display:flex;justify-content:space-between;align-items:center;font-size:13px;}
+  .gtop .bal{display:flex;align-items:center;gap:6px}
+  .gtop .bal b{color:#FFD36B;font-size:19px;}
+  .gtop .dep{background:#E8302B;color:#fff;border-radius:14px;padding:4px 13px;font-size:12px;cursor:pointer;border:none;font-weight:700}
+  .garea{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+  .greel{font-size:46px;letter-spacing:8px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
+  .gresult{font-size:13px;background:rgba(255,255,255,.08);padding:7px 18px;border-radius:20px;border:1px solid rgba(255,255,255,.15)}
+  .gresult b{color:#FF6B6B}
+  .gbet{text-align:center;}
+  .gbet .min{font-size:12px;opacity:.85;margin-bottom:8px;}
+  .gbet .min s{color:#FF6B6B}
+  .gbet button{width:100%;padding:13px;border-radius:24px;border:none;font-size:15px;font-weight:700;background:#4a3a6a;color:#a89cc4;cursor:not-allowed}
+  .fab{position:absolute;right:16px;bottom:96px;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#FFD36B,#ED8B0F);display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 4px 16px rgba(0,0,0,.45);cursor:pointer;animation:fabp 1.6s infinite}
+  @keyframes fabp{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  .fabbadge{position:absolute;top:-3px;right:-3px;background:#E8302B;color:#fff;font-size:11px;font-weight:700;border-radius:10px;padding:0 6px;border:2px solid #160d2a;}
+  .gtrigger{font-size:11px;text-align:center;line-height:1.5;margin-top:8px;background:rgba(232,48,43,.22);border:1px solid rgba(232,48,43,.5);border-radius:8px;padding:7px 8px;color:#ffd9d9}
+  /* V2 底部导航(恢复现状:home/activity/promotion/wallet/main·无红点·无Deposit) */
+  .gtabbar{margin:10px -16px -16px;background:#fff;display:flex;justify-content:space-around;align-items:flex-end;padding:7px 0 9px;border-top:1px solid #eee;}
+  .gtabbar .t{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:#8a8f98;}
+  .gtabbar .t.on{color:var(--org);}
+  .gtabbar .t .e{font-size:21px;line-height:1;}
+  .gtabbar .t.mid .e{font-size:34px;margin-top:-16px;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3));}
+  .gtabbar .t.mid{color:var(--org);font-weight:700;}
+
+  /* ===== 覆盖层:Bonus collection(默认显示=触发后) ===== */
+  .bonusOverlay{position:absolute;inset:0;background:linear-gradient(180deg,#f7f5ff,#f1eefc);display:flex;flex-direction:column;z-index:8;}
+  .bonusOverlay.hide{display:none;}
+  .pophead{padding:16px 18px 6px;position:relative;flex:none;}
+  .pophead h1{margin:0;font-size:25px;font-weight:800;color:var(--red);line-height:1.15;max-width:62%;}
+  .pophead .gift{position:absolute;right:46px;top:12px;font-size:40px}
+  .pophead .sub21{font-size:11px;color:#9a7bd6;margin-top:3px}
+  .closex{position:absolute;right:12px;top:12px;width:30px;height:30px;border-radius:50%;background:#fff;border:none;font-size:15px;color:#888;box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer;z-index:9}
+
+  .stickybar{flex:none;margin:6px 14px 4px;background:linear-gradient(135deg,#FFE9C7,#FFD39B);border:1px solid #E6B566;border-radius:14px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  .stickybar .l .lab{font-size:12px;color:#8a5a12}
+  .stickybar .l .tot{font-size:24px;font-weight:800;color:#E8302B;line-height:1.1}
+  .stickybar .l .tot small{font-size:13px;font-weight:700}
+  .stickybar button{background:#E8302B;color:#fff;border:none;border-radius:20px;padding:10px 20px;font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap}
+
+  .listscroll{flex:1;overflow-y:auto;padding:6px 14px 10px}
+  .rcard{background:#fff;border-radius:14px;padding:14px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+  .rcard .info{flex:1}
+  .rcard .amt{display:flex;align-items:center;gap:6px;font-size:23px;font-weight:800;color:var(--org)}
+  .rcard .amt .coin{font-size:22px}
+  .rcard .amt .up{color:#E8302B;font-weight:900;font-size:18px;margin:0 -2px 0 0}
+  .rcard .nm{font-size:15px;color:#333;margin-top:6px}
+  .rcard .cd2{font-size:11px;color:#b5852f;margin-top:4px}
+  .rcard .recv{background:var(--red);color:#fff;border:none;border-radius:22px;padding:11px 26px;font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .rcard.disabled{opacity:.85}
+  .rcard.disabled .amt{color:#9aa3ad} .rcard.disabled .coin{filter:grayscale(1)}
+  .rcard .recv.gray{background:#e3e6ea;color:#9aa3ad}
+  .rcard .wait{font-size:11px;color:#8a96a3;margin-top:4px}
+  .cdt{color:#E8302B;font-weight:700;font-variant-numeric:tabular-nums}
+  .pbar{height:6px;background:#edeff2;border-radius:4px;margin-top:6px;max-width:230px}
+  .pbar i{display:block;height:100%;background:#4db24d;border-radius:4px}
+  .recv.inv{background:#1976d2}
+
+
+  /* #21 充值入口(底部固定) */
+  .depcta{flex:none;margin:0 14px 12px;background:#fff;border:1px dashed #E6B566;border-radius:12px;padding:10px 12px;font-size:12px;color:#8a5a12;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .depcta b{color:#E8302B}
+  .depcta button{background:#ED8B0F;color:#fff;border:none;border-radius:18px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+
+  /* 统一领取成功弹窗 */
+  .mask{position:absolute;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:20}
+  .dlg{width:280px;background:#fff;border-radius:16px;overflow:hidden;text-align:center}
+  .dlg .top2{padding:18px 0 4px}
+  .dlg .ok{width:64px;height:64px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:34px;color:#fff}
+  .ok.s{background:radial-gradient(circle at 38% 32%,#7ee0a3,#2e9e5b)} .ok.w{background:radial-gradient(circle at 38% 32%,#ffd07a,#E8920F)} .ok.f{background:radial-gradient(circle at 38% 32%,#bbb,#888)}
+  .dlg h3{margin:10px 0 0;font-size:18px}
+  .dlg .body{padding:6px 18px 4px}
+  .dlg .one .big{font-size:30px;font-weight:800;color:var(--org);margin:6px 0 2px}
+  .dlg .one .nm{font-size:13px;color:#888}
+  .dlg .list{text-align:left;max-height:150px;overflow:auto;margin:8px 0}
+  .dlg .li{display:flex;justify-content:space-between;border-bottom:1px solid #f2f2f2;padding:8px 2px;font-size:13px}
+  .dlg .li .a{color:var(--org);font-weight:700} .dlg .li .x{color:#c0392b;font-size:12px} .dlg .li .ok2{color:#2e9e5b}
+  .dlg .sum{font-size:12px;color:#888;margin:8px 0 2px}
+  .dlg .btns{display:flex;gap:10px;padding:12px 18px 18px}
+  .dlg .btns button{flex:1;padding:11px;border-radius:22px;border:none;font-size:14px;font-weight:700;cursor:pointer}
+  .dlg .btns .p{background:var(--red);color:#fff} .dlg .btns .o{background:#fff;border:1px solid var(--red);color:var(--red)}
+
+  .note{max-width:380px;background:#fff;border:1px solid var(--bd);border-radius:10px;padding:14px 16px;font-size:13px;color:#444;line-height:1.7}
+  .note h3{margin:14px 0 6px;font-size:14px} .note h3:first-of-type{margin-top:0}
+  .note code{background:#f4f4f4;border-radius:3px;padding:0 4px;font-size:12px}
+  .note .h21{color:#7B43C9}
+  .tg{display:inline-block;margin:0 8px 8px 0;font-size:12px;color:var(--org);cursor:pointer;text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- Bonus collection 弹窗(还原 V2 + 309 优化;整合 #21 触发场景)-->
+  <div class="phone">
+
+    <!-- ===== 底层:游戏页(#21 触发场景:余额不足) ===== -->
+    <div class="gamebg">
+      <div class="gtop">
+        <div class="bal">余额 <b>₹3.50</b></div>
+        <button class="dep" onclick="goDeposit()">＋ 充值</button>
+      </div>
+      <div class="garea">
+        <div class="greel">🎲 🎲 🎲</div>
+        <div class="gresult">最后一注:<b>输 −₹50.00</b></div>
+      </div>
+      <div class="gbet">
+        <div class="min">最低下注 <s>₹10.00</s> · 余额不足无法继续</div>
+        <button disabled>余额不足,无法跟注</button>
+      </div>
+      <!-- 浮窗小按钮:随时手动唤起 bonus collection -->
+      <div class="fab" onclick="openBonus()">🎁<span class="fabbadge">7</span></div>
+      <div class="gtrigger">#21 触发:余额 ₹3.50 &lt; 最低下注 ₹10 → <b>自动弹出 Bonus collection</b>(也可点右下 🎁 浮窗手动唤起)</div>
+      <!-- V2 底部导航(恢复成 V2 现状:home/activity/promotion/wallet/main) -->
+      <div class="gtabbar">
+        <div class="t on"><span class="e">🏠</span>Home</div>
+        <div class="t"><span class="e">🎯</span>Activity</div>
+        <div class="t mid"><span class="e">🎡</span>Promotion</div>
+        <div class="t"><span class="e">👛</span>Wallet</div>
+        <div class="t"><span class="e">👤</span>Main</div>
+      </div>
+    </div>
+
+    <!-- ===== 覆盖层:Bonus collection(默认显示=触发后) ===== -->
+    <div class="bonusOverlay" id="bonusOverlay">
+      <div class="pophead">
+        <h1>Bonus collection</h1><span class="gift">🎁</span>
+              </div>
+      <button class="closex" onclick="closeBonus()">✕</button>
+
+      <!-- ① 顶部固定:一键领取 + 待领取总额 -->
+      <div class="stickybar" id="stickybar">
+        <div class="l"><div class="lab">共 7 项待领取 · 合计</div><div class="tot"><small>₹</small>508.00</div></div>
+        <button onclick="oneClick()">一键领取</button>
+      </div>
+
+      <!-- 可滚动奖励列表(聚合所有开启活动) -->
+      <div class="listscroll">
+        <div class="rcard">
+          <div class="info"><div class="amt"><span class="coin">🪙</span>₹20.00</div><div class="nm">充值赠送彩金</div><div class="cd2">领取截止 <span class="cdt" data-dl="2026-07-09 23:59:59"></span></div></div>
+          <button class="recv" onclick="single('充值赠送彩金','₹20.00')">Receive</button>
+        </div>
+        <div class="rcard">
+          <div class="info"><div class="amt"><span class="coin">🏆</span>₹100.00</div><div class="nm">月签到 · 满签阶梯奖(7天)</div><div class="cd2">🆕310 · 连续签到达标 · 领取截止 <span class="cdt" data-dl="2026-07-31 23:59:59"></span></div></div>
+          <button class="recv" onclick="single('月签到·满签阶梯奖(7天)','₹100.00')">Receive</button>
+        </div>
+        <div class="rcard">
+          <div class="info"><div class="amt"><span class="coin">🪙</span>₹88.00</div><div class="nm">Weekly Award</div><div class="cd2">领取有效期 不限</div></div>
+          <button class="recv" onclick="single('Weekly Award','₹88.00')">Receive</button>
+        </div>
+        <div class="rcard">
+          <div class="info"><div class="amt"><span class="coin">🪙</span>₹50.00</div><div class="nm">VIP monthly reward</div><div class="cd2">领取有效期 不限</div></div>
+          <button class="recv" onclick="single('VIP monthly reward','₹50.00')">Receive</button>
+        </div>
+        <div class="rcard chest">
+          <div class="info"><div class="amt"><span class="coin">🎁</span><span style="font-size:13px;color:#8a6d1f;font-weight:600;margin-right:2px">最高可得</span>₹500.00</div><div class="nm">周存款任务(开宝箱领取)</div><div class="cd2">活动已结束 · 领取截止 <span class="cdt" data-dl="2026-07-04 23:59:59"></span> · 实发金额以开箱为准</div></div>
+          <button class="recv" onclick="openChest()">Receive</button>
+        </div>
+        <div class="rcard">
+          <div class="info"><div class="amt"><span class="coin">🪙</span>₹100.00</div><div class="nm">月度投注任务 · 6月奖励</div><div class="cd2">活动已结束 · 领取截止 <span class="cdt" data-dl="2026-07-04 23:59:59"></span></div></div>
+          <button class="recv" onclick="single('月度投注任务·6月','₹100.00')">Receive</button>
+        </div>
+        <div class="rcard">
+          <div class="info"><div class="amt"><span class="coin">🪙</span>₹100.00</div><div class="nm">月度投注任务 · 5月奖励</div><div class="cd2">活动已结束 · 领取截止 <span class="cdt" data-dl="2026-08-01 23:59:59"></span></div></div>
+          <button class="recv" onclick="single('月度投注任务·5月','₹100.00')">Receive</button>
+        </div>
+        <div class="rcard">
+          <div class="info"><div class="amt"><span class="coin">🪙</span>???</div><div class="nm">VIP level up reward</div><div class="cd2">领取有效期 不限</div></div>
+          <button class="recv" onclick="single('VIP level up reward','奖励')">Receive</button>
+        </div>
+        <div class="rcard disabled">
+          <div class="info"><div class="amt"><span class="coin">🪙</span>₹100.00</div><div class="nm">下月投注任务</div><div class="wait">任务结束后可领取 · 2026-07-31 23:59 · 距可领 <span class="cdt" data-start="2026-07-31 23:59:59"></span></div></div>
+          <button class="recv gray" disabled data-nm="下月投注任务" data-amt="₹100.00">Receive</button>
+        </div>
+
+        <div class="rcard">
+          <div class="info"><div class="amt"><span class="coin">🪙</span>₹120.00</div>
+            <div class="nm">每周邀请 5 人(邀请任务 <span style="font-size:11px;background:#f3f0fb;color:#6f42c1;border-radius:4px;padding:0 5px">#38</span>)</div>
+            <div class="cd2">领取条件:被邀请人充值 ≥500/人 · 已达标 3/5 人</div>
+            <div class="pbar"><i style="width:60%"></i></div>
+          </div>
+          <button class="recv inv" onclick="goInvite()">去邀请</button>
+        </div>
+
+        <!-- 跳转参加类(Check):保留 V2 现状 -->
+        <div class="rcard">
+          <div class="info"><div class="amt"><span class="coin">🪙</span><span class="up">↑</span>₹222.00</div><div class="nm">Invitation bonus</div></div>
+          <button class="recv" onclick="jump('Invitation bonus')">Check</button>
+        </div>
+        <div class="rcard">
+          <div class="info"><div class="amt"><span class="coin">🪙</span><span class="up">↑</span>₹10,000.00</div><div class="nm">Tournament Rewards</div></div>
+          <button class="recv" onclick="jump('Tournament Rewards')">Check</button>
+        </div>
+        <div class="rcard">
+          <div class="info"><div class="amt"><span class="coin">🪙</span><span class="up">↑</span>₹12.00</div><div class="nm">New Members Bonus for Losing Profits</div></div>
+          <button class="recv" onclick="jump('New Members Bonus')">Check</button>
+        </div>
+        <div class="rcard">
+          <div class="info"><div class="amt"><span class="coin">🪙</span><span class="up">↑</span>₹258.00</div><div class="nm">New members get bonuses by playing games</div></div>
+          <button class="recv" onclick="jump('Play games bonus')">Check</button>
+        </div>
+      </div>
+
+      <!-- #21 充值入口(底部固定):领完仍想加注 / 无可领时引导充值 -->
+      <div class="depcta">
+        <span id="depmsg">领完这 <b>₹508</b> 还想加注?直接充值继续</span>
+        <button onclick="goDeposit()">去充值 ＋</button>
+      </div>
+    </div>
+
+
+    <!-- 宝箱弹框(沿用 V2 全屏宝箱设计:进入面板优先自动弹,开箱后列表卡消失) -->
+    <div id="chestPop" style="position:absolute;inset:0;background:rgba(0,0,0,.82);z-index:99;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center">
+      <div style="font-size:15px;color:#ffd76a;margin-bottom:6px">周存款任务 · 开宝箱领取</div>
+      <div id="chestBox" style="font-size:96px;cursor:pointer;line-height:1.1" onclick="doOpenChest()">🎁</div>
+      <div id="chestAmt" style="display:none;font-size:32px;color:#ffd76a;font-weight:800;margin-top:6px"></div>
+      <div style="font-size:12px;color:#cbd2da;margin-top:8px">最高可得 ₹500.00 · 领取截止 <span class="cdt" data-dl="2026-07-04 23:59:59"></span></div>
+      <button id="chestBtn" onclick="doOpenChest()" style="margin-top:14px;background:#E8302B;color:#fff;border:none;border-radius:22px;padding:12px 44px;font-size:16px;font-weight:700;cursor:pointer">开宝箱</button>
+    </div>
+
+    <!-- 统一弹窗 -->
+    <div class="mask" id="mask"><div class="dlg" id="dlg"></div></div>
+  </div>
+
+  <!-- 说明 -->
+  <div class="note">
+    <span class="tg" onclick="closeBonus()">▶ 关闭看游戏页(触发场景)</span>
+    <span class="tg" onclick="openBonus()">▶ 点🎁浮窗唤起</span>
+    <span class="tg" onclick="single('Weekly Award','₹88.00')">① 单项领取</span>
+    <span class="tg" onclick="multiOk()">② 一键全成</span>
+    <span class="tg" onclick="multiPart()">③ 部分成功</span>
+    <span class="tg" onclick="multiFail()">④ 全部失败</span>
+
+    <h3 style="color:#2E7D4F">🆕 310 · 月签到满签阶梯奖纳入(本页新增)</h3>
+    <p><b>每日签到日常奖</b>不在此领取:作为 Check(跳转参加)→ 跳<b>签到页</b>用签到页弹框领,不计入一键领取(沿用现状)。</p>
+    <p><b>满签阶梯奖</b>(连续 3/7/15 天 / 月末大奖)→ 在本面板显示<b>「待领取」卡片</b>(🏆,示例:月签到·满签阶梯奖(7天)₹100),走统一领取弹窗、<b>计入一键领取与合计</b>;领取截止倒计时、过期不显示等行为与其它直接领取类奖励一致(单项/一键成功列表)。</p>
+    <p><b>后端</b>:<code>SignInController(ClaimMilestone)</code>;幂等去重沿用 <code>msgCode</code>(已领取 / 已过期 / 请勿重复提交)。</p>
+    <p style="color:#8a8980"><b>基线说明</b>:本页基于 <b>309 统一领取 / 一键领取 / 宝箱 / #21 充值引导</b> 全量规范构建(统一领取反馈与部分成功失败口径、宝箱不计入合计、底部四场景通用文案等 309 设计与交互说明见 <a href="claim-unified.html">309 · claim-unified</a>),此处不再重复,只记录 310 新增。</p>
+  </div>
+
+<script>
+  // ① 领取截止实时倒计时(演示用客户端时间;真实实现以接口 serverTime 为基准)
+  function pad2(n){return n<10?'0'+n:n;}
+  function fmt(ms){ var d=Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000), m=Math.floor(ms%3600000/60000), s2=Math.floor(ms%60000/1000); return (d>0? d+'天 ':'')+pad2(h)+':'+pad2(m)+':'+pad2(s2); }
+  function tick(){
+    // 领取截止倒计时:到期 → 卡片直接不显示(=服务端不返回已过期项)
+    document.querySelectorAll('.cdt[data-dl]').forEach(function(el){
+      var ms = new Date(el.getAttribute('data-dl').replace(/-/g,'/')) - new Date();
+      if(ms<=0){ var c=el.closest('.rcard'); if(c && c.style.display!=='none'){ c.style.display='none'; refreshBar(); } return; }
+      el.textContent=fmt(ms);
+    });
+    // 未到领取时间:距可领倒计时
+    document.querySelectorAll('.cdt[data-start]').forEach(function(el){
+      var ms = new Date(el.getAttribute('data-start').replace(/-/g,'/')) - new Date();
+      el.textContent = ms>0 ? fmt(ms) : '已可领取(刷新页面更新)';
+    });
+  }
+  // 页面加载(=手动刷新):到了可领取时间的置灰卡 → 转为可领,合计随 refreshBar 更新
+  document.querySelectorAll('.recv.gray[data-nm]').forEach(function(b){
+    var el=b.closest('.rcard').querySelector('.cdt[data-start]');
+    if(el && new Date(el.getAttribute('data-start').replace(/-/g,'/')) <= new Date()){
+      b.classList.remove('gray'); b.disabled=false; b.textContent='Receive';
+      var nm=b.getAttribute('data-nm'), amt=b.getAttribute('data-amt');
+      b.onclick=function(){ single(nm,amt); };
+      b.closest('.rcard').classList.remove('disabled');
+      var w=b.closest('.rcard').querySelector('.wait'); if(w) w.remove();
+    }
+  });
+  tick(); setInterval(tick,1000);
+  refreshBar();
+  // ③ 宝箱类 Receive → 联动打开宝箱弹窗原型
+  var chestOpened=false;
+  function openChest(){ document.getElementById('chestPop').style.display='flex'; }
+  function doOpenChest(){
+    var btn=document.getElementById('chestBtn');
+    if(!chestOpened){
+      chestOpened=true;
+      var amt=(Math.random()*490+10).toFixed(2);   // 实发:后端按实际区间随机,此处纯前端演示
+      document.getElementById('chestBox').textContent='🎉';
+      var a=document.getElementById('chestAmt'); a.style.display='block'; a.textContent='₹'+amt;
+      btn.textContent='收下奖励';
+    }else{
+      document.getElementById('chestPop').style.display='none';
+      document.querySelectorAll('.rcard.chest').forEach(function(c){ c.remove(); });   // 开箱到账后宝箱卡不再显示
+      refreshBar();
+    }
+  }
+  // 进入 Bonus collection:存在待开宝箱 → 优先自动弹宝箱弹框(演示"每天首次登录自动弹一次")
+  if(document.querySelector('.rcard.chest')) openChest();
+  function goInvite(){ alert('#38 跳转 V2 邀请分享页(promotion)拉起分享面板;分享后返回本面板刷新进度。5 人全部达标 → 任务结束发放,本卡变为普通待领卡(Receive + 领取截止倒计时),走统一领取/一键领取'); }
+</script>
+</body>
+</html>

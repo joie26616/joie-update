@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>七日集星 · 前端原型</title>
+<style>
+  :root{--org:#ED6B2E;--gold:#C8941A;--goldbg:#FFF7E6;--red:#E8505B;--grn:#2E9C5B;--grnbg:#EAF7EF;--t1:#222;--t2:#888;--t3:#b3b3b3;--bd:#eee;--prim:#7752FD;
+    --bronze:#b87333;--silver:#7d879a;--gld:#C8941A;--diamond:#3aa6c4;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:#9a9a9a;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);}
+  .phone{max-width:400px;margin:0 auto;background:#f4f5f7;min-height:100vh;position:relative;padding-bottom:26px;}
+  .top{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:#fff;}
+  .top .end{font-size:12px;color:var(--red);border:1px solid #f3c3c7;border-radius:14px;padding:4px 12px;cursor:pointer;}
+
+  /* ===== HERO:目标感(无标题/icon) ===== */
+  .hero{background:linear-gradient(140deg,#7a52ff,#9c6bff 60%,#b98bff);color:#fff;padding:15px 16px 18px;position:relative;overflow:hidden;}
+  .hero::after{content:"⭐";position:absolute;right:-12px;top:-22px;font-size:120px;opacity:.10;transform:rotate(12deg);}
+  .hero .chiprow{display:flex;gap:7px;flex-wrap:wrap;min-height:22px;}
+  .hero .lock,.hero .pay{font-size:11px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.45);border-radius:18px;padding:3px 11px;display:none;align-items:center;gap:4px;}
+  .hero .lock.on,.hero .pay.on{display:inline-flex;}
+  .hero .pay.ready{background:rgba(86,200,140,.32);border-color:rgba(180,255,210,.7);}
+  /* 大星数 */
+  .bignum{display:flex;align-items:baseline;gap:6px;margin:11px 0 2px;}
+  .bignum .n{font-size:46px;font-weight:900;line-height:1;letter-spacing:-1px;text-shadow:0 2px 8px rgba(0,0,0,.12);}
+  .bignum .u{font-size:15px;font-weight:700;opacity:.92;}
+  .bignum .star{font-size:24px;margin-left:2px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.15));}
+  /* 目标行 */
+  .goal{font-size:13.5px;background:rgba(255,255,255,.16);border-radius:10px;padding:9px 12px;margin-top:10px;line-height:1.5;}
+  .goal b{font-size:16px;}
+  .goal .amt{color:#FFE08A;font-weight:900;font-size:18px;}
+  .goal.alldone{background:rgba(255,255,255,.24);font-weight:700;}
+  .hero .trackwrap{background:#fff;border-radius:12px;padding:4px 6px;margin-top:12px;}
+
+  /* ===== 通用卡片 ===== */
+  .card{background:#fff;margin:11px 11px 0;border-radius:14px;padding:14px;box-shadow:0 1px 0 rgba(0,0,0,.02);}
+  .ttl{font-size:14px;font-weight:800;margin:0 0 12px;display:flex;align-items:center;gap:6px;}
+  .ttl .hint{font-size:11px;font-weight:500;color:var(--t3);margin-left:auto;}
+
+  /* ===== 里程碑节点进度条 ===== */
+  .track{position:relative;height:7px;background:#eef0f3;border-radius:4px;margin:30px 26px 52px;}
+  .fill{position:absolute;left:0;top:0;height:7px;background:linear-gradient(90deg,#FFD66B,#C8941A);border-radius:4px;transition:width .7s cubic-bezier(.22,1,.36,1);}
+  .node{position:absolute;top:50%;transform:translate(-50%,-50%);text-align:center;width:64px;}
+  .node .dot{width:30px;height:30px;border-radius:50%;background:#e6e8ec;color:#aab;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;border:3px solid #fff;margin:0 auto;box-shadow:0 1px 3px rgba(0,0,0,.12);}
+  .node.reached .dot{background:linear-gradient(135deg,#FFD66B,#C8941A);color:#fff;}
+  .node.claim .dot{background:var(--red);color:#fff;animation:pulse 1.2s infinite;cursor:pointer;}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,80,91,.55);}50%{box-shadow:0 0 0 8px rgba(232,80,91,0);}}
+  .node .lbl{position:absolute;top:22px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--t2);font-weight:700;white-space:nowrap;text-align:center;line-height:1.35;}
+  .node .lbl b{display:block;color:var(--gold);font-size:12px;font-weight:800;}
+  .node.claim .lbl b{color:var(--red);}
+  /* 当前位置指针 */
+  .cursor{position:absolute;top:-22px;transform:translateX(-50%);transition:left .7s cubic-bezier(.22,1,.36,1);z-index:3;}
+  .cursor .cb{background:var(--prim);color:#fff;font-size:11px;font-weight:800;border-radius:8px;padding:2px 7px;white-space:nowrap;box-shadow:0 2px 6px rgba(119,82,253,.4);}
+  .cursor .cb::after{content:"";position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--prim);}
+
+  /* ===== 今日奖励 ===== */
+  .rwd-main{border-radius:14px;overflow:hidden;border:1px solid #eee;}
+  .rwd-top{padding:7px 14px;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;gap:6px;}
+  .rwd-top.bronze{background:linear-gradient(135deg,#cd8a52,#a5631f);} .rwd-top.silver{background:linear-gradient(135deg,#9aa4b4,#6c7686);}
+  .rwd-top.gold{background:linear-gradient(135deg,#e6b53c,#b57f10);} .rwd-top.diamond{background:linear-gradient(135deg,#56c3df,#2b8aa6);}
+  .rwd-body{padding:14px;display:flex;align-items:center;gap:12px;}
+  .rwd-amt{display:flex;align-items:baseline;gap:3px;}
+  .rwd-amt .v{font-size:30px;font-weight:900;color:var(--org);line-height:1;}
+  .rwd-amt .c{font-size:13px;color:var(--t2);font-weight:700;}
+  .rwd-sub{font-size:11.5px;color:var(--t2);margin-top:4px;}
+  .rwd-cta{margin-left:auto;flex:0 0 auto;}
+  .btn-main{border:none;border-radius:22px;padding:11px 20px;font-size:14px;font-weight:800;background:var(--prim);color:#fff;cursor:pointer;box-shadow:0 4px 12px rgba(119,82,253,.32);}
+  .btn-main:disabled{background:#cfcfd6;box-shadow:none;cursor:not-allowed;}
+  .rwd-next{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2);margin-top:11px;padding-top:11px;border-top:1px dashed #eee;}
+  .rwd-next .nd{width:9px;height:9px;border-radius:50%;}
+  .rwd-next b{color:var(--t1);}
+  .pickrow{display:flex;align-items:center;gap:9px;padding:9px 4px;border-top:1px solid #f4f4f6;font-size:12.5px;}
+  .pickrow .nd{width:9px;height:9px;border-radius:50%;flex:0 0 auto;}
+  .pickrow .pk-amt{font-weight:800;color:var(--org);margin-left:auto;}
+  .pickrow .pk-go{font-size:11.5px;font-weight:700;color:var(--prim);border:1px solid #d9d0ff;border-radius:14px;padding:5px 11px;cursor:pointer;background:#fff;}
+  .pickrow.no{opacity:.5;}
+  .pickrow.no .pk-go,.pickrow.locked-wait .pk-go{color:var(--t3);border-color:#eee;cursor:not-allowed;background:#f7f7f9;}
+  .b-bronze{background:var(--bronze);} .b-silver{background:var(--silver);} .b-gold{background:var(--gld);} .b-diamond{background:var(--diamond);}
+  .lockwarn{font-size:11px;color:#854F0B;background:#FAEEDA;border:1px solid #e7cf9e;border-radius:9px;padding:8px 11px;margin-top:10px;line-height:1.5;}
+  /* 未到派奖时间 banner */
+  .paywait{font-size:12px;color:#7a5b16;background:#FFF4DA;border:1px solid #ecd49a;border-radius:10px;padding:9px 12px;margin-bottom:10px;line-height:1.5;display:flex;align-items:center;gap:7px;}
+  .paywait b{color:#9a6b00;}
+
+  /* ===== 今日任务 ===== */
+  .task{display:flex;align-items:flex-start;gap:11px;padding:11px;border-radius:12px;border:1px solid #f0f0f3;margin-bottom:8px;background:#fff;}
+  .task:last-child{margin-bottom:0;}
+  .task.done{background:var(--grnbg);border-color:#cdebd8;}
+  .task.reco{border-color:var(--prim);box-shadow:0 0 0 2px rgba(119,82,253,.12);background:#faf8ff;}
+  .ticon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:21px;flex:0 0 auto;background:#f3f0ff;}
+  .task.done .ticon{background:#d9f0e2;}
+  .tinfo{flex:1;min-width:0;}
+  .tnm{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .reco-tag{font-size:10px;font-weight:800;color:#fff;background:var(--prim);border-radius:7px;padding:1px 6px;}
+  .tier-badge{font-size:10px;font-weight:800;color:#fff;border-radius:7px;padding:1px 7px;}
+  .tb-bronze{background:var(--bronze);} .tb-silver{background:var(--silver);} .tb-gold{background:var(--gld);} .tb-diamond{background:var(--diamond);} .tb-none{background:#b9bcc4;}
+  .tpro{font-size:11.5px;color:var(--t2);margin-top:3px;}
+  .tpro .lack{color:var(--org);font-weight:800;}
+  .tpro .cur{color:var(--t1);font-weight:800;}
+  .tdone{font-size:12px;color:var(--grn);font-weight:800;margin-top:3px;display:flex;align-items:center;gap:4px;}
+  /* 任务的段位条件 chips */
+  .tchips{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+  .tchip{font-size:10.5px;border-radius:7px;padding:2px 7px;background:#f3f3f6;color:#9a9aa3;border:1px solid #ededf2;white-space:nowrap;}
+  .tchip.met{background:#fff;font-weight:700;}
+  .tchip.met.bronze{color:var(--bronze);border-color:#e6cdb3;} .tchip.met.silver{color:var(--silver);border-color:#d3d7df;}
+  .tchip.met.gold{color:var(--gld);border-color:#ecd49a;} .tchip.met.diamond{color:var(--diamond);border-color:#aee0ec;}
+  .tchip.cap{font-weight:800;}
+  .tgo{flex:0 0 auto;font-size:12.5px;font-weight:800;border-radius:18px;padding:8px 15px;cursor:pointer;border:1px solid var(--prim);background:#fff;color:var(--prim);}
+  .task.reco .tgo{background:var(--prim);color:#fff;}
+  .tcheck{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--grn);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;margin-top:2px;}
+  .alldone-banner{text-align:center;font-size:13px;font-weight:800;color:var(--grn);background:var(--grnbg);border-radius:10px;padding:9px;margin-top:4px;}
+
+  /* ===== 弹窗 / toast ===== */
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .mask.on{display:flex;}
+  .modal{background:#fff;border-radius:16px;width:100%;max-width:340px;padding:20px 18px;max-height:88vh;overflow:auto;position:relative;}
+  .modal h3{margin:0 0 4px;font-size:17px;text-align:center;}
+  .modal .msub{font-size:12px;color:var(--t2);text-align:center;margin-bottom:14px;}
+  .xclose{position:absolute;top:10px;right:14px;font-size:22px;color:#bbb;cursor:pointer;}
+  .btn{display:block;width:100%;text-align:center;padding:12px;border-radius:24px;font-size:15px;font-weight:700;border:none;cursor:pointer;margin-top:8px;}
+  .btn.prim{background:var(--prim);color:#fff;} .btn.ghost{background:#fff;color:var(--t2);border:1px solid #ddd;}
+  .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;font-size:13px;padding:10px 18px;border-radius:20px;z-index:60;opacity:0;transition:.3s;pointer-events:none;}
+  .toast.on{opacity:1;}
+  .demobar{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--t2);margin:11px 11px 0;flex-wrap:wrap;}
+  .dp{font-size:11px;border:1px solid #ddd;background:#fff;border-radius:14px;padding:4px 10px;cursor:pointer;}
+  .dp.on{background:var(--prim);color:#fff;border-color:var(--prim);}
+  .flystar{position:fixed;font-size:24px;z-index:70;pointer-events:none;transition:all .65s cubic-bezier(.5,-0.2,.4,1);filter:drop-shadow(0 2px 5px rgba(200,148,26,.6));}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top"><span style="font-size:20px">‹</span> <b>七日集星</b> <span class="end" onclick="openEnd()">终止本轮</span></div>
+  <div style="background:#FDECEC;color:#a5281f;font-size:12px;font-weight:600;padding:7px 12px;text-align:center;border-bottom:1px solid #f3c3c7">⏸ 产品内部暂停需求 · 原型留存备查</div>
+
+  <!-- ===== HERO(无标题/icon) ===== -->
+  <div class="hero">
+    <div class="chiprow">
+      <span class="lock" id="lockTip">🔒 已锁定 <b id="lockName">—</b> · 第 <span id="dayNo">1</span>/7 天</span>
+    </div>
+    <div class="bignum"><span>本期已集</span><span class="n" id="bigStar">0</span><span class="u">/ 21</span><span class="star">⭐</span></div>
+    <div class="trackwrap"><div class="track" id="track"></div></div>
+  </div>
+
+  <div class="demobar">演示场景:
+    <span class="dp on" data-s="s1" onclick="setScene('s1')">①未到派奖时间</span>
+    <span class="dp" data-s="s2" onclick="setScene('s2')">②已到派奖时间</span>
+    <span class="dp" data-s="locked" onclick="setScene('locked')">已锁白银·第3天</span>
+  </div>
+
+  <!-- ===== 今日奖励(在任务之上) ===== -->
+  <div class="card">
+    <div class="ttl">🎁 今日奖励 <span class="hint" id="claimHint"></span></div>
+    <div id="claimArea"></div>
+  </div>
+
+  <!-- ===== 今日任务 ===== -->
+  <div class="card">
+    <div class="ttl">📋 今日任务 <span class="hint" id="taskHint"></span></div>
+    <div id="taskList"></div>
+  </div>
+
+</div>
+
+<!-- 选段位领取弹窗 -->
+<div class="mask" id="pickMask" onclick="if(event.target===this)closeMask('pickMask')">
+  <div class="modal">
+    <span class="xclose" onclick="closeMask('pickMask')">×</span>
+    <h3>确认领取并锁定段位</h3>
+    <div class="msub" id="pickSub"></div>
+    <div class="lockwarn">⚠️ 领取后<b>锁定该段位</b>,之后 6 天都按此段位的条件与奖励统计派发,<b>不可更改</b>。</div>
+    <button class="btn prim" id="pickConfirm">确认领取</button>
+    <button class="btn ghost" onclick="closeMask('pickMask')">再想想</button>
+  </div>
+</div>
+
+<!-- 终止确认 -->
+<div class="mask" id="endMask" onclick="if(event.target===this)closeMask('endMask')">
+  <div class="modal">
+    <h3>终止本轮?</h3>
+    <div class="msub" id="endSub">终止后本轮进度清零,需重新选段位从第 1 天开始。</div>
+    <button class="btn prim" onclick="doEnd()">确认终止</button>
+    <button class="btn ghost" onclick="closeMask('endMask')">取消</button>
+  </div>
+</div>
+
+<!-- 成功 -->
+<div class="mask" id="okMask" onclick="if(event.target===this)closeMask('okMask')">
+  <div class="modal" style="text-align:center">
+    <div style="font-size:42px">🎉</div>
+    <h3 id="okTtl">领取成功</h3>
+    <div style="font-size:28px;font-weight:900;color:var(--gold);margin:6px 0" id="okAmt">+10</div>
+    <div class="msub" id="okSub"></div>
+    <button class="btn prim" onclick="closeMask('okMask')">知道了</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+  const TIERS = {
+    青铜:{cls:'bronze', day:{rwd:10,req:100,bet:500,inv:1}, ms:{7:300,14:500,21:1000}},
+    白银:{cls:'silver', day:{rwd:20,req:200,bet:1000,inv:2}, ms:{7:500,14:800,21:1800}},
+    黄金:{cls:'gold',   day:{rwd:40,req:500,bet:2500,inv:3}, ms:{7:900,14:1500,21:3000}},
+    钻石:{cls:'diamond',day:{rwd:80,req:1000,bet:5000,inv:3},ms:{7:1800,14:3000,21:6000}},
+  };
+  const ORDER=['青铜','白银','黄金','钻石'];
+  // 会员今日实际(演示):充值达白银 / 投注达青铜 / 邀请达钻石 —— 完成了不同段位的不同任务
+  const TODAY_VAL = {req:200, bet:600, inv:3};
+  const MS_NODES=[7,14,21];
+  // payoutReady = 是否已到派奖时间(当日结算后)
+  let scene='s1', lockedTier=null, dayNo=1, stars=0, payoutReady=false;
+
+  function setScene(s){
+    scene=s;
+    document.querySelectorAll('.dp').forEach(p=>p.classList.toggle('on',p.dataset.s===s));
+    if(s==='locked'){ lockedTier='白银'; dayNo=3; stars=6; payoutReady=true; }
+    else { lockedTier=null; dayNo=1; stars=0; payoutReady=(s==='s2'); }
+    render();
+  }
+  function metFlags(tier){ const t=TIERS[tier].day; return {req:TODAY_VAL.req>=t.req, bet:TODAY_VAL.bet>=t.bet, inv:TODAY_VAL.inv>=t.inv}; }
+  function metCount(tier){ const f=metFlags(tier); return (f.req?1:0)+(f.bet?1:0)+(f.inv?1:0); }
+  function bestClaimable(){ for(let i=ORDER.length-1;i>=0;i--){ if(metCount(ORDER[i])>=1) return ORDER[i]; } return null; }
+  function nextMilestone(){ for(const n of MS_NODES){ if(stars<n) return n; } return null; }
+  // 某任务当前达到的最高段位 index(-1=未达任何)
+  function taskTierIdx(key){ for(let i=ORDER.length-1;i>=0;i--){ if(TODAY_VAL[key]>=TIERS[ORDER[i]].day[key]) return i; } return -1; }
+
+  function render(){
+    document.getElementById('lockTip').classList.toggle('on',!!lockedTier);
+    if(lockedTier){ document.getElementById('lockName').textContent=lockedTier; document.getElementById('dayNo').textContent=dayNo; }
+    document.getElementById('bigStar').textContent=stars;
+    renderTrack(); renderClaim(); renderTasks();
+  }
+
+  function renderTrack(){
+    const tier=lockedTier||'青铜', tk=document.getElementById('track');
+    let html='<div class="fill" id="fillBar" style="width:'+(Math.min(stars/21,1)*100)+'%"></div>';
+    MS_NODES.forEach(n=>{
+      const reached=stars>=n, pos=(n/21*100).toFixed(1);
+      const canClaim=reached&&payoutReady;
+      const dotClick=canClaim?' onclick="claimMs('+n+',event)"':'';   // 可领取圆点本身可点(无独立按键)
+      html+='<div class="node'+(reached?' reached':'')+(canClaim?' claim':'')+'" style="left:'+pos+'%">'+
+        '<div class="dot"'+dotClick+'>'+(reached?'✓':n)+'</div>'+
+        '<div class="lbl">'+n+'⭐<b>¥'+TIERS[tier].ms[n]+'</b></div></div>';
+    });
+    html+='<div class="cursor" id="cursor" style="left:'+(Math.min(stars/21,1)*100)+'%"><div class="cb">'+stars+'⭐</div></div>';
+    tk.innerHTML=html;
+  }
+
+  // 今日奖励:完成任务 = +1⭐ + 当天签到奖金(现金);里程碑彩金 = 集满 7/14/21⭐ 另发
+  function renderClaim(){
+    const area=document.getElementById('claimArea'), hint=document.getElementById('claimHint');
+    const payBanner = payoutReady? '' :
+      '<div class="paywait">⏰ <span><b>未到派奖时间</b> · 今日任务已达标,将于<b>当日结算(约 24:00)</b>后到账星星 + 当天签到奖金</span></div>';
+    if(!lockedTier){
+      hint.textContent= payoutReady? '' : '结算后到账';
+      const best=bestClaimable();
+      if(!best){ area.innerHTML=payBanner+'<div class="rwd-next" style="border:none;padding:0">完成任一任务即可选段位锁定、得 ⭐ + 当天签到奖金</div>'; return; }
+      const t=TIERS[best], bs=metCount(best);
+      let html=payBanner+'<div class="rwd-main"><div class="rwd-top '+t.cls+'">🏅 今日可领最高档 · '+best+'段位</div>'+
+        '<div class="rwd-body"><div><div class="rwd-amt"><span class="v">+¥'+t.day.rwd+'</span><span class="c">当天签到奖金</span></div>'+
+        '<div class="rwd-sub">同时 <b style="color:var(--gold)">+'+bs+'⭐</b> 今日集星 · 满 7/14/21⭐ 另发 ¥'+t.ms[7]+'/'+t.ms[14]+'/'+t.ms[21]+' 彩金</div></div>'+
+        '<div class="rwd-cta"><button class="btn-main" '+(payoutReady?'':'disabled')+' onclick="askPick(\''+best+'\')">'+(payoutReady?'锁定 · 领¥'+t.day.rwd+'+'+bs+'⭐':'结算后到账')+'</button></div></div></div>';
+      html+='<div style="margin-top:6px">';
+      ORDER.filter(k=>k!==best).forEach(k=>{
+        const c=metCount(k), ok=c>=1, tt=TIERS[k];
+        const cls='pickrow'+(ok?(payoutReady?'':' locked-wait'):' no');
+        const go = ok? (payoutReady? 'onclick="askPick(\''+k+'\')"':'') : '';
+        const label = ok? (payoutReady?'选这档':'结算后') : '差'+(3-c)+'项';
+        html+='<div class="'+cls+'"><span class="nd b-'+tt.cls+'"></span> '+k+' <span class="rwd-sub" style="margin:0">当天奖¥'+tt.day.rwd+' · +'+c+'⭐ · 满21⭐¥'+tt.ms[21]+'</span> '+
+          '<span class="pk-go" style="margin-left:auto" '+go+'>'+label+'</span></div>';
+      });
+      html+='</div><div class="lockwarn">⚠️ 完成任务 <b>+1⭐</b>;当天完成 ≥1 任务可领<b>当天签到奖金</b>(现金·按段位第 N 天);集满 <b>7/14/21⭐</b> 另发里程碑彩金。只能选一个段位锁定。</div>';
+      area.innerHTML=html;
+    } else {
+      hint.textContent='已锁 '+lockedTier;
+      const c=metCount(lockedTier), t=TIERS[lockedTier];
+      const canClaim=c>=1&&payoutReady;
+      let html=payBanner+'<div class="rwd-main"><div class="rwd-top '+t.cls+'">🎁 第 '+dayNo+' 天 · '+lockedTier+'段位</div>'+
+        '<div class="rwd-body"><div><div class="rwd-amt"><span class="v">+¥'+t.day.rwd+'</span><span class="c">当天签到奖金</span></div>'+
+        '<div class="rwd-sub">今日完成 '+c+'/3 任务 · 同时 <b style="color:var(--gold)">+'+c+'⭐</b> · 集满里程碑另发彩金</div></div>'+
+        '<div class="rwd-cta"><button class="btn-main" '+(canClaim?'':'disabled')+' onclick="claimDaily()">'+(c<1?'未达标':(payoutReady?'领 ¥'+t.day.rwd+'+'+c+'⭐':'结算后到账'))+'</button></div></div></div>';
+      const nx=nextMilestone();
+      if(nx!==null){ html+='<div class="rwd-next"><span class="nd b-'+t.cls+'"></span> 集满 <b>'+nx+'⭐</b> 领 <b style="color:var(--org)">¥'+t.ms[nx]+'</b> 里程碑彩金 · 还差 '+(nx-stars)+' ⭐</div>'; }
+      area.innerHTML=html;
+    }
+  }
+
+  // 今日任务:未锁档显示各任务所在段位+条件+完成程度,段位高优先
+  function renderTasks(){
+    const list=document.getElementById('taskList');
+    // 各任务跳转:充值→存款页;投注→首页;邀请→邀请页
+    const META={
+      req:{ic:'💰',nm:'充值金额',btn:'存款',go:"location.href='recharge-page.html'"},
+      bet:{ic:'🎲',nm:'投注金额',btn:'去投注',go:"toast('演示:跳转首页投注')"},
+      inv:{ic:'👥',nm:'邀请有效下级',btn:'去邀请',go:"toast('演示:跳转邀请页')"},
+    };
+    if(!lockedTier){
+      document.getElementById('taskHint').textContent='';
+      const keys=['req','bet','inv'].map(k=>({k,idx:taskTierIdx(k)})).sort((a,b)=>b.idx-a.idx);
+      list.innerHTML=keys.map(({k,idx})=>{
+        const m=META[k], cur=TODAY_VAL[k], reached=idx>=0;
+        const badge=reached?('已达'+ORDER[idx]):'未达标', bcls=reached?TIERS[ORDER[idx]].cls:'none';
+        let dist, hasNext=idx<ORDER.length-1;
+        if(!reached){ const need=TIERS['青铜'].day[k]; dist='距 青铜('+need+')还差 <span class="lack">'+(need-cur)+'</span>'; }
+        else if(hasNext){ const nt=ORDER[idx+1], need=TIERS[nt].day[k]; dist='距 '+nt+'('+need+')还差 <span class="lack">'+(need-cur)+'</span>'; }
+        else dist='已达最高档 钻石';
+        // 还差下一段位 → 给跳转按钮(冲下一档);已达最高档 → ✓
+        const right = hasNext ? '<div class="tgo" onclick="'+m.go+'">'+m.btn+' ›</div>' : '<div class="tcheck">✓</div>';
+        return '<div class="task'+(reached?' done':'')+'"><div class="ticon">'+m.ic+'</div><div class="tinfo">'+
+          '<div class="tnm">'+m.nm+' <span class="tier-badge tb-'+bcls+'">'+badge+'</span></div>'+
+          '<div class="tpro">当前 <span class="cur">'+cur+'</span> · '+dist+'</div>'+
+          '</div>'+right+'</div>';
+      }).join('');
+      return;
+    }
+    // 已锁档:按锁定段位判定,推荐先完成 + 已完成反馈
+    const tier=lockedTier, f=metFlags(tier), t=TIERS[tier].day;
+    document.getElementById('taskHint').textContent='按 '+tier+' 段位';
+    const items=['req','bet','inv'].map(k=>({key:k,ic:META[k].ic,nm:META[k].nm,btn:META[k].btn,go:META[k].go,cur:TODAY_VAL[k],need:t[k],ok:f[k]}));
+    const undone=items.filter(x=>!x.ok);
+    let reco=null; if(undone.length){ reco=undone.reduce((a,b)=>(b.need-b.cur)<(a.need-a.cur)?b:a); }
+    list.innerHTML=items.map(x=>{
+      if(x.ok){ return '<div class="task done"><div class="ticon">'+x.ic+'</div><div class="tinfo"><div class="tnm">'+x.nm+'</div><div class="tdone">✅ 已完成 · 获得 ⭐</div></div><div class="tcheck">✓</div></div>'; }
+      const isReco=reco&&x.key===reco.key;
+      return '<div class="task'+(isReco?' reco':'')+'"><div class="ticon">'+x.ic+'</div><div class="tinfo">'+
+        '<div class="tnm">'+x.nm+(isReco?' <span class="reco-tag">🔥 推荐先完成</span>':'')+'</div>'+
+        '<div class="tpro">'+x.cur+' / '+x.need+' · 还差 <span class="lack">'+(x.need-x.cur)+'</span></div></div>'+
+        '<div class="tgo" onclick="'+x.go+'">'+x.btn+' ›</div></div>';
+    }).join('');
+    if(!undone.length){ list.innerHTML+='<div class="alldone-banner">🎉 今日 3 个任务已全部完成,本日 +3 ⭐</div>'; }
+  }
+
+  // ===== 领取动作 =====
+  function askPick(k){
+    if(!payoutReady){ toast('未到派奖时间,结算后可领取'); return; }
+    const c=metCount(k);
+    document.getElementById('pickSub').innerHTML='锁定 <b>'+k+'</b> 段位:今日领<b style="color:var(--org)">当天签到奖金 ¥'+TIERS[k].day.rwd+'</b> + <b style="color:var(--gold)">'+c+'⭐</b>;之后按 '+k+' 集星,<b>集满 7/14/21⭐</b> 发 ¥'+TIERS[k].ms[7]+'/'+TIERS[k].ms[14]+'/'+TIERS[k].ms[21]+' 彩金';
+    document.getElementById('pickConfirm').onclick=function(){ doPick(k); };
+    document.getElementById('pickMask').classList.add('on');
+  }
+  function doPick(k){
+    closeMask('pickMask');
+    lockedTier=k; const c=metCount(k); dayNo=1;
+    flyAndGain(c, ()=>showOk('已锁定 '+k+' 段位','+¥'+TIERS[k].day.rwd,'当天签到奖金 ¥'+TIERS[k].day.rwd+' + '+c+'⭐ · 之后 6 天按 '+k+' 段位集星 · 集满 7/14/21⭐ 发彩金'));
+  }
+  function claimDaily(){
+    if(!payoutReady){ toast('未到派奖时间,结算后可领取'); return; }
+    const c=metCount(lockedTier);
+    flyAndGain(c, ()=>showOk('第 '+dayNo+' 天领取成功','+¥'+TIERS[lockedTier].day.rwd,'当天签到奖金 ¥'+TIERS[lockedTier].day.rwd+' + '+c+'⭐ · 集满里程碑另发彩金'));
+  }
+  function claimMs(n,e){ if(e)e.stopPropagation(); showOk('集星里程碑 '+n+'星 达成!','+¥'+TIERS[lockedTier||'青铜'].ms[n],'彩金已到账'); }
+
+  function flyAndGain(gain, done){
+    if(gain<=0){ done&&done(); return; }
+    const target=document.getElementById('bigStar').getBoundingClientRect();
+    const src=document.querySelector('.btn-main')?.getBoundingClientRect()||target;
+    let landed=0;
+    for(let i=0;i<gain;i++){
+      const s=document.createElement('div'); s.className='flystar'; s.textContent='⭐';
+      s.style.left=(src.left+src.width/2-12)+'px'; s.style.top=(src.top-6)+'px'; s.style.opacity='1';
+      document.body.appendChild(s);
+      setTimeout(()=>{ s.style.left=(target.left+target.width/2-12)+'px'; s.style.top=(target.top-4)+'px'; s.style.transform='scale(.6)'; s.style.opacity='.2'; },30+i*120);
+      setTimeout(()=>{ s.remove(); if(++landed===gain){ countUp(stars, stars+gain); stars+=gain; setTimeout(()=>{ render(); done&&done(); },380); } },720+i*120);
+    }
+  }
+  function countUp(from,to){
+    const el=document.getElementById('bigStar'); const fill=document.getElementById('fillBar'); const cur=document.getElementById('cursor');
+    const dur=420, t0=performance.now();
+    (function step(now){ const p=Math.min((now-t0)/dur,1); const v=Math.round(from+(to-from)*p);
+      el.textContent=v; const pct=Math.min(v/21,1)*100; if(fill)fill.style.width=pct+'%'; if(cur){cur.style.left=pct+'%';cur.querySelector('.cb').textContent=v+'⭐';}
+      el.style.transform='scale('+(1+0.18*Math.sin(p*Math.PI))+')';
+      if(p<1)requestAnimationFrame(step); else el.style.transform='';
+    })(t0);
+  }
+
+  function openEnd(){
+    document.getElementById('endSub').textContent = lockedTier
+      ? '本轮已开始。终止后进度清零;当天已签到 → 次日才能重选段位;当天未签 → 可立即重选。'
+      : '终止后本轮进度清零,需重新选段位从第 1 天开始。';
+    document.getElementById('endMask').classList.add('on');
+  }
+  function doEnd(){ closeMask('endMask'); document.querySelector('.dp[data-s="s1"]').click(); toast('本轮已终止,请重新选择段位开始'); }
+  function showOk(t,a,s){ document.getElementById('okTtl').textContent=t; document.getElementById('okAmt').textContent=a; document.getElementById('okSub').textContent=s; document.getElementById('okMask').classList.add('on'); }
+  function closeMask(id){ document.getElementById(id).classList.remove('on'); }
+  let tmr=null; function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tmr); tmr=setTimeout(()=>t.classList.remove('on'),2400); }
+  setScene('s1');
+</script>
+</body>
+</html>

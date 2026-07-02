@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Activity Award · 前端原型(筛选+邀请任务)</title>
+<style>
+  :root{--org:#ED6B2E;--red:#E8505B;--grn:#56B870;--t1:#222;--t2:#888;--bd:#eee;--amber:#854F0B;--amberbg:#FAEEDA;--amberbd:#BA7517;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:#9a9a9a;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);}
+  .phone{max-width:400px;margin:0 auto;background:#f4f5f7;min-height:100vh;}
+  .top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#fff;}
+  .top .rec{display:flex;align-items:center;gap:6px;color:#444;font-size:14px;}
+  .hero{background:var(--org);color:#fff;padding:18px 16px 22px;border-radius:0 0 10px 10px;}
+  .hero h1{font-size:22px;margin:0 0 8px;font-weight:700;}
+  .hero p{font-size:12px;line-height:1.5;margin:0;opacity:.95;}
+  .filter{background:#fff;margin:10px;border-radius:10px;padding:8px 10px;}
+  .frow2{display:flex;align-items:center;gap:10px;}
+  .fsel{position:relative;flex:1;display:flex;align-items:center;gap:6px;background:#f4f4f6;border-radius:18px;padding:8px 26px 8px 12px;cursor:pointer;}
+  .fsel .flab{font-size:12px;color:var(--t2);white-space:nowrap;}
+  .fsel .fval{font-size:13px;color:#333;font-weight:700;flex:1;}
+  .fsel::after{content:"▾";position:absolute;right:11px;color:#999;font-size:12px;transition:.15s;}
+  .fsel.open::after{transform:rotate(180deg);}
+  .fsel>.dot{top:5px;right:24px;}
+  .fmenu{position:absolute;top:112%;left:0;right:0;background:#fff;border-radius:10px;box-shadow:0 8px 22px rgba(0,0,0,.16);padding:4px;z-index:30;display:none;}
+  .fsel.open .fmenu{display:block;}
+  .fopt{position:relative;padding:10px 12px;font-size:13px;border-radius:8px;color:#444;}
+  .fopt.sel{background:#fff3ec;color:var(--org);font-weight:700;}
+  .fopt .odot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#E8505B;margin-left:6px;vertical-align:middle;}
+  .dot{position:absolute;top:-2px;right:-2px;width:9px;height:9px;background:#E8505B;border:1.5px solid #fff;border-radius:50%;}
+  .badge{background:var(--amberbd);color:#fff;padding:1px 7px;border-radius:8px;font-size:10px;margin-left:6px;}
+  .card{background:#fff;margin:10px;border-radius:10px;overflow:hidden;}
+  .ch{display:flex;align-items:center;justify-content:space-between;}
+  .tab{color:#fff;font-weight:700;font-size:15px;padding:9px 18px;border-radius:0 0 14px 0;}
+  .tab.week{background:var(--red);} .tab.day{background:var(--grn);}
+  .stat{color:var(--t2);font-size:14px;padding-right:16px;}
+  .body{padding:12px 16px 16px;}
+  .tname{display:flex;align-items:center;gap:8px;font-size:15px;margin-bottom:10px;}
+  .tname .ic{width:24px;height:24px;border-radius:50%;background:var(--org);display:inline-block;}
+  .prog{color:var(--red);font-weight:600;margin-left:6px;}
+  .desc{background:#f5f5f7;border-radius:6px;padding:10px 12px;color:#999;font-size:13px;margin-bottom:12px;}
+  .award{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:#555;border-top:1px solid var(--bd);padding-top:12px;}
+  .award .amt{color:var(--org);font-weight:600;}
+  .cta{display:block;width:100%;margin-top:12px;padding:11px;text-align:center;border:1px solid var(--red);color:var(--red);border-radius:22px;font-size:15px;font-weight:600;background:#fff;cursor:pointer;}
+  .kv{display:flex;justify-content:space-between;font-size:14px;margin:4px 0;}
+  .kv .v{color:var(--red);font-weight:600;}
+  .cap{font-size:11px;color:#aaa;margin-top:2px;background:#f7f7f9;border-radius:4px;padding:6px 8px;}
+  .inv .kv .v{color:var(--org);}
+  .info{display:inline-block;width:15px;height:15px;line-height:15px;text-align:center;border-radius:50%;background:#ccc;color:#fff;font-size:11px;font-style:normal;cursor:pointer;margin-left:4px;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top"><span style="font-size:20px">‹</span><span class="rec">🕐 Collection record</span></div>
+  <div class="hero">
+    <h1>Activity Award</h1>
+    <p>Complete weekly/daily tasks to receive rich rewards.<br/>Weekly rewards cannot be accumulated to next week, and daily rewards cannot be accumulated to next day.</p>
+  </div>
+
+  <div class="filter">
+    <div class="frow2">
+      <div class="fsel" id="selPeriod" onclick="toggleMenu(event,'selPeriod')">
+        <span class="flab">周期</span><span class="fval" id="valPeriod">全部</span><span class="dot"></span>
+        <div class="fmenu">
+          <div class="fopt sel" data-v="all" onclick="pickOpt(event,'period','全部',this)">全部</div>
+          <div class="fopt" data-v="week" onclick="pickOpt(event,'period','周任务',this)">周任务<span class="odot"></span></div>
+          <div class="fopt" data-v="day" onclick="pickOpt(event,'period','日任务',this)">日任务<span class="odot"></span></div>
+        </div>
+      </div>
+      <div class="fsel" id="selType" onclick="toggleMenu(event,'selType')">
+        <span class="flab">类型</span><span class="fval" id="valType">全部</span><span class="dot"></span>
+        <div class="fmenu">
+          <div class="fopt sel" data-v="all" onclick="pickOpt(event,'type','全部',this)">全部</div>
+          <div class="fopt" data-v="recharge" onclick="pickOpt(event,'type','充值任务',this)">充值任务<span class="odot"></span></div>
+          <div class="fopt" data-v="bet" onclick="pickOpt(event,'type','打码任务',this)">打码任务</div>
+          <div class="fopt" data-v="invite" onclick="pickOpt(event,'type','邀请任务',this)">邀请任务<span class="odot"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ▼ 优化:页面顶部「待领取」聚合提醒(置顶,行动优先)▼ -->
+  <div style="margin:10px;background:linear-gradient(135deg,#FFE9C7,#FFD39B);border:1px solid #E6B566;border-radius:12px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between">
+    <div style="font-size:14px;color:#8a5a12;font-weight:700">🎁 你有 <b style="color:#E8302B">2</b> 项奖励待领取</div>
+    <button onclick="claimAll()" style="background:#E8302B;color:#fff;border:none;border-radius:18px;padding:8px 18px;font-size:14px;font-weight:700">一键领取</button>
+  </div>
+
+  <!-- ▼ 优化:同一任务「上期可领未领 + 本期进行中」双态卡 ▼ -->
+  <div class="card" data-period="week" data-type="recharge" style="border:1px solid #E6B566">
+    <div class="ch"><span class="tab week">weekly tasks</span><span class="stat" style="color:#E8302B">待领取 · 新一期进行中</span></div>
+    <div class="body">
+      <!-- ① 上期奖励待领取(高亮置顶,带行动按钮)-->
+      <div style="background:linear-gradient(135deg,#FFF3D6,#FFE3BD);border:1px solid #E6B566;border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-size:13px;color:#8a5a12;font-weight:700">🎁 上期奖励 ₹10.00 待领取</div>
+          <div style="font-size:11px;color:#b5852f;margin-top:2px">剩 2 天过期</div>
+        </div>
+        <button style="background:#E8302B;color:#fff;border:none;border-radius:18px;padding:8px 18px;font-size:14px;font-weight:700">领取</button>
+      </div>
+      <!-- ② 本期任务进行中(进度展示)-->
+      <div class="tname"><span class="ic"></span>周存款任务<span style="margin-left:auto;font-size:11px;color:#56B870;border:1px solid #56B870;border-radius:10px;padding:1px 8px">本期进行中</span></div>
+      <div style="margin:10px 0 4px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px"><span>本期进度</span><span style="color:#ED6B2E;font-weight:700">₹30 / ₹100</span></div>
+        <div style="height:8px;background:#eee;border-radius:5px;overflow:hidden"><i style="display:block;height:100%;width:30%;background:#ED6B2E"></i></div>
+      </div>
+      <div class="award"><span>本期奖励</span><span class="amt">🧧 ₹10.00</span></div>
+      <div class="cta">to complete</div>
+    </div>
+  </div>
+
+  <!-- IA 说明 -->
+  <div style="margin:0 10px 10px;font-size:12px;color:#8a5a12;background:#FFF8EC;border:1px dashed #E6B566;border-radius:8px;padding:10px 12px;line-height:1.6">
+    <b>信息架构优化</b>:同一任务「上期已达标未领 + 本期进行中」时 —— ① <b>待领取置顶高亮</b>(红色按钮+过期倒计时,行动优先,避免漏领);② 下方独立展示<b>本期进度条</b>与本期奖励,两态分区不混淆;③ 页面顶部聚合「N 项待领取 + 一键领取」。
+  </div>
+
+  <div class="card" data-period="week" data-type="bet">
+    <div class="ch"><span class="tab week">weekly tasks</span><span class="stat">Unfinished</span></div>
+    <div class="body">
+      <div class="tname"><span class="ic"></span>彩票 投注-week <span class="prog">0/1000</span></div>
+      <div class="desc">彩票 投注-week</div>
+      <div class="award"><span>Award amount</span><span class="amt">🧧 ₹0.03~₹10,000.00</span></div>
+      <div class="cta">to complete</div>
+    </div>
+  </div>
+
+  <div class="card" data-period="day" data-type="recharge">
+    <div class="ch"><span class="tab day">Daily mission</span><span class="stat">Unfinished</span></div>
+    <div class="body">
+      <div class="tname"><span class="ic"></span>0225每日充提任务test123 <span class="prog">0/100</span></div>
+      <div class="desc">test每日充提任务</div>
+      <div class="award"><span>Award amount</span><span class="amt">🧧 ₹0.01~₹111.00</span></div>
+      <div class="cta">to complete</div>
+    </div>
+  </div>
+
+  <div class="card" data-period="day" data-type="bet recharge">
+    <div class="ch"><span class="tab day">Daily mission</span><span class="stat">Unfinished</span></div>
+    <div class="body">
+      <div class="tname"><span class="ic"></span>Kollbet-充值投注</div>
+      <div class="kv"><span>Deposit</span><span class="v">0/1000</span></div>
+      <div class="kv"><span>Bet</span><span class="v">0/1000</span></div>
+      <div class="desc" style="margin-top:10px">Kollbet-充值投注</div>
+      <div class="cta">to complete</div>
+    </div>
+  </div>
+
+  <div class="card inv" data-period="day" data-type="invite" style="border:1px solid #E6B566">
+    <div class="ch"><span class="tab day">邀请任务</span><span class="stat" style="color:#E8302B">已完成 · 待领取</span></div>
+    <div class="body">
+      <div class="tname"><span class="ic"></span>邀请有礼 <span class="badge">309 · 邀请内容</span></div>
+      <div class="kv"><span>invited <i class="info" onclick="tip(this)">i</i></span><span class="v" style="color:#2e9e5b">20 / 20 ✓</span></div>
+      <div class="cap" style="display:none">邀请到的注册总数 / 点击过邀请链接或扫过邀请码的总数</div>
+      <div class="kv" style="margin-top:8px"><span>Deposit <i class="info" onclick="tip(this)">i</i></span><span class="v" style="color:#2e9e5b">₹2,000 / ₹2,000 ✓</span></div>
+      <div class="cap" style="display:none">邀请到的完成首存总额 / (邀请注册总数 × 首充额度每人)</div>
+      <div style="background:linear-gradient(135deg,#FFF3D6,#FFE3BD);border:1px solid #E6B566;border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+        <div style="font-size:13px;color:#8a5a12;font-weight:700">🎁 奖励 ₹500.00 待领取</div>
+        <button style="background:#E8302B;color:#fff;border:none;border-radius:18px;padding:8px 18px;font-size:14px;font-weight:700">领取</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="height:20px"></div>
+</div>
+
+<!-- ▼ 一键领取 · 结果反馈弹窗(沿用 V1 领取返回 code/msg 规则)▼ -->
+<div id="rmask" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:center;justify-content:center">
+  <div style="width:300px;background:#fff;border-radius:16px;overflow:hidden;text-align:center;font-family:inherit">
+    <div id="rTop" style="padding:20px 0 14px;color:#fff">
+      <div id="rIcon" style="font-size:42px;line-height:1">🎉</div>
+      <h3 id="rTitle" style="margin:8px 0 0;font-size:18px">领取成功</h3>
+    </div>
+    <div style="padding:14px 18px 4px">
+      <div id="rList" style="text-align:left"></div>
+      <div id="rSum" style="font-size:13px;color:#888;margin:10px 0 4px"></div>
+    </div>
+    <button id="rBtn" onclick="closeResult()" style="display:inline-block;width:210px;margin:8px 0 16px;padding:11px;border-radius:22px;background:#E8505B;color:#fff;border:none;font-size:15px;font-weight:700">完成</button>
+  </div>
+</div>
+<!-- 原型演示:切换三种结果 -->
+<div style="position:fixed;left:10px;bottom:10px;z-index:60;font-size:11px;color:#fff;background:rgba(0,0,0,.45);border-radius:8px;padding:6px 8px">
+  演示一键领取结果:
+  <a onclick="claimResult('success')" style="color:#7fd8ff;cursor:pointer">全部成功</a> ·
+  <a onclick="claimResult('partial')" style="color:#ffd76b;cursor:pointer">部分成功</a> ·
+  <a onclick="claimResult('fail')" style="color:#ff9b9b;cursor:pointer">全部失败</a>
+</div>
+
+<script>
+  var sel={period:'all',type:'all'};
+  function toggleMenu(e,id){
+    e.stopPropagation();
+    var el=document.getElementById(id), open=el.classList.contains('open');
+    closeMenus(); if(!open) el.classList.add('open');
+  }
+  function closeMenus(){ document.querySelectorAll('.fsel').forEach(function(x){x.classList.remove('open')}); }
+  document.addEventListener('click', closeMenus);
+  function pickOpt(e,group,label,opt){
+    e.stopPropagation();
+    sel[group]=opt.dataset.v;
+    document.getElementById(group==='period'?'valPeriod':'valType').textContent=label;
+    opt.parentNode.querySelectorAll('.fopt').forEach(function(x){x.classList.remove('sel')});
+    opt.classList.add('sel');
+    closeMenus(); apply();
+  }
+  function tip(el){
+    var cap = el.closest('.kv').nextElementSibling;
+    if(cap && cap.classList.contains('cap')){ cap.style.display = (cap.style.display==='none')?'block':'none'; }
+  }
+  function apply(){
+    document.querySelectorAll('.card').forEach(function(c){
+      var p=c.dataset.period, t=(c.dataset.type||'');
+      var okP = sel.period==='all' || p===sel.period;
+      var okT = sel.type==='all' || t.split(' ').indexOf(sel.type)>=0;
+      c.style.display = (okP&&okT)?'block':'none';
+    });
+  }
+
+  // ===== 一键领取结果(沿用 V1 领取返回 code/msg/msgCode 规则)=====
+  function claimAll(){
+    var btn=event.target; var old=btn.textContent; btn.textContent='领取中…'; btn.disabled=true;
+    setTimeout(function(){ btn.textContent=old; btn.disabled=false; claimResult('success'); }, 700); // 演示默认全部成功
+  }
+  function row(name, ok, txt){
+    var right = ok ? '<span style="color:#ED6B2E;font-weight:700">'+txt+'</span>'
+                   : '<span style="color:#c0392b">✗ '+txt+'</span>';
+    var mark = ok ? '<span style="color:#2e9e5b">✓</span> ' : '';
+    return '<div style="display:flex;justify-content:space-between;border-bottom:1px solid #f2f2f2;padding:9px 0;font-size:13px"><span>'+mark+name+'</span>'+right+'</div>';
+  }
+  function claimResult(kind){
+    var top=document.getElementById('rTop'), icon=document.getElementById('rIcon'),
+        title=document.getElementById('rTitle'), list=document.getElementById('rList'),
+        sum=document.getElementById('rSum'), btn=document.getElementById('rBtn');
+    if(kind==='success'){
+      top.style.background='linear-gradient(180deg,#FF7A59,#ED6B2E)'; icon.textContent='🎉'; title.textContent='领取成功';
+      list.innerHTML = row('周存款任务',true,'+₹10.00') + row('每日签到',true,'+₹5.00');
+      sum.textContent='共领取 2 项,合计 +₹15.00 已到账'; btn.textContent='完成'; btn.style.background='#E8505B';
+    } else if(kind==='partial'){
+      top.style.background='linear-gradient(180deg,#FFB257,#E8920F)'; icon.textContent='⚠️'; title.textContent='部分领取成功';
+      list.innerHTML = row('周存款任务',true,'+₹10.00') + row('每日签到',false,'已领取') + row('邀请有礼',false,'已过期');
+      sum.textContent='成功 1 项(+₹10.00),失败 2 项(已领取 / 已过期)'; btn.textContent='知道了'; btn.style.background='#E8505B';
+    } else {
+      top.style.background='linear-gradient(180deg,#bbb,#888)'; icon.textContent='❌'; title.textContent='领取失败';
+      list.innerHTML = '<div style="font-size:13px;color:#c0392b;text-align:center;padding:8px 0">请勿重复提交,请稍后重试</div>';
+      sum.textContent='(失败原因来自后端 msgCode:已领取 / 不满足条件 / 已过期 / 请勿重复提交 / 网络异常)'; btn.textContent='重试'; btn.style.background='#888';
+    }
+    document.getElementById('rmask').style.display='flex';
+  }
+  function closeResult(){ document.getElementById('rmask').style.display='none'; }
+</script>
+</body>
+</html>

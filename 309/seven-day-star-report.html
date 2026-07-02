@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>七日集星 · 数据统计(活动管理 / 报表)</title>
+<style>
+  /* ===== 还原 V1 老后台列表/报表视觉 ·独立内嵌版 ===== */
+  :root{--theme:#1976d2;--info:#7752fd;--success:#4db24d;--danger:#ef5350;
+    --bd:#e1e4ea;--th:#f2f4f8;--t1:#464a53;--t2:#99abb4;--bg:#f8f6fe;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);font-family:-apple-system,"PingFang SC","Microsoft YaHei",Arial,sans-serif;color:var(--t1);font-size:13px;}
+  .page-titles{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:13px 22px;border-bottom:1px solid var(--bd);flex-wrap:wrap;gap:8px;}
+  .page-titles h3{color:var(--theme);font-size:18px;margin:0;font-weight:600;}
+  .breadcrumb{margin:4px 0 0;padding:0;list-style:none;display:flex;gap:6px;font-size:12px;color:var(--t2);}
+  .breadcrumb li::after{content:"›";margin-left:6px;color:#cfd4dc;}
+  .breadcrumb li:last-child::after{content:"";}
+  .breadcrumb li.active{color:var(--theme);}
+  .container-fluid{padding:16px 22px;max-width:1200px;margin:0 auto;}
+  .card{background:#fff;border:1px solid var(--bd);border-radius:4px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .card-hd{padding:11px 16px;border-bottom:1px solid #eef0f4;font-weight:600;font-size:14px;color:var(--t1);}
+  .card-body{padding:16px;}
+  /* 按钮 */
+  .btn{border:none;border-radius:4px;padding:7px 16px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;line-height:1.2;text-decoration:none;}
+  .btn-info{background:var(--info);color:#fff;} .btn-default{background:#fff;border:1px solid #ddd;color:#555;}
+  .btn-md{padding:8px 18px;} .btn-sm{padding:4px 11px;font-size:12px;}
+  .btn-cfg{background:#fff;border:1px solid var(--info);color:var(--info);font-weight:600;}
+  .fa{font-style:normal;}
+  /* 搜索区(V1 searchbox/group-advanced) */
+  .searchbox{display:flex;flex-direction:column;gap:8px;}
+  .group-advanced{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;}
+  .form-group{display:flex;flex-direction:column;gap:4px;}
+  .control-label{font-size:12px;color:#555;}
+  .form-control{border:1px solid #ddd;border-radius:4px;padding:7px 10px;font-size:13px;background:#fff;min-width:120px;}
+  .input-daterange{display:flex;gap:14px;align-items:flex-end;}
+  .group-button{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:4px;}
+  .group-button .left{display:flex;gap:10px;}
+  /* 快速时间标签(V1 customtab2) */
+  .customtab2{display:flex;gap:0;list-style:none;margin:0;padding:0;}
+  .customtab2 li a{display:block;height:30px;line-height:28px;padding:0 14px;border:1px solid #cfd4dc;border-right:none;color:#666;font-size:12px;cursor:pointer;}
+  .customtab2 li:last-child a{border-right:1px solid #cfd4dc;}
+  .customtab2 li a.active{background:var(--info);color:#fff;border-color:var(--info);}
+  /* 汇总 */
+  .sum{display:flex;gap:22px;flex-wrap:wrap;background:#f1edff;border:1px solid #ddd2fb;border-radius:5px;padding:12px 16px;margin-bottom:14px;font-size:13px;}
+  .sum span b{color:var(--info);font-size:16px;}
+  .sum .sp{color:#cfd4dc;}
+  /* 表格(V1 table-bordered/striped/hover) */
+  table.dl{width:100%;border-collapse:collapse;}
+  table.dl th,table.dl td{border:1px solid var(--bd);padding:8px 10px;text-align:center;white-space:nowrap;}
+  table.dl thead th{background:var(--th);color:#555;font-weight:600;}
+  table.dl tbody tr:nth-child(even){background:#fafbfd;}
+  table.dl tbody tr:hover{background:#f5f7fb;}
+  .tag{font-size:11px;border-radius:4px;padding:1px 8px;}
+  .t-bronze{background:#f6ecdf;color:#b87333;} .t-silver{background:#eef0f3;color:#8a93a3;}
+  .t-gold{background:#FBF1DE;color:#C8941A;} .t-diamond{background:#e4f3f8;color:#3aa6c4;}
+  .s-on{color:var(--success);font-weight:600;} .s-end{color:#999;} .s-stop{color:var(--danger);font-weight:600;}
+  .mile-got{color:var(--info);font-weight:600;}
+  /* 分页(V1 pagercss) */
+  .pagercss{display:flex;justify-content:flex-end;align-items:center;gap:5px;margin-top:12px;font-size:12px;}
+  .pagercss a{border:1px solid var(--bd);border-radius:3px;padding:5px 10px;color:#666;cursor:pointer;background:#fff;}
+  .pagercss a.on{background:var(--info);color:#fff;border-color:var(--info);}
+  .pagercss .info{color:var(--t2);margin-right:8px;}
+  .desc{font-size:12px;color:var(--t2);margin-top:10px;line-height:1.7;}
+  @media(max-width:820px){.group-advanced,.input-daterange{flex-direction:column;align-items:stretch;}}
+</style>
+</head>
+<body>
+  <div class="page-titles">
+    <div>
+      <h3>七日集星 · 数据统计</h3>
+      <ul class="breadcrumb"><li>活动管理</li><li>报表</li><li class="active">七日集星统计</li></ul>
+    </div>
+    <a class="btn btn-cfg" href="seven-day-star-admin.html">⚙️ 活动配置入口 →</a>
+  </div>
+
+  <div class="container-fluid">
+    <!-- 搜索区 -->
+    <div class="card"><div class="card-body">
+      <div class="searchbox">
+        <div class="group-advanced">
+          <div class="form-group"><label class="control-label">会员ID</label><input class="form-control" placeholder="会员ID"></div>
+          <div class="form-group"><label class="control-label">锁定段位</label>
+            <select class="form-control"><option>全部</option><option>青铜</option><option>白银</option><option>黄金</option><option>钻石</option></select></div>
+          <div class="form-group"><label class="control-label">轮次状态</label>
+            <select class="form-control"><option>全部</option><option>进行中</option><option>已结束</option><option>已终止</option></select></div>
+          <div class="form-group"><label class="control-label">里程碑进度</label>
+            <select class="form-control"><option>全部</option><option>已满 21 星</option><option>已达 14 星</option><option>已达 7 星</option><option>未达 7 星</option></select></div>
+          <div class="input-daterange">
+            <div class="form-group"><label class="control-label">参与开始</label><input class="form-control" value="2026-06-01"></div>
+            <div class="form-group"><label class="control-label">参与结束</label><input class="form-control" value="2026-06-30"></div>
+          </div>
+        </div>
+        <div class="group-button">
+          <div class="left">
+            <button class="btn btn-info btn-md"><span class="fa">🔍</span> 查 询</button>
+            <button class="btn btn-default btn-md"><span class="fa">↻</span> 重 置</button>
+            <button class="btn btn-default btn-md"><span class="fa">⤓</span> 导出 Excel</button>
+          </div>
+          <ul class="customtab2">
+            <li><a class="active">今天</a></li><li><a>昨天</a></li><li><a>本周</a></li><li><a>本月</a></li>
+          </ul>
+        </div>
+      </div>
+    </div></div>
+
+    <!-- 汇总 -->
+    <div class="sum">
+      <span>参与会员 <b>1,284</b></span><span class="sp">|</span>
+      <span>进行中轮次 <b>612</b></span><span class="sp">|</span>
+      <span>满 21 星 <b>87</b></span><span class="sp">|</span>
+      <span>当天签到奖金派彩 <b>₹46,200</b></span><span class="sp">|</span>
+      <span>里程碑彩金派彩 <b>₹82,200</b></span><span class="sp">|</span>
+      <span>累计派彩合计 <b>₹128,400</b></span>
+    </div>
+
+    <!-- 段位 × 里程碑达成分布 -->
+    <div class="card">
+      <div class="card-hd">📊 段位 × 里程碑达成分布</div>
+      <div class="card-body" style="overflow:auto">
+        <table class="dl">
+          <thead><tr><th>锁定段位</th><th>参与人数</th><th>达 7 星</th><th>达 14 星</th><th>满 21 星</th><th>当天奖金派彩</th><th>里程碑彩金派彩</th><th>派彩合计</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag t-bronze">青铜</span></td><td>540</td><td>356</td><td>168</td><td>22</td><td>₹14,800</td><td>₹16,400</td><td>₹31,200</td></tr>
+            <tr><td><span class="tag t-silver">白银</span></td><td>410</td><td>288</td><td>150</td><td>28</td><td>₹15,600</td><td>₹24,800</td><td>₹40,400</td></tr>
+            <tr><td><span class="tag t-gold">黄金</span></td><td>230</td><td>171</td><td>96</td><td>21</td><td>₹9,800</td><td>₹22,500</td><td>₹32,300</td></tr>
+            <tr><td><span class="tag t-diamond">钻石</span></td><td>104</td><td>83</td><td>54</td><td>16</td><td>₹6,000</td><td>₹18,500</td><td>₹24,500</td></tr>
+            <tr style="font-weight:700;background:#f5f7fb"><td>合计</td><td>1,284</td><td>898</td><td>468</td><td>87</td><td>₹46,200</td><td>₹82,200</td><td>₹128,400</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 会员明细 -->
+    <div class="card">
+      <div class="card-hd">📋 会员参与明细</div>
+      <div class="card-body" style="overflow:auto">
+        <table class="dl">
+          <thead><tr>
+            <th>会员ID</th><th>锁定段位</th><th>本轮第N天</th><th>累计星数</th><th>已领里程碑</th>
+            <th>当天奖金累计</th><th>里程碑彩金累计</th><th>派彩合计</th><th>断签天数</th><th>轮次状态</th><th>参与时间</th><th>操作</th>
+          </tr></thead>
+          <tbody>
+            <tr><td>100123</td><td><span class="tag t-silver">白银</span></td><td>7/7</td><td>21</td><td class="mile-got">7/14/21</td><td>₹550</td><td>₹3,100</td><td>₹3,650</td><td>0</td><td class="s-end">已结束</td><td>2026-06-10</td><td><a class="btn btn-info btn-sm" href="javascript:;">明细</a></td></tr>
+            <tr><td>100456</td><td><span class="tag t-bronze">青铜</span></td><td>3/7</td><td>6</td><td>—</td><td>₹60</td><td>₹0</td><td>₹60</td><td>0</td><td class="s-on">进行中</td><td>2026-06-14</td><td><a class="btn btn-info btn-sm" href="javascript:;">明细</a></td></tr>
+            <tr><td>100789</td><td><span class="tag t-diamond">钻石</span></td><td>5/7</td><td>14</td><td class="mile-got">7/14</td><td>₹650</td><td>₹4,800</td><td>₹5,450</td><td>1</td><td class="s-on">进行中</td><td>2026-06-13</td><td><a class="btn btn-info btn-sm" href="javascript:;">明细</a></td></tr>
+            <tr><td>100921</td><td><span class="tag t-gold">黄金</span></td><td>2/7</td><td>3</td><td>—</td><td>₹60</td><td>₹0</td><td>₹60</td><td>2</td><td class="s-stop">已终止</td><td>2026-06-15</td><td><a class="btn btn-info btn-sm" href="javascript:;">明细</a></td></tr>
+            <tr><td>101050</td><td><span class="tag t-silver">白银</span></td><td>6/7</td><td>16</td><td class="mile-got">7/14</td><td>₹500</td><td>₹1,300</td><td>₹1,800</td><td>0</td><td class="s-on">进行中</td><td>2026-06-12</td><td><a class="btn btn-info btn-sm" href="javascript:;">明细</a></td></tr>
+          </tbody>
+        </table>
+        <div class="pagercss">
+          <span class="info">共 1,284 条 / 257 页</span>
+          <a class="on">1</a><a>2</a><a>3</a><a>4</a><a>…</a><a>257</a><a>下一页</a>
+        </div>
+        <div class="desc">说明:原型占位数据。落地以「七日集星」会员轮次记录(<b>act_star_round</b>)+ 每日完成明细(<b>act_star_day_log</b>)统计;<b>当天签到奖金</b>当日达标、结算时间后派彩,<b>里程碑彩金</b>按锁定段位每节点每轮限领一次。配置入口见右上「⚙️ 活动配置」。</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

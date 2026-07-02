@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VIP 计算周期改造 · 后台配置(#3 注册日30天滚动 + 站点申请切换 + 灰度)</title>
+<style>
+  :root{--blue:#1456d8;--prim:#6f42c1;--grn:#2E9C5B;--grnbd:#4FB477;--red:#E8505B;--amber:#854F0B;--amberbg:#FBF1DE;--bd:#e6e8ee;--th:#f5f6fa;--t1:#333;--t2:#888;--blu2:#eef4ff;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:#eef0f4;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);font-size:13px;}
+  .wrap{max-width:1180px;margin:0 auto;padding:16px;}
+  .ptitle{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .ptitle h3{color:var(--blue);font-size:18px;margin:0;font-weight:600;}
+  .crumb{color:var(--t2);font-size:12px;}
+  .crumb b{color:#555;font-weight:500;}
+  .card{background:#fff;border:1px solid var(--bd);border-radius:5px;margin-bottom:14px;}
+  .ch{padding:11px 16px;border-bottom:1px solid var(--bd);font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px;}
+  .ch .new{font-size:10px;font-weight:700;color:#fff;background:var(--red);border-radius:4px;padding:1px 6px;}
+  .ch .opt{font-size:10px;font-weight:700;color:#fff;background:var(--amber);border-radius:4px;padding:1px 6px;}
+  .ch .sub{font-size:11px;font-weight:400;color:var(--t2);margin-left:auto;}
+  .cb{padding:14px 16px;}
+
+  /* 顶部 tab */
+  .tabs{display:flex;gap:0;border-bottom:1px solid var(--bd);background:#fff;border:1px solid var(--bd);border-radius:5px 5px 0 0;border-bottom:none;flex-wrap:wrap;}
+  .tab{padding:13px 18px;cursor:pointer;color:#666;font-size:13.5px;border-bottom:2px solid transparent;font-weight:600;}
+  .tab.on{color:var(--blue);border-bottom-color:var(--blue);background:var(--blu2);}
+  .pane{display:none;} .pane.on{display:block;}
+
+  /* 模式对比卡 */
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .mode{border:2px solid var(--bd);border-radius:8px;padding:14px;position:relative;}
+  .mode.cur{border-color:#bbb;background:#fafafa;}
+  .mode.target{border-color:var(--prim);background:#FAF7FF;}
+  .mode h4{margin:0 0 4px;font-size:15px;display:flex;align-items:center;gap:8px;}
+  .pill{font-size:10px;font-weight:700;border-radius:10px;padding:2px 9px;}
+  .pill.cur{background:#e7e7e7;color:#666;} .pill.new{background:var(--prim);color:#fff;}
+  .mode .desc{color:var(--t2);font-size:12px;margin:6px 0 10px;line-height:1.6;}
+  .mode ul{margin:0;padding-left:16px;color:#555;line-height:1.8;font-size:12px;}
+  .mode .pro{color:var(--grn);} .mode .con{color:var(--red);}
+  .vs{display:flex;align-items:center;justify-content:center;}
+
+  .field{display:flex;align-items:center;gap:10px;margin:10px 0;}
+  .field>label{min-width:120px;color:#555;}
+  .inp{border:1px solid var(--bd);border-radius:5px;padding:6px 10px;font-size:13px;}
+  .inp.sm{width:70px;} .inp.mid{width:130px;} textarea.inp{width:100%;min-height:60px;}
+  .seg{display:inline-flex;border:1px solid var(--bd);border-radius:6px;overflow:hidden;}
+  .seg span{padding:6px 14px;cursor:pointer;background:#fff;color:#666;}
+  .seg span.on{background:var(--prim);color:#fff;}
+  .btn{border:none;border-radius:5px;padding:8px 18px;font-size:13px;cursor:pointer;}
+  .btn.prim{background:var(--prim);color:#fff;} .btn.blue{background:var(--blue);color:#fff;}
+  .btn.ok{background:var(--grn);color:#fff;} .btn.warn{background:#E8943A;color:#fff;}
+  .btn.gray{background:#fff;border:1px solid #ccc;color:#666;} .btn.del{background:#fff;border:1px solid #e6a0a5;color:var(--red);}
+  .btn.sm{padding:4px 11px;font-size:12px;}
+  .note{background:var(--amberbg);border:1px solid #f0e0c0;border-radius:6px;padding:10px 12px;color:var(--amber);font-size:12px;line-height:1.7;}
+  .note.blue{background:var(--blu2);border-color:#cfe0ff;color:#244;}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th,td{border:1px solid var(--bd);padding:7px 9px;text-align:center;}
+  th{background:var(--th);color:#555;font-weight:600;}
+  td .inp{width:74px;}
+  .scrollbox{max-height:340px;overflow:auto;border:1px solid var(--bd);border-radius:5px;}
+  .scrollbox table th{position:sticky;top:0;z-index:1;}
+  .newcol{background:#FAF7FF !important;color:var(--prim);}
+  .badge{font-size:10px;border-radius:4px;padding:1px 7px;font-weight:700;}
+  .b-wait{background:#FFF3DA;color:#A86B12;} .b-gray{background:#E9F3FF;color:#1F6FD6;}
+  .b-full{background:#E5F6EB;color:#2E7D4F;} .b-back{background:#FBE9E9;color:#C23B45;}
+  .prog{height:8px;background:#eee;border-radius:4px;overflow:hidden;}
+  .prog i{display:block;height:100%;background:var(--grn);}
+  .legend{font-size:11px;color:var(--t2);margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="ptitle">
+    <h3>VIP 计算周期改造 · 后台配置</h3>
+    <div class="crumb">活动管理 › 会员VIP管理 › <b>VIP计算周期</b></div>
+  </div>
+
+  <div class="note blue" style="margin-bottom:14px">
+    <b>#3 需求</b>:VIP 保级/月奖金计算周期由「每月固定结算日(现状默认 30 号)统一结算」改为「<b>按会员注册日起算 30 天滚动周期</b>」,各会员结算日错峰,解决「集中领月奖 + 集中出款」积压。<b>站点申请切换 → 总控审批 → 灰度可回退</b>。
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab on" onclick="tab(0)">① 计算周期模式 <span style="color:#E8505B">●新增</span></div>
+    <div class="tab" onclick="tab(1)">② VIP 等级配置(优化)</div>
+    <div class="tab" onclick="tab(2)">③ 切换申请 / 灰度(总控)</div>
+    <div class="tab" onclick="tab(3)">④ 会员周期总览</div>
+  </div>
+
+  <!-- ① 计算周期模式 -->
+  <div class="pane on" id="p0">
+    <div class="card"><div class="ch">当前站点周期模式 <span class="sub">站点:SitINR</span></div>
+      <div class="cb">
+        <div class="modes">
+          <div class="mode cur">
+            <h4>模式 A · 每月统一结算 <span class="pill cur">现状</span></h4>
+            <div class="desc">所有会员每月固定结算日(<code>tab_VipLevel.SettlementDate</code>,默认 30 号)凌晨统一跑保级+发月奖。</div>
+            <ul>
+              <li>SP <code>sp_Set_Vip_Settlement</code> 按 <code>SettlementDate=DAY(now)</code> 触发</li>
+              <li class="con">✗ 结算日全站集中 → 月奖集中领、出款高峰积压</li>
+              <li class="con">✗ 2 月无 30 号 → 该批当月漏结算(现状隐患)</li>
+            </ul>
+          </div>
+          <div class="mode target">
+            <h4>模式 B · 注册日 30 天滚动 <span class="pill new">改造目标</span></h4>
+            <div class="desc">每会员从<b>注册日(周期锚点)</b>起算 30 天为一周期,到期各自结算,结算日天然错峰。</div>
+            <ul>
+              <li class="pro">✓ 结算/出款<b>错峰摊平</b>,无 1 号/30 号高峰</li>
+              <li class="pro">✓ 新注册会员有完整 30 天升级窗口</li>
+              <li>需新增「周期锚点日」字段 + 改 SP 触发/统计/防重为 30 天滚动</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px;border-color:#E0D4F5">
+          <div class="ch" style="background:#FAF7FF">申请切换到 模式 B <span class="new">需总控审批</span></div>
+          <div class="cb">
+            <div class="field"><label>目标模式</label>
+              <div class="seg"><span onclick="seg(this)">模式A 每月统一</span><span class="on" onclick="seg(this)">模式B 注册日30天</span></div>
+            </div>
+            <div class="field"><label>周期天数</label><input class="inp sm" value="30"> 天
+              <span class="note" style="padding:3px 8px">滚动周期长度,默认 30 天</span>
+            </div>
+            <div class="field"><label>灰度范围</label>
+              <div class="seg"><span class="on" onclick="seg(this)">仅新注册会员</span><span onclick="seg(this)">指定比例存量</span><span onclick="seg(this)">全量</span></div>
+            </div>
+            <div class="field"><label>存量会员折算口径</label>
+              <div class="seg"><span class="on" onclick="seg(this)">以注册日为锚点重算</span><span onclick="seg(this)">以末次结算日顺延</span></div>
+            </div>
+            <div class="field"><label>生效时点</label>
+              <div class="seg"><span class="on" onclick="seg(this)">下个周期生效</span><span onclick="seg(this)">立即生效</span></div>
+            </div>
+            <div class="field" style="align-items:flex-start"><label>申请理由</label><textarea class="inp" placeholder="例:1号集中出款积压,申请错峰…"></textarea></div>
+            <button class="btn prim" onclick="alert('原型:提交切换申请 → 进入总控审批(见 ③ tab)')">提交切换申请</button>
+            <span class="badge b-wait" style="margin-left:10px">当前申请状态:未提交</span>
+          </div>
+        </div>
+        <div class="note">回退:灰度期间可一键回退到模式 A(存量数据保留双周期口径快照);全量切换前必须财务侧确认出款节奏。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② VIP 等级配置 -->
+  <div class="pane" id="p1">
+    <div class="card">
+      <div class="ch">VIP 等级配置 <span class="opt">优化</span>
+        <span class="sub">原 VipLevel 19 列;补「结算周期」可编辑 + 周期模式联动</span></div>
+      <div class="cb">
+        <div class="note" style="margin-bottom:10px">
+          现状缺口:<code>SettlementDate</code>(结算日)<b>只在列表展示、编辑页没有输入框</b>,且无「计算周期」维度。优化:① 补结算日可编辑;② 周期模式=B 时该列改为「<b>周期天数(注册日滚动)</b>」,结算日按个人锚点算,不再填月内日号。
+        </div>
+        <div class="field"><label>当前周期模式</label>
+          <div class="seg"><span onclick="seg(this);renderLv()">A 每月统一</span><span class="on" onclick="seg(this);renderLv()">B 注册日30天</span></div>
+          <span class="legend">切换查看「结算日」列随模式变化</span>
+        </div>
+        <div class="scrollbox">
+          <table>
+            <thead><tr>
+              <th>等级</th><th>名称</th><th>升级条件<br>(EXP)</th><th>保级条件<br>(EXP)</th><th>扣除经验</th>
+              <th>月奖励积分</th><th>月奖励余额</th><th>充值奖励%</th><th>月领取次数<br>(0不限)</th>
+              <th class="newcol" id="cycHead">结算周期</th><th>操作</th>
+            </tr></thead>
+            <tbody id="lvBody"></tbody>
+          </table>
+        </div>
+        <div class="legend">注:升级看累计经验≥升级条件;保级看本周期经验≥保级条件,不足扣「扣除经验」并可能降级。各品类洗码率/保险箱日利率等沿用原页未列出。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 切换申请 / 灰度 -->
+  <div class="pane" id="p2">
+    <div class="card">
+      <div class="ch">站点周期切换申请 / 灰度管理 <span class="new">新增·总控端</span>
+        <span class="sub">总控审批各站点的模式切换 + 灰度批次 + 回退</span></div>
+      <div class="cb">
+        <table>
+          <thead><tr><th>站点</th><th>当前模式</th><th>申请模式</th><th>灰度范围</th><th>灰度进度</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>SitINR</td><td>A 每月统一</td><td>B 注册日30天</td><td>仅新注册</td>
+              <td><div class="prog"><i style="width:30%"></i></div><span class="legend">新注册已切 30%</span></td>
+              <td><span class="badge b-wait">待审批</span></td>
+              <td><button class="btn ok sm">批准</button> <button class="btn del sm">驳回</button></td>
+            </tr>
+            <tr>
+              <td>SitBDT</td><td>A 每月统一</td><td>B 注册日30天</td><td>20% 存量</td>
+              <td><div class="prog"><i style="width:60%"></i></div><span class="legend">灰度批次 2/3</span></td>
+              <td><span class="badge b-gray">灰度中</span></td>
+              <td><button class="btn warn sm">扩大灰度</button> <button class="btn gray sm">回退</button></td>
+            </tr>
+            <tr>
+              <td>SitPKR</td><td>B 注册日30天</td><td>—</td><td>全量</td>
+              <td><div class="prog"><i style="width:100%"></i></div><span class="legend">已全量</span></td>
+              <td><span class="badge b-full">已全量</span></td>
+              <td><button class="btn gray sm">回退到A</button></td>
+            </tr>
+            <tr>
+              <td>SitVND</td><td>A 每月统一</td><td>B 注册日30天</td><td>仅新注册</td>
+              <td><div class="prog"><i style="width:0%"></i></div><span class="legend">已回退</span></td>
+              <td><span class="badge b-back">已回退</span></td>
+              <td><button class="btn ok sm">重新批准</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="note" style="margin-top:12px">
+          灰度流程:站点申请 → 总控批准 → <b>仅新注册</b>试点 → <b>按比例扩大存量</b> → <b>全量</b>;任一阶段可<b>回退到 A</b>(保留双口径数据快照,防保级进度/月奖错算)。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 会员周期总览 -->
+  <div class="pane" id="p3">
+    <div class="card">
+      <div class="ch">会员 VIP 周期总览 <span class="opt">优化</span>
+        <span class="sub">原按统一 30 号显示;改为<b>按个人周期</b>显示起止 + 距结算天数</span></div>
+      <div class="cb">
+        <div class="field"><label>查询会员</label><input class="inp mid" placeholder="UID">
+          <button class="btn blue sm">查询</button>
+          <span class="legend">演示数据:同站点不同注册日 → 结算日错峰</span></div>
+        <table>
+          <thead><tr><th>UID</th><th>VIP等级</th><th>周期模式</th><th>注册日(锚点)</th><th>本周期起止</th><th>距结算</th><th>本周期经验 / 保级条件</th><th>保级进度</th><th>上次结算</th></tr></thead>
+          <tbody id="userBody"></tbody>
+        </table>
+        <div class="note" style="margin-top:12px">
+          模式 B 下「本周期起止」= 上一锚点 ~ +30 天;「距结算」= 周期结束 - 今天。前端 VIP 中心同步改为<b>按个人周期</b>展示结算日/倒计时,不再统一显示「下月 30 号」。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // VIP 等级配置(对齐 V1 tab_VipLevel,数值为原型示例)
+  const LV=[
+    {id:0,name:'VIP0',up:0,re:0,de:0,mp:0,mb:0,rr:0},
+    {id:1,name:'VIP1',up:1000,re:500,de:10,mp:0,mb:100,rr:0.5},
+    {id:2,name:'VIP2',up:3000,re:1500,de:10,mp:0,mb:200,rr:0.6},
+    {id:3,name:'VIP3',up:8000,re:4000,de:20,mp:0,mb:400,rr:0.8},
+    {id:4,name:'VIP4',up:20000,re:10000,de:20,mp:0,mb:700,rr:1.0},
+    {id:5,name:'VIP5',up:50000,re:25000,de:30,mp:0,mb:1000,rr:1.2},
+    {id:6,name:'VIP6',up:120000,re:60000,de:40,mp:0,mb:2000,rr:1.5},
+    {id:7,name:'VIP7',up:300000,re:150000,de:50,mp:0,mb:3500,rr:1.8},
+    {id:8,name:'VIP8',up:700000,re:350000,de:60,mp:0,mb:6000,rr:2.0},
+    {id:9,name:'VIP9',up:1500000,re:750000,de:80,mp:0,mb:10000,rr:2.5},
+    {id:10,name:'VIP10',up:3000000,re:1500000,de:100,mp:0,mb:15000,rr:3.0},
+  ];
+  let lvMode='B'; // 当前等级配置 tab 的周期模式
+  function renderLv(){
+    // 读取 ② tab 当前选中的模式
+    const segEl=document.querySelector('#p1 .seg span.on');
+    lvMode = segEl && segEl.textContent.indexOf('A')>=0 ? 'A':'B';
+    document.getElementById('cycHead').textContent = lvMode==='A' ? '结算日(每月)' : '周期天数(注册日滚动)';
+    document.getElementById('lvBody').innerHTML = LV.map(v=>{
+      const cyc = lvMode==='A'
+        ? `<input class="inp" value="30"> 号`
+        : `<input class="inp" value="30"> 天`;
+      return `<tr>
+        <td>${v.id}</td><td>${v.name}</td>
+        <td><input class="inp" value="${v.up}"></td>
+        <td><input class="inp" value="${v.re}"></td>
+        <td><input class="inp" value="${v.de}"></td>
+        <td><input class="inp" value="${v.mp}"></td>
+        <td><input class="inp" value="${v.mb}"></td>
+        <td><input class="inp" value="${v.rr}"></td>
+        <td><input class="inp" value="0"></td>
+        <td class="newcol">${cyc}</td>
+        <td><button class="btn prim sm">保存</button></td></tr>`;
+    }).join('');
+  }
+
+  // ④ 会员周期总览(演示:同站点不同注册日错峰)
+  const USERS=[
+    {uid:'100231',lv:5,reg:'05-08',start:'06-08',end:'07-08',left:11,exp:18000,re:25000},
+    {uid:'100232',lv:3,reg:'05-22',start:'06-22',end:'07-22',left:25,exp:5200,re:4000},
+    {uid:'100233',lv:8,reg:'06-02',start:'06-02',end:'07-02',left:5,exp:420000,re:350000},
+    {uid:'100234',lv:1,reg:'06-15',start:'06-15',end:'07-15',left:18,exp:300,re:500},
+    {uid:'100235',lv:10,reg:'05-27',start:'06-27',end:'07-27',left:30,exp:1620000,re:1500000},
+  ];
+  function renderUsers(){
+    document.getElementById('userBody').innerHTML = USERS.map(u=>{
+      const pct=Math.min(100,Math.round(u.exp/u.re*100));
+      const ok=u.exp>=u.re;
+      return `<tr>
+        <td>${u.uid}</td><td>VIP${u.lv}</td><td><span class="badge b-gray">B 注册日30天</span></td>
+        <td>${u.reg}</td><td>${u.start} ~ ${u.end}</td>
+        <td><b style="color:${u.left<=7?'#C23B45':'#333'}">${u.left} 天</b></td>
+        <td>${u.exp.toLocaleString()} / ${u.re.toLocaleString()}</td>
+        <td><div class="prog"><i style="width:${pct}%;background:${ok?'#2E9C5B':'#E8943A'}"></i></div>
+          <span class="legend">${pct}% ${ok?'已达标':'保级中'}</span></td>
+        <td>${u.start}</td></tr>`;
+    }).join('');
+  }
+
+  function tab(i){
+    document.querySelectorAll('#tabs .tab').forEach((t,k)=>t.classList.toggle('on',k===i));
+    document.querySelectorAll('.pane').forEach((p,k)=>p.classList.toggle('on',k===i));
+  }
+  function seg(el){ [...el.parentElement.children].forEach(s=>s.classList.remove('on')); el.classList.add('on'); }
+
+  renderLv(); renderUsers();
+</script>
+</body>
+</html>

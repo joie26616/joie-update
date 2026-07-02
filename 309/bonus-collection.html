@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>前端 Bonus Collection · 奖励中心活动清单</title>
+<style>
+  :root{--t1:#1f1e1c;--t2:#555;--t3:#8a8980;--bd:#e3e3e3;--p:#7752FD;--amber:#854F0B;--amberbg:#FAEEDA;--amberbd:#BA7517;
+    --grn:#1e7e34;--grnbg:#e6f4ea;--blu:#2C8FE0;--blubg:#e8f3fc;}
+  *{box-sizing:border-box;}
+  body{margin:0;padding:24px;background:#eceae3;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);line-height:1.6;}
+  .wrap{max-width:920px;margin:0 auto;}
+  h1{font-size:20px;margin:0 0 4px;}
+  .sub{font-size:13px;color:var(--t3);margin-bottom:18px;}
+  .sub code{background:#fff;border:1px solid var(--bd);border-radius:4px;padding:1px 6px;font-size:12px;}
+  .sec{font-size:15px;font-weight:600;margin:22px 0 10px;display:flex;align-items:center;gap:8px;}
+  .pill{font-size:12px;font-weight:600;padding:2px 10px;border-radius:12px;}
+  .pill.g{background:var(--grnbg);color:var(--grn);} .pill.b{background:var(--blubg);color:var(--blu);}
+  .card{background:#fff;border:1px solid var(--bd);border-radius:8px;overflow:hidden;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{padding:9px 12px;text-align:left;border-bottom:1px solid #f0f0f0;}
+  th{background:#fafafa;color:var(--t2);font-weight:600;}
+  td.code{text-align:center;color:var(--p);font-weight:600;}
+  .target{color:var(--amber);font-weight:600;}
+  .note{background:var(--amberbg);border:1px solid var(--amberbd);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--amber);margin-top:18px;}
+  .note b{color:var(--amber);}
+  .src{font-size:12px;color:var(--t3);margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>前端 Bonus Collection · 奖励中心活动清单</h1>
+  <div class="sub">来源:<code>ActivityController.GetRewardCenterList</code> + 宝箱弹窗 <code>GetTreasureChestPopupItems / OpenTreasureChest</code>。按 <code>ReceiveState</code> 分两类:<b>0/3 = 可直接领取</b>、<b>3 = 跳转到页面领取/参加</b>。活动以 <code>FinancialLogTypeEnum</code>(账变码)区分。</div>
+  <div class="note" style="margin:0 0 14px;background:#eef0f4;border-color:#c9cdd6;color:#555"><b>范围说明</b>:本页 = <b>309 奖励中心基础清单</b>,<b>不含 310 内容</b>。下方 🆕310 标记的<b>「月签到 · 满签阶梯奖」仅属 310</b>(在 310 bonus collection 呈现)。<b>七日集星里程碑奖不纳入 bonus collection</b>(仅在活动页展示领取,已从本页移除)。</div>
+  <div class="note" style="margin:0 0 14px;background:#E8F3EC;border-color:#9AD3AE;color:#2E7D4F"><b>🆕 310 月签到(仅 310)</b>:① <b>每日签到日常奖</b> = 沿用现状,在「跳转参加」→ 跳<b>签到页</b>领;② <b>满签阶梯奖</b>(3/7/15/月末)= 新增到「直接领取」,在奖励中心显示<b>「待领取」</b>状态,并<b>纳入一键领取</b>。</div>
+
+  <div class="note" style="margin:0 0 14px;background:#fdecea;border-color:#f2b8b5;color:#C23B45"><b>⚠️ #20 批量彩金已移出 309(留档标注)</b>:下表中标 <span style="background:#fdecea;border:1px solid #f2b8b5;border-radius:6px;padding:0 6px;font-size:11px">🔶#20留档</span> 的行为批量彩金(人工充值·彩金充值·弹窗领取)相关内容,本页仅保留并标注,不再属 309 需求范围。</div>
+  <!-- 一、直接领取类 -->
+  <div class="sec"><span class="pill g">直接领取</span> 一、在 奖励中心 / 宝箱弹窗 内直接领</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>活动名称</th><th style="width:80px">账变码</th><th>后端接口/服务</th><th>前端</th></tr></thead>
+      <tbody>
+        <tr style="background:#FFF7E6"><td><b>月签到 · 满签阶梯奖</b> <span class="pill g" style="font-size:11px">🆕310 待领取</span></td><td class="code">7</td><td>SignInController(ClaimMilestone)</td><td>奖励中心「待领取」· <b>纳入一键领取</b></td></tr>
+        <tr style="background:#fdecea;color:#8a4a47"><td><b>充值赠送彩金(批量彩金 · 弹窗领取)</b> <span style="border:1px solid #f2b8b5;border-radius:6px;padding:0 6px;font-size:11px">🔶#20留档</span></td><td class="code">—</td><td>原方案:人工充值(彩金充值)→ 弹窗领取,登录直接弹 bonus collection</td><td>已移出 309 · 仅留档</td></tr>
+        <tr><td>每日奖励</td><td class="code">118</td><td>DailyAward(OpenTreasureChest)</td><td>奖励中心 / 宝箱弹窗内领</td></tr>
+        <tr><td>每周奖励</td><td class="code">107</td><td>WeeklyAward</td><td>奖励中心 / 宝箱弹窗内领</td></tr>
+        <tr><td>VIP会员每月奖励</td><td class="code">30</td><td>UsersVip(ReceiveAward)</td><td>奖励中心(VIP中心)</td></tr>
+        <tr><td>VIP会员升级礼包</td><td class="code">29</td><td>UsersVip</td><td>奖励中心内领</td></tr>
+        <tr><td>邀请奖励</td><td class="code">20</td><td>Users(SetTaskOrder)</td><td>奖励中心内领</td></tr>
+        <tr><td>电子大奖</td><td class="code">103</td><td>Users(大奖一键领)</td><td>奖励中心内领</td></tr>
+        <tr><td>新手礼包</td><td class="code">113</td><td>GiftPack</td><td>奖励中心内领</td></tr>
+        <tr><td>下载APP充值奖励</td><td class="code">131</td><td>Users(downapp)</td><td>奖励中心内领</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 二、跳转参加类 -->
+  <div class="sec"><span class="pill b">跳转参加</span> 二、点击跳到对应前端页面参加 / 领取</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>活动名称</th><th style="width:80px">账变码</th><th>跳转的前端页面(目标)</th><th>对应后端</th></tr></thead>
+      <tbody>
+        <tr><td>每日签到(日常签到奖)</td><td class="code">7</td><td class="target">签到页</td><td>SignInController · 跳签到页领(现状·不计入一键)</td></tr>
+        <tr><td>充值赠送</td><td class="code">10</td><td class="target">充值页</td><td>RechargeController</td></tr>
+        <tr><td>合伙人奖励</td><td class="code">108</td><td class="target">推广 / 合伙人页</td><td>PromotionController</td></tr>
+        <tr><td>红包</td><td class="code">3</td><td class="target">红包页</td><td>Users(redpage)</td></tr>
+        <tr><td>老会员回归奖励</td><td class="code">115</td><td class="target">回归活动页 / 弹窗</td><td>Activity(ReceiveReturnAwards)</td></tr>
+        <tr><td>洗码反水</td><td class="code">102</td><td class="target">洗码 / 返水页</td><td>Users(codewash)</td></tr>
+        <tr><td>转盘奖励(大转盘)</td><td class="code">119</td><td class="target">大转盘页</td><td>TurntableController</td></tr>
+        <tr><td>提现活动奖励</td><td class="code">126</td><td class="target">提现页</td><td>FinancialController</td></tr>
+        <tr><td>新会员负盈利送彩金</td><td class="code">116</td><td class="target">新会员礼包页</td><td>GiftPackController</td></tr>
+        <tr><td>新会员玩游戏送彩金</td><td class="code">117</td><td class="target">新会员礼包页</td><td>GiftPackController</td></tr>
+        <tr><td>邀请转盘奖励</td><td class="code">130</td><td class="target">邀请转盘页</td><td>InvitedWheelController</td></tr>
+        <tr><td>锦标赛奖励</td><td class="code">114</td><td class="target">锦标赛页</td><td>ChampionTaskController</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 关键判定逻辑 -->
+  <div class="sec">三、关键判定逻辑(代码事实)</div>
+  <div class="card"><table><tbody>
+    <tr><td><b>ReceiveState</b></td><td><code>0/3</code> 段 = 可直接领取;<code>3</code> 段 = 可跳转到页面领取(3 弹窗包含跳转)</td></tr>
+    <tr><td><b>活动区分</b></td><td>以 <code>FinancialLogTypeEnum</code>(上表账变码)区分活动类型</td></tr>
+    <tr><td><b>按钮显隐</b></td><td><code>IsReceiveButtonHidden</code> / <code>RecordType</code> 控制按钮显隐与"展示最高可领金额/比例"(跳转类常显示「最高可领 X / X%」引导参加)</td></tr>
+  </tbody></table></div>
+
+  <div class="note">
+    ⚠️ <b>如实说明</b>:上表「跳转的前端页面」是依据后端接口/活动语义推断的<b>页面归属</b>;精确前端路由名需 V1 用户端前端仓库——目前 clone 的是后台(<code>Ar_V1_Admin</code>)+ API(<code>ar_v1_lotteryapi</code>),未含用户端前端。提供前端仓库即可补全确切路由。
+  </div>
+  <div class="src">代码依据:ActivityController.GetRewardCenterList(奖励中心聚合,含黑名单过滤)、GetTreasureChestPopupItems / OpenTreasureChest(宝箱弹窗领取)。</div>
+</div>
+</body>
+</html>

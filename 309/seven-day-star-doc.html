@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>七日集星 · 需求文档</title>
+<style>
+  :root{--prim:#6f42c1;--blue:#1456d8;--grn:#2E9C5B;--red:#E8505B;--amber:#854F0B;--amberbg:#FBF1DE;--bd:#e6e8ee;--t1:#2a2a33;--t2:#777;--bg:#eef0f4;
+    --bronze:#b87333;--silver:#8a93a3;--gold:#C8941A;--diamond:#3aa6c4;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);font-size:14px;line-height:1.7;}
+  .layout{display:flex;max-width:1200px;margin:0 auto;min-height:100vh;}
+  /* 左侧菜单 */
+  .side{width:210px;flex:0 0 210px;background:#1f1d2b;color:#cfcadf;padding:18px 0;position:sticky;top:0;height:100vh;overflow:auto;}
+  .side .brand{font-size:17px;font-weight:800;color:#fff;padding:0 20px 14px;border-bottom:1px solid #36334a;margin-bottom:10px;}
+  .side .brand small{display:block;font-size:11px;color:#8a85a3;font-weight:400;margin-top:3px;}
+  .mi{display:flex;align-items:center;gap:9px;padding:11px 20px;cursor:pointer;font-size:14px;border-left:3px solid transparent;}
+  .mi:hover{background:#2a2740;}
+  .mi.on{background:#2a2740;border-left-color:var(--prim);color:#fff;font-weight:700;}
+  .mi .ic{font-size:16px;width:20px;text-align:center;}
+  /* 右侧内容 */
+  .main{flex:1;padding:26px 34px;overflow:auto;}
+  .pane{display:none;}
+  .pane.on{display:block;animation:fade .2s;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  h2{font-size:21px;margin:0 0 4px;display:flex;align-items:center;gap:8px;}
+  .lead{color:var(--t2);font-size:13px;margin:0 0 18px;}
+  h3{font-size:15px;margin:20px 0 8px;color:var(--prim);}
+  ul{margin:6px 0;padding-left:20px;} li{margin:4px 0;}
+  table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13px;}
+  th,td{border:1px solid var(--bd);padding:7px 10px;text-align:left;}
+  th{background:#f5f6fa;color:#555;font-weight:600;}
+  code{background:#f2eefb;color:var(--prim);border-radius:3px;padding:1px 5px;font-size:12px;}
+  .tag{display:inline-block;font-size:11px;border-radius:5px;padding:1px 8px;margin-left:4px;}
+  .t-b{background:#f6ecdf;color:var(--bronze);} .t-s{background:#eef0f3;color:var(--silver);} .t-g{background:#FBF1DE;color:var(--gold);} .t-d{background:#e4f3f8;color:var(--diamond);}
+  .note{background:var(--amberbg);border:1px solid #e7cf9e;border-radius:8px;padding:11px 14px;color:var(--amber);font-size:13px;margin:12px 0;}
+  .ok{background:#e9f7ef;border:1px solid #bce3cd;color:#226c42;border-radius:8px;padding:11px 14px;font-size:13px;margin:12px 0;}
+  .open{background:#fdeef0;border:1px solid #f3c6cd;color:#9c2f3d;border-radius:8px;padding:6px 12px;margin:8px 0;font-size:13px;}
+  a.golink{color:var(--prim);text-decoration:none;font-weight:600;border:1px solid var(--prim);border-radius:16px;padding:5px 13px;font-size:12px;display:inline-block;margin:4px 6px 4px 0;}
+
+  /* 流程图 */
+  .flow{display:flex;flex-direction:column;gap:0;align-items:flex-start;}
+  .fbox{background:#fff;border:2px solid var(--prim);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;display:inline-block;}
+  .fbox.s{border-color:var(--grn);} .fbox.e{border-color:#888;} .fbox.w{border-color:var(--red);}
+  .farr{color:#aaa;font-size:18px;margin:2px 0 2px 28px;}
+  .frow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .fnote{font-size:12px;color:var(--t2);}
+  .branch{border-left:2px dashed #ccc;margin-left:28px;padding-left:18px;margin-top:4px;}
+
+  /* 时序图 */
+  .seq{display:grid;grid-template-columns:repeat(4,1fr);gap:0 10px;margin-top:10px;position:relative;}
+  .seqh{text-align:center;font-weight:700;font-size:12px;color:#fff;background:var(--prim);border-radius:6px;padding:7px 4px;position:sticky;top:0;}
+  .seqh.a{background:#3a6df0;} .seqh.b{background:#6f42c1;} .seqh.c{background:#2E9C5B;} .seqh.d{background:#c77f1a;}
+  .seqstep{grid-column:1/-1;display:flex;align-items:center;gap:10px;border-bottom:1px dashed #e3e3ec;padding:9px 4px;font-size:12.5px;}
+  .seqstep .n{flex:0 0 22px;height:22px;border-radius:50%;background:var(--prim);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700;}
+  .seqstep .ar{color:var(--prim);font-weight:700;}
+  .small{font-size:12px;color:var(--t2);}
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="side">
+    <div class="brand">⭐ 七日集星<small>需求文档 · 310 · #36</small></div>
+    <div class="mi on" data-p="req"><span class="ic">📖</span>需求说明</div>
+    <div class="mi" data-p="state"><span class="ic">📊</span>状态流程图</div>
+    <div class="mi" data-p="admin"><span class="ic">⚙️</span>后台配置</div>
+    <div class="mi" data-p="user"><span class="ic">👤</span>用户流程</div>
+    <div class="mi" data-p="lock"><span class="ic">🎁</span>首次领奖锁段位</div>
+    <div class="mi" data-p="star"><span class="ic">⭐</span>星星进度</div>
+    <div class="mi" data-p="db"><span class="ic">🗄️</span>数据库设计</div>
+    <div class="mi" data-p="seq"><span class="ic">📋</span>时序图</div>
+    <div class="mi" data-p="open"><span class="ic">❓</span>待确认问题</div>
+  </nav>
+
+  <main class="main">
+    <div style="background:#FDECEC;border:1px solid #e6a0a5;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#a5281f;font-weight:600">⏸ 本需求(七日集星)<b>产品内部暂停</b> —— 原型/文档留存备查,暂不推进排期与开发。</div>
+    <!-- 需求说明 -->
+    <section class="pane on" id="p-req">
+      <h2>📖 需求说明</h2>
+      <p class="lead">原「7 天充值签到」升级为独立活动「七日集星」,归 [活动配置],与 VIP 等级无关。</p>
+      <h3>玩法总览</h3>
+      <ul>
+        <li><b>周期</b>:7 个自然日一轮;漏签不顺延。</li>
+        <li><b>每日任务</b>:3 个(① 充值金额 ② 投注金额 ③ 邀请有效下级人数),阈值可配。</li>
+        <li><b>得星</b>:每完成 1 个任务 = 1 星,每天最多 3 星 → 一轮最多 <b>21 星</b>。</li>
+        <li><b>当天签到奖</b>:当天完成 ≥1 个任务即可领(对应段位第 N 天奖)。</li>
+        <li><b>集星里程碑</b>:累计 7 / 14 / 21 星 → 额外彩金(按段位不同)。</li>
+        <li><b>段位</b>:青铜 <span class="tag t-b">B</span> 白银 <span class="tag t-s">S</span> 黄金 <span class="tag t-g">G</span> 钻石 <span class="tag t-d">D</span>,各档条件+奖励随档上涨;<b>首次领取锁段位</b>。</li>
+        <li><b>结算</b>:充值/投注/邀请当日达标,<b>当天统计后派彩</b>。</li>
+        <li><b>断签不清零</b>(继续、漏天 0 星);<b>终止</b>才清零重来。</li>
+      </ul>
+      <div class="ok">与月签到 #19 区分:#19 = 自然月 · VIP 路线 · 补签;七日集星 = 7 日 · 任务难度档 · 集星,二者并存、各自独立活动。</div>
+      <div>
+        <a class="golink" href="seven-day-star.html" target="_blank">前台原型 ↗</a>
+        <a class="golink" href="seven-day-star-admin.html" target="_blank">后台配置 ↗</a>
+        <a class="golink" href="seven-day-star-report.html" target="_blank">数据统计 ↗</a>
+      </div>
+    </section>
+
+    <!-- 状态流程图 -->
+    <section class="pane" id="p-state">
+      <h2>📊 状态流程图(一轮生命周期)</h2>
+      <p class="lead">轮次状态机:未参与 → 进行中 → (断签可继续 / 终止清零) → 结束。</p>
+      <div class="flow">
+        <div class="fbox s">① 未参与 / 新一轮</div>
+        <div class="farr">↓ 首次完成任务并领取(选一个段位)</div>
+        <div class="fbox">② 进行中 · 已锁段位</div>
+        <div class="farr">↓ 每天循环</div>
+        <div class="frow">
+          <div class="fbox" style="border-color:#ccc">每日:完成任务→得星(0–3)→领当天奖→当天结算派彩</div>
+        </div>
+        <div class="branch">
+          <div class="frow"><span class="fnote">分支 a · 某天 0 完成 = </span><div class="fbox w">断签</div><span class="fnote">→ <b>不清零</b>,漏天 0 星,可继续(按 7 自然日不顺延)</span></div>
+          <div class="frow" style="margin-top:8px"><span class="fnote">分支 b · 点「终止本轮」/「退出当前段位」= </span><div class="fbox w">终止/退出</div><span class="fnote">→ <b>清 0 当前段位记录</b>,回 ①(已签当天→次日重开;未签→可立即重开),按新选段位重新统计</span></div>
+        </div>
+        <div class="farr">↓ 第 7 自然日到期</div>
+        <div class="fbox e">③ 结束</div>
+        <div class="farr">↓ 可重新参加(重锁段位,跨轮星数不累计)</div>
+        <div class="fbox s">① 新一轮</div>
+      </div>
+    </section>
+
+    <!-- 后台配置 -->
+    <section class="pane" id="p-admin">
+      <h2>⚙️ 后台配置</h2>
+      <p class="lead">归 [活动配置];结构 = 活动设置 + 段位(青铜/白银/黄金/钻石)× 7 天 + 集星里程碑。</p>
+      <h3>① 活动设置</h3>
+      <ul><li>启用状态;周期 = 7 自然日(固定);启用的段位集合(可启停某档)。</li></ul>
+      <h3>② 段位配置(每档独立,数值随档上涨)</h3>
+      <table>
+        <tr><th>天</th><th>当天签到奖</th><th>充值阈</th><th>投注阈</th><th>邀请有效下级</th></tr>
+        <tr><td>1</td><td>10</td><td>100</td><td>500</td><td>1</td></tr>
+        <tr><td>2</td><td>20</td><td>200</td><td>1000</td><td>2</td></tr>
+        <tr><td>3</td><td>30</td><td>500</td><td>2500</td><td>3</td></tr>
+        <tr><td>4</td><td>50</td><td>1000</td><td>5000</td><td>3</td></tr>
+        <tr><td>5</td><td>100</td><td>2000</td><td>10000</td><td>3</td></tr>
+        <tr><td>6</td><td>150</td><td>3000</td><td>15000</td><td>4</td></tr>
+        <tr><td>7</td><td>200</td><td>5000</td><td>25000</td><td>沿用「有效邀请人」配置 <span class="small">(不写死)</span></td></tr>
+      </table>
+      <p class="small">青铜档示例;白银/黄金/钻石阈值与奖励更高。</p>
+      <h3>③ 集星里程碑(按段位不同)</h3>
+      <table><tr><th>累计星</th><th>青铜</th><th>白银</th><th>黄金</th><th>钻石</th></tr>
+        <tr><td>7 ⭐</td><td>300</td><td>500</td><td>900</td><td>1800</td></tr>
+        <tr><td>14 ⭐</td><td>500</td><td>800</td><td>1500</td><td>3000</td></tr>
+        <tr><td>21 ⭐</td><td>1000</td><td>1800</td><td>3000</td><td>6000</td></tr>
+      </table>
+      <a class="golink" href="seven-day-star-admin.html" target="_blank">打开后台配置原型 ↗</a>
+    </section>
+
+    <!-- 用户流程 -->
+    <section class="pane" id="p-user">
+      <h2>👤 用户流程</h2>
+      <p class="lead">从进入活动到一轮结束的会员视角。</p>
+      <div class="flow">
+        <div class="fbox s">进入七日集星页</div>
+        <div class="farr">↓ 系统展示今日各段位达标情况 + 各档可领额度</div>
+        <div class="fbox">完成当日任务(充值/投注/邀请,任一即得星)</div>
+        <div class="farr">↓ 首次领取</div>
+        <div class="fbox w">选一个段位领取 → 锁定该段位</div>
+        <div class="farr">↓ 第 2–7 天(只按锁定段位统计)</div>
+        <div class="fbox">每天:完成任务→得星→领当天奖(当天结算派彩)</div>
+        <div class="farr">↓ 累计星到节点</div>
+        <div class="fbox">领集星里程碑奖(7/14/21 ⭐)</div>
+        <div class="farr">↓</div>
+        <div class="fbox e">7 天结束 / 或随时「终止本轮」重来</div>
+        <div class="branch" style="margin-top:8px">
+          <div class="frow"><span class="fnote">分支 · 用户主动退出当前段位 = </span><div class="fbox w">退出段位</div><span class="fnote">→ <b>清 0 当前段位的 7 日集星记录</b> → 按重新选择的段位,从第 1 天重新开始统计</span></div>
+        </div>
+      </div>
+      <div class="note">锁定后即便当日达到更高段位,差额不补、不可升段。漏签当天 0 星但<b>不清零</b>、可继续;<b>退出 / 终止当前段位 → 清 0 本段位记录,按新选段位重新开始统计</b>。</div>
+    </section>
+
+    <!-- 首次领奖锁段位 -->
+    <section class="pane" id="p-lock">
+      <h2>🎁 首次领奖锁段位(核心机制)</h2>
+      <p class="lead">不预选难度;会员<b>首次领取</b>时,所选段位的奖 = 锁定段位,之后 6 天按该档统计派发。</p>
+      <h3>示例(第 1 天:充值达白银阈、投注达青铜阈、邀请达钻石阈)</h3>
+      <table>
+        <tr><th>段位</th><th>该段位 3 任务达标</th><th>可领(该段位第1天奖)</th></tr>
+        <tr><td><span class="tag t-b">青铜</span></td><td>充 ✓ 投 ✓ 邀 ✓(3/3)</td><td>10</td></tr>
+        <tr><td><span class="tag t-s">白银</span></td><td>充 ✓ 投 ✗ 邀 ✓(2/3)</td><td>白银值</td></tr>
+        <tr><td><span class="tag t-g">黄金</span></td><td>充 ✗ 投 ✗ 邀 ✓(1/3)</td><td>黄金值</td></tr>
+        <tr><td><span class="tag t-d">钻石</span></td><td>充 ✗ 投 ✗ 邀 ✓(1/3)</td><td>钻石值</td></tr>
+      </table>
+      <div class="ok">会员只能<b>选一个段位领取</b>。例:选领白银 → 锁定白银 → 第 2–7 天只按白银的阈值与奖励统计派发。</div>
+      <div class="note">规则:① 只能选一档;② 锁定后不可改、不可升段、达更高档不补差;③ 锁定前每天按各档展示;④ 断签不影响已锁段位;终止则解锁、下一轮重锁。</div>
+    </section>
+
+    <!-- 星星进度 -->
+    <section class="pane" id="p-star">
+      <h2>⭐ 星星进度</h2>
+      <p class="lead">每任务 1 星,每天最多 3 星,一轮(7 天)最多 21 星。</p>
+      <h3>得星规则</h3>
+      <ul>
+        <li>当天 3 任务,达标几个 = 当天得几星(0–3)。</li>
+        <li>当天 ≥1 星即可领当天签到奖。</li>
+        <li>漏签当天 = 0 星(不清零既有星数,但按 7 自然日,漏天无法补 → 影响能否满 21)。</li>
+      </ul>
+      <h3>里程碑(进度条节点)</h3>
+      <table><tr><th>累计星</th><th>含义</th><th>奖励</th></tr>
+        <tr><td>7 ⭐</td><td>约前 2–3 天全做</td><td>额外彩金(按段位)</td></tr>
+        <tr><td>14 ⭐</td><td>约 5 天全做</td><td>额外彩金(按段位)</td></tr>
+        <tr><td>21 ⭐</td><td>7 天全勤全做(满星)</td><td>额外彩金(按段位)</td></tr>
+      </table>
+      <div class="note">里程碑奖按<b>锁定段位</b>发放(青铜与钻石额度不同);每节点每轮限领一次;跨轮星数不累计。</div>
+    </section>
+
+    <!-- 数据库设计 -->
+    <section class="pane" id="p-db">
+      <h2>🗄️ 数据库设计</h2>
+      <p class="lead">配置 3 表 + 运行 2 表(字段名待开发期对齐 V1 命名)。</p>
+      <h3>配置表</h3>
+      <table>
+        <tr><th>表</th><th>主要字段</th></tr>
+        <tr><td><code>act_star_activity</code> 活动主表</td><td>活动ID、名称(七日集星)、启用状态、周期=7、启用段位集合</td></tr>
+        <tr><td><code>act_star_tier_day</code> 段位×天配置</td><td>活动ID、段位、第N天(1–7)、充值阈、投注阈、邀请阈、当天签到奖</td></tr>
+        <tr><td><code>act_star_milestone</code> 段位里程碑</td><td>活动ID、段位、星节点(7/14/21)、额外彩金</td></tr>
+      </table>
+      <h3>运行表</h3>
+      <table>
+        <tr><th>表</th><th>主要字段</th></tr>
+        <tr><td><code>act_star_round</code> 会员轮次</td><td>会员ID、轮次ID、第1天日期、<b>锁定段位</b>、累计星数、各里程碑领取状态、轮次状态(进行中/终止/结束)</td></tr>
+        <tr><td><code>act_star_day_log</code> 每日完成明细</td><td>轮次ID、第N天、充值达标、投注达标、邀请达标、当天得星、当天奖领取状态、派彩额</td></tr>
+      </table>
+      <div class="note">锁定段位字段在「首次领取」时写入,本轮不可变;领取/派彩接口幂等去重。</div>
+    </section>
+
+    <!-- 时序图 -->
+    <section class="pane" id="p-seq">
+      <h2>📋 时序图(领取 + 结算)</h2>
+      <p class="lead">参与方:会员 / 前端页 / 后端 API / 结算 Job。</p>
+      <div class="seq">
+        <div class="seqh a">会员</div><div class="seqh b">前端页</div><div class="seqh c">后端 API</div><div class="seqh d">结算 Job</div>
+        <div class="seqstep"><span class="n">1</span> 进入活动 <span class="ar">→</span> 前端 <span class="ar">→</span> <code>GetStarActivity</code> <span class="ar">→</span> 返回当前轮次/今日各段位达标/已锁段位/可领项</div>
+        <div class="seqstep"><span class="n">2</span> (未锁档)前端展示<b>各段位可领</b>,会员点选某档「领取」</div>
+        <div class="seqstep"><span class="n">3</span> 会员确认 <span class="ar">→</span> <code>ClaimStarDaily</code>:<b>首次领取写入锁定段位</b> + 发当天奖 + 记当天星(幂等)</div>
+        <div class="seqstep"><span class="n">4</span> 每日收盘 <span class="ar">→</span> <code>结算 Job</code> 统计当日充值/投注/邀请达标 → 生成当天可领星与奖(<b>当天派彩</b>)</div>
+        <div class="seqstep"><span class="n">5</span> 累计星达 7/14/21 <span class="ar">→</span> 会员领里程碑 <span class="ar">→</span> <code>ClaimStarMilestone</code>(按锁定段位发,每节点每轮一次)</div>
+        <div class="seqstep"><span class="n">6</span> 某天 0 完成 = 断签 → 轮次<b>不清零</b>,状态仍「进行中」,继续</div>
+        <div class="seqstep"><span class="n">7</span> 会员点「终止」 <span class="ar">→</span> <code>TerminateStarRound</code>:本轮作废清零(已签当天→次日重开;未签→立即重开)</div>
+        <div class="seqstep"><span class="n">8</span> 第 7 自然日到期 <span class="ar">→</span> Job 置轮次「结束」;会员可重新参加(重锁段位)</div>
+      </div>
+    </section>
+
+    <!-- 待确认问题 -->
+    <section class="pane" id="p-open">
+      <h2>❓ 待确认问题</h2>
+      <p class="lead">2026-06-29 全部拍板,规则已闭环。</p>
+      <h3 style="color:var(--grn)">✅ 已确认</h3>
+      <div class="ok">第 7 天「邀请有效下级人数」<b>沿用「有效邀请人」配置</b>条件(不写死)。</div>
+      <div class="ok">投注金额、邀请有效下级口径<b>沿用 V1 现有定义</b>(开发期对齐)。</div>
+      <div class="ok">难度档<b>固定命名 青铜 / 白银 / 黄金 / 钻石</b>。</div>
+      <div class="ok">每日奖 + 里程碑奖<b>不聚合进 309「一键领取」</b>(单独手动选段领取)。</div>
+      <div class="ok">「<b>断签不清零 + 7 自然日不顺延</b>」确认(漏天即无法满 21 星)。</div>
+      <div class="ok">用户可<b>退出当前段位 → 清 0 本段位记录 → 按新选段位重新开始统计</b>。</div>
+      <div class="ok">终止/退出后重开判定:<b>以当天是否已领过当天奖为准</b>——已领 → 次日才能重选段位开新轮;未领 → 可立即重选,当天作新轮第 1 天。</div>
+      <div class="ok" style="font-weight:700">✔ 以上规则全部确认,七日集星需求闭环。</div>
+    </section>
+  </main>
+</div>
+
+<script>
+  document.querySelectorAll('.mi').forEach(function(mi){
+    mi.onclick=function(){
+      document.querySelectorAll('.mi').forEach(function(x){x.classList.remove('on');});
+      document.querySelectorAll('.pane').forEach(function(x){x.classList.remove('on');});
+      mi.classList.add('on');
+      document.getElementById('p-'+mi.dataset.p).classList.add('on');
+      document.querySelector('.main').scrollTo(0,0);
+    };
+  });
+</script>
+</body>
+</html>

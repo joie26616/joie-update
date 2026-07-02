@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>任务领取记录(日/周合并)· 309优化 · 发放/领取拆分</title>
+<style>
+  /* ===== 照抄 V1(layuimini)每周任务领取记录 页面样式 ===== */
+  :root{--green:#009688;--bd:#e6e6e6;--th:#f2f2f2;--t1:#333;--t2:#999;--info:#7752fd;--success:#4db24d;--danger:#ef5350;--theme:#1976d2;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:#fff;font-family:-apple-system,"PingFang SC","Microsoft YaHei",Arial,sans-serif;color:var(--t1);font-size:14px;}
+  .page-titles{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:13px 22px;border-bottom:1px solid var(--bd);flex-wrap:wrap;gap:8px;}
+  .page-titles h3{color:var(--theme);font-size:18px;margin:0;font-weight:600;}
+  .breadcrumb{margin:4px 0 0;padding:0;list-style:none;display:flex;gap:6px;font-size:12px;color:var(--t2);}
+  .breadcrumb li::after{content:"›";margin-left:6px;color:#cfd4dc;}
+  .breadcrumb li:last-child::after{content:"";}
+  .breadcrumb li.active{color:var(--theme);}
+  .btn-cfg{background:#fff;border:1px solid var(--info);color:var(--info);font-weight:600;border-radius:4px;padding:7px 16px;font-size:13px;cursor:pointer;text-decoration:none;}
+  .layuimini-main{padding:15px;}
+  /* V1 搜索区:fieldset + 无 label(占位符即字段名) */
+  fieldset.table-search-fieldset{margin-bottom:10px;border:1px solid var(--bd);border-radius:2px;padding:15px 10px 5px;}
+  .layui-form-item{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+  .layui-input,.layui-select{height:38px;border:1px solid #eee;border-radius:2px;padding:0 10px;font-size:14px;color:var(--t1);background:#fff;}
+  .layui-input:focus,.layui-select:focus{outline:none;border-color:#d2d2d2;}
+  .layui-btn{height:30px;line-height:30px;padding:0 12px;border:none;border-radius:2px;background:var(--green);color:#fff;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;}
+  .customtab2{display:flex;gap:0;list-style:none;margin:0;padding:0;}
+  .customtab2 li a{display:block;height:30px;line-height:28px;padding:0 14px;border:1px solid #cfd4dc;border-right:none;color:#666;font-size:12px;cursor:pointer;}
+  .customtab2 li:last-child a{border-right:1px solid #cfd4dc;}
+  .customtab2 li a.active{background:var(--green);color:#fff;border-color:var(--green);}
+  /* 汇总 */
+  .sum{display:flex;gap:20px;flex-wrap:wrap;align-items:center;background:#fbfbfb;border:1px solid var(--bd);border-radius:2px;padding:12px 16px;margin-bottom:10px;font-size:13px;}
+  .sum span b{color:var(--green);font-size:16px;}
+  .sum .sp{color:#d2d2d2;}
+  .sum .cap{color:var(--t2);font-size:12px;margin-left:auto;}
+  /* V1(layui)表格样式 */
+  table.dl{width:100%;border-collapse:collapse;min-width:1560px;}
+  table.dl th,table.dl td{border:1px solid var(--bd);padding:9px 15px;text-align:center;white-space:nowrap;font-size:14px;}
+  table.dl thead th{background:var(--th);color:var(--t1);font-weight:400;}
+  table.dl tbody tr:hover{background:#f8f8f8;}
+  /* 横向滚动(照抄 每周任务列表):容器只包表格 + 滚动条常显 */
+  #tblScroll{overflow-x:auto;overflow-y:visible;}
+  #tblScroll{scrollbar-width:auto;scrollbar-color:#b9b3d9 #efeef5;}
+  #tblScroll::-webkit-scrollbar{-webkit-appearance:none;height:12px;}
+  #tblScroll::-webkit-scrollbar-thumb{background:#b9b3d9;border-radius:6px;border:2px solid #efeef5;}
+  #tblScroll::-webkit-scrollbar-track{background:#efeef5;border-radius:6px;}
+  /* 前两列冻结(照抄 每周任务列表:用户ID/订单号 fixed left) */
+  table.dl th:nth-child(1),table.dl td:nth-child(1){position:sticky;left:0;z-index:2;background:#fff;width:90px;min-width:90px;}
+  table.dl th:nth-child(2),table.dl td:nth-child(2){position:sticky;left:90px;z-index:2;background:#fff;box-shadow:6px 0 6px -4px rgba(0,0,0,.12);}
+  table.dl thead th:nth-child(1),table.dl thead th:nth-child(2){z-index:3;background:var(--th);}
+  table.dl tbody tr:hover td:nth-child(1),table.dl tbody tr:hover td:nth-child(2){background:#f8f8f8;}
+  /* 状态/标签(沿用) */
+  .cyc-d{background:#eef7ff;color:var(--theme);font-size:11px;border-radius:4px;padding:1px 8px;} .cyc-w{background:#f1edff;color:var(--info);font-size:11px;border-radius:4px;padding:1px 8px;}
+  .type-rc{color:var(--info);} .type-dm{color:var(--theme);} .type-iv{color:#4db24d;font-weight:600;}
+  .mode-now{background:#eef7ff;color:var(--theme);font-size:11px;border-radius:4px;padding:1px 8px;} .mode-lag{background:#FFF1E8;color:#b85b1c;font-size:11px;border-radius:4px;padding:1px 8px;}
+  .st-wait{color:#e8a33d;font-weight:600;} .st-got{color:var(--success);font-weight:600;} .st-exp{color:var(--danger);font-weight:600;} .st-now{color:var(--t2);}
+  table.dl th.c309h{background:#f3f0fb;color:#6f42c1;border-bottom:2px solid #7752fd;}
+  .badge309{font-size:10px;background:#f3f0fb;color:#6f42c1;border-radius:4px;padding:0 5px;margin-left:3px;}
+  .desc{font-size:12px;color:var(--t2);margin-top:10px;line-height:1.8;}
+  .desc h4{margin:12px 0 4px;color:var(--t1);font-size:13px;} .desc b{color:var(--info);}
+  .legend{background:#fbfaff;border:1px dashed #d6c9f2;border-radius:6px;padding:8px 12px;font-size:12px;color:#6b6f78;margin-bottom:12px;line-height:1.7;}
+</style>
+</head>
+<body>
+  <div class="page-titles">
+    <div>
+      <h3>任务领取记录(日/周合并)· 309优化</h3>
+      <ul class="breadcrumb"><li>活动奖励</li><li class="active">任务领取记录</li></ul>
+    </div>
+    <a class="btn-cfg" href="index.html">← 返回</a>
+  </div>
+
+  <div class="layuimini-main">
+    <div class="legend">
+      <b>🟣 发放/领取拆分口径(D-22 定案)</b>:V1 字段语义不变 —— <b>CreateDate=记录创建/发放</b>、<b>FinishDate=任务完成</b>;领取事件由 <b>🆕ClaimDate(领取到账时间,可空)</b> 承载,历史数据零回填。309 另新增 <b>🆕 领取机制 / 领取状态 / 领取有效期 / 实发值</b> 承载「发放后有效期领取」。<b>日/周两表合并为本页,用「任务周期」筛选切换。</b>
+    </div>
+
+    <!-- 搜索区(照抄 V1 每周任务领取记录:无 label,占位符即字段名) -->
+    <fieldset class="table-search-fieldset">
+      <div class="layui-form-item">
+        <input type="text" class="layui-input" style="width:185px" placeholder="请输入会员ID">
+        <input type="text" class="layui-input" style="width:185px" placeholder="请输入任务名称">
+        <select class="layui-select" style="width:150px"><option value="1" selected>日任务</option><option value="2">周任务</option></select>
+        <select class="layui-select" style="width:150px"><option value="-2">选择类型</option><option value="-1">全部</option><option value="1">充提任务</option><option value="2">投注任务</option><option value="3">邀请任务</option><option value="4">活动任务</option></select>
+        <select class="layui-select" style="width:150px"><option value="-2">领取机制</option><option value="-1">全部</option><option value="0">即时(旧)</option><option value="1">延迟(新)</option></select>
+        <select class="layui-select" style="width:150px"><option value="-2">领取状态</option><option value="-1">全部</option><option value="0">待领取</option><option value="1">已领取</option><option value="2">已过期</option></select>
+        <input type="text" class="layui-input" style="width:220px" placeholder="完成时间">
+        <input type="text" class="layui-input" style="width:220px" placeholder="领取时间">
+        <button class="layui-btn">🔍 查 询</button>
+        <button class="layui-btn" style="background:#009688">↻ 重 置</button>
+        <ul class="customtab2"><li><a class="active">今天</a></li><li><a>本周</a></li></ul>
+      </div>
+    </fieldset>
+
+    <!-- 汇总:按查询条件统计 -->
+    <div class="sum">
+      <span>发放记录 <b>2,140</b></span><span class="sp">|</span>
+      <span>发放额 <b>64,200</b></span><span class="sp">|</span>
+      <span>已领额(到账)<b>58,900</b></span><span class="sp">|</span>
+      <span>待领 <b>132</b></span><span class="sp">|</span>
+      <span>已过期 <b>60</b></span><span class="sp">|</span>
+      <span>领取率 <b>91.7%</b></span>
+      <span class="cap">* 以上按当前查询条件统计(查询/重置/切换周期后随之刷新)</span>
+    </div>
+
+    <!-- 明细表(横滑照抄 每周任务列表:仅表格滑动 + 前两列冻结) -->
+    <div id="tblScroll">
+      <table class="dl">
+        <thead><tr>
+          <th>用户ID</th><th>订单号</th><th class="c309h">周期 <span class="badge309">🆕合并</span></th><th>任务名称</th><th>任务类型</th><th>奖励金额</th>
+          <th>完成时间</th><th>领取时间</th><th class="c309h">领取机制 <span class="badge309">🆕309</span></th><th class="c309h">领取状态 <span class="badge309">🆕309</span></th><th class="c309h">奖励领取率 <span class="badge309">🆕309</span></th><th class="c309h">领取有效期 <span class="badge309">🆕309</span></th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td>100123</td><td>D202606280001</td><td><span class="cyc-d">日任务</span></td>
+            <td>每日首充</td><td class="type-rc">充值</td><td>58</td>
+            <td>2026-06-28 09:12</td><td>2026-06-28 09:12</td>
+            <td><span class="mode-now">即时(旧)</span></td><td><span class="st-now">即时已领</span></td><td>3/3</td><td>—</td>
+          </tr>
+          <tr>
+            <td>100789</td><td>D202606280002</td><td><span class="cyc-d">日任务</span></td>
+            <td>每日邀请 1 人 <span class="badge309">#38</span></td><td class="type-iv">邀请</td><td>20</td>
+            <td>2026-06-28 15:00</td><td>2026-06-28 22:10</td>
+            <td><span class="mode-lag">延迟(新)</span></td><td><span class="st-got">已领</span></td><td>2/3</td><td>2026-07-01 23:59</td>
+          </tr>
+          <tr>
+            <td>100456</td><td>W202606220001</td><td><span class="cyc-w">周任务</span></td>
+            <td>周邀请 5 人 <span class="badge309">#38</span></td><td class="type-iv">邀请</td><td>120</td>
+            <td>2026-06-28 20:41</td><td>—</td>
+            <td><span class="mode-lag">延迟(新)</span></td><td><span class="st-wait">待领</span></td><td>0/2</td><td>2026-06-30 23:59</td>
+          </tr>
+          <tr>
+            <td>100921</td><td>W202606220002</td><td><span class="cyc-w">周任务</span></td>
+            <td>周打码 50万</td><td class="type-dm">打码</td><td>80(实发)</td>
+            <td>2026-06-25 21:30</td><td>—</td>
+            <td><span class="mode-lag">延迟(新)</span></td><td><span class="st-exp">已过期</span></td><td>1/3</td><td>2026-06-27 23:59(已过)</td>
+          </tr>
+          <tr>
+            <td>101050</td><td>D202606280003</td><td><span class="cyc-d">日任务</span></td>
+            <td>每日次充</td><td class="type-rc">充值</td><td>40</td>
+            <td>2026-06-28 11:03</td><td>2026-06-28 11:03</td>
+            <td><span class="mode-now">即时(旧)</span></td><td><span class="st-now">即时已领</span></td><td>2/2</td><td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;justify-content:flex-end;align-items:center;gap:5px;margin-top:12px;font-size:12px;">
+      <span style="color:var(--t2);margin-right:8px">共 2,140 条 / 107 页</span>
+      <a class="layui-btn" style="background:#fff;border:1px solid #ddd;color:#555">1</a><a class="layui-btn" style="background:#fff;border:1px solid #ddd;color:#555">2</a><a class="layui-btn" style="background:#fff;border:1px solid #ddd;color:#555">下一页</a>
+    </div>
+
+    <div class="desc">
+      <h4>🟣 更新点(#4 领取有效期 + 发放/领取拆分 + 日/周合并)</h4>
+      V1 原字段不动:<b>CreateDate(发放)</b> + <b>FinishDate(任务完成)</b>。<b>🆕 新增</b>:<b>ClaimDate</b>(领取到账时间·可空,本表 [领取时间] 列即此字段;RewardMode=0 时读取端视同 CreateDate)、<b>领取机制</b>(即时/延迟·发放时快照)、<b>领取状态</b>(待领/已领/已过期·当 ClaimDate 为空时区分待领vs过期)、<b>领取有效期</b>(邀请任务=任务结束+N天)、实发值(开宝箱)。日/周两表<b>合并本页</b>,「任务周期」筛选切换。<br>
+      <b>🆕 [奖励领取率] 列规则</b>:本表一行=一次发放(记录级),而奖励领取率为<b>用户维度聚合指标</b> —— 按<b>当前查询范围内</b>该用户ID的「已领取到账个数 / 发放个数」计算,显示格式为<b>个数/个数</b>(如 3/4);同一用户的多行显示相同值(数值可含该用户未显示在本页的其他发放记录)。<b>分子</b>=ClaimStatus=已领(含即时旧记录、宝箱开箱到账);<b>分母</b>=发放记录数(by CreateDate)。
+      <h4>⚠️ 防历史污染(硬规则)</h4>
+      1. <b>资金/成本口径走"到账"</b>:统计已领额用 <b>ClaimDate + 领取状态=已领</b>,<b>不用发放</b> → 待领/过期不计成本、不虚增。<br>
+      2. <b>发放口径走 CreateDate</b>;两口径分列,旧数据(即时)读取端「领取时间视同 CreateDate」自动等价,可回溯一致。<br>
+      3. <b>不重定义任何 V1 字段(D-22)</b>——CreateDate/FinishDate 语义与现有 SP/SQL/报表/V1 页面用法一律不动;领取只写 🆕ClaimDate,靠领取状态兜底。<br>
+      4. 延迟模式<b>发放不入账/不计打码量</b>,领取(写 ClaimDate)时才入账;<b>过期 ClaimDate 恒空、只置状态、不冲账</b>。
+      <h4>✅ 迁移(最小改动)</h4>
+      增量字段(含 ClaimDate)全部可空/默认;<b>存量零回填</b>——历史数据不做任何 UPDATE,读取端统一兜底(RewardMode 空/0 ⇒ 即时/已领/领取时间=CreateDate);有效期从 <code>ConfigDetailId</code>→配置次日快照取、<b>发放时写死</b>防漂移。
+      <span style="color:#cfa;">* 全部为原型占位数据。</span>
+    </div>
+  </div>
+</body>
+</html>
