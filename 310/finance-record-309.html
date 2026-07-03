@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>资金账变记录 · 每日/每周奖励详情(309 · 到账口径)</title>
+<style>
+  /* ===== 严格按 V1 D_UserReport_Finance(数据统计·奖励详情跳转页)样式 ===== */
+  :root{--theme:#1976d2;--info:#7752fd;--bd:#e1e4ea;--th:#f2f4f8;--t1:#464a53;--t2:#99abb4;--bg:#f8f6fe;--amber:#854F0B;--amberbg:#FAEEDA;--amberbd:#BA7517;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);font-family:-apple-system,"PingFang SC","Microsoft YaHei",Arial,sans-serif;color:var(--t1);font-size:13px;}
+  .page-titles{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:13px 22px;border-bottom:1px solid var(--bd);}
+  .page-titles h3{color:var(--theme);font-size:18px;margin:0;font-weight:600;}
+  .breadcrumb{margin:4px 0 0;padding:0;list-style:none;display:flex;gap:6px;font-size:12px;color:var(--t2);}
+  .breadcrumb li::after{content:"›";margin-left:6px;color:#cfd4dc;}
+  .breadcrumb li:last-child::after{content:"";}
+  .breadcrumb li.active{color:var(--theme);}
+  .btn-cfg{background:#fff;border:1px solid var(--info);color:var(--info);font-weight:600;border-radius:4px;padding:7px 16px;font-size:13px;cursor:pointer;text-decoration:none;}
+  .container-fluid{padding:16px 22px;max-width:1200px;margin:0 auto;}
+  .card{background:#fff;border:1px solid var(--bd);border-radius:4px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.03);padding:16px;}
+  .btn-info{background:#1976d2;color:#fff;border:none;border-radius:4px;padding:7px 14px;font-size:13px;cursor:pointer;}
+  /* V1 搜索区:会员ID / 账变类型 / 渠道 / 数据排序 / 日期 + 查询/重置/导出;右侧 上一日/下一日 + 日/日区间/月 */
+  .flds{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
+  .flds label{font-size:13px;margin:0 6px 0 0;}
+  .form-control{border:1px solid #ddd;border-radius:4px;padding:7px 10px;font-size:13px;background:#fff;width:150px;}
+  .brow{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  .brow .bl{display:flex;gap:8px;}
+  .customtab2{display:flex;gap:6px;list-style:none;margin:0;padding:0;}
+  .customtab2 li a{display:block;height:30px;line-height:28px;padding:0 12px;border:1px solid #808080;color:#666;font-size:12px;cursor:pointer;border-radius:3px;text-decoration:none;}
+  .customtab2 li a.active{background:var(--info);color:#fff;border-color:var(--info);}
+  /* V1 表格:table-striped table-bordered */
+  table.dl{width:100%;border-collapse:collapse;}
+  table.dl th,table.dl td{border:1px solid var(--bd);padding:9px 14px;text-align:center;white-space:nowrap;font-size:13px;}
+  table.dl thead th{background:var(--th);color:var(--t1);font-weight:600;}
+  table.dl tbody tr:nth-child(odd){background:#fafbfd;}
+  table.dl tbody tr:hover{background:#f5f7fb;}
+  tr.sumrow{background:#EBEFF5 !important;}
+  tr.sumrow td{color:red;font-weight:600;}
+  .note{font-size:12px;color:var(--t2);margin-top:12px;line-height:1.8;background:#fbfaff;border:1px dashed #d6c9f2;border-radius:6px;padding:10px 14px;}
+  .note b{color:var(--info);}
+  .note309{background:var(--amberbg);border:1px solid var(--amberbd);border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--amber);line-height:1.7;}
+  .note20{background:#fdecea;border:1px solid #f2b8b5;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#C23B45;line-height:1.7;}
+  .lnk{color:#7752fd;cursor:pointer;text-decoration:none;}
+</style>
+</head>
+<body>
+  <div class="page-titles">
+    <div>
+      <h3>资金账变记录(奖励详情 · 到账口径)</h3>
+      <ul class="breadcrumb"><li>报表管理</li><li>数据统计</li><li class="active">资金账变记录(D_UserReport_Finance)</li></ul>
+    </div>
+    <a class="btn-cfg" href="award-stat-detail-309.html">← 返回 数据统计</a>
+  </div>
+
+  <div class="container-fluid">
+    <div class="note309"><b>🆕 309 口径标注(方案① · 本页仅加说明,V1 页面与数据逻辑零改动)</b>:本表 = <b>实际领取到账口径</b>(账变来源)—— 延迟发放<b>未领取 / 已过期</b>的奖励不产生账变、<b>不在本表</b>;查看发放/待领/过期 → <a class="lnk" href="task-record-309.html" target="_blank">任务领取记录</a>。对账:发放额 − 本表到账额 = 待领 + 已过期(靠 OrderNo 打通)。</div>
+    <div class="note20"><b>⚠️ #20 批量彩金已移出 309(留档标注)</b>:账变类型中「彩金充值」相关统计为批量彩金内容,仅留档展示 🔶。</div>
+
+    <!-- 搜索区:严格照 V1,无新增搜索条件 -->
+    <div class="card">
+      <div class="flds">
+        <span><label>会员ID</label><input class="form-control" type="number" placeholder="会员ID"></span>
+        <span><label>账变类型</label><select class="form-control" style="width:170px"><option value="">全部</option><option value="118" selected>每日奖励</option><option value="107">每周奖励</option><option value="7">连续签到</option><option value="20">邀请奖励</option><option value="2">彩金充值 🔶#20留档</option><option value="1">人工充值</option></select></span>
+        <span><label>渠道</label><select class="form-control"><option value="">全部</option><option>渠道17</option><option>渠道16</option><option>渠道15</option><option>渠道14</option><option>渠道13(sit环境)</option></select></span>
+        <span><label>数据排序</label><select class="form-control"><option value="0">默认</option><option value="1">账变金额降序</option><option value="3">账变次数降序</option><option value="5">最后更新时间降序</option></select></span>
+        <span><label>日期</label><input class="form-control" value="2026-07-01"></span>
+      </div>
+      <div class="brow">
+        <div class="bl">
+          <button class="btn-info">🔍 查 询</button>
+          <button class="btn-info">↻ 重 置</button>
+          <button class="btn-info">⤓ 导 出</button>
+        </div>
+        <ul class="customtab2">
+          <li><a>上一日</a></li><li><a>下一日</a></li>
+          <li style="width:14px"></li>
+          <li><a class="active">日</a></li><li><a>日区间</a></li><li><a>月</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 明细表:严格照 V1 列(会员ID/账变金额/账变次数/最后更新时间 + 页面总计/总计) -->
+    <div class="card" style="padding:0;overflow-x:auto;">
+      <table class="dl">
+        <thead><tr><th>会员ID</th><th>账变金额</th><th>账变次数</th><th>最后更新时间</th></tr></thead>
+        <tbody>
+          <tr><td>100123</td><td>320.00</td><td>6</td><td>2026-07-01 21:33:10</td></tr>
+          <tr><td>100789</td><td>258.19</td><td>5</td><td>2026-07-01 20:12:45</td></tr>
+          <tr><td>100456</td><td>300.00</td><td>7</td><td>2026-07-01 18:40:03</td></tr>
+          <tr><td>101050</td><td>288.00</td><td>5</td><td>2026-07-01 16:05:52</td></tr>
+          <tr><td>101233</td><td>200.00</td><td>3</td><td>2026-07-01 11:27:36</td></tr>
+          <tr class="sumrow"><td>页面总计</td><td>1366.19</td><td>26</td><td></td></tr>
+          <tr class="sumrow"><td>总计</td><td>1366.19</td><td>26</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <b>🟣 页面说明</b><br>
+      1. 本页 = V1「数据统计 → 每日/每周奖励 🔗详情」跳转页(<code>D_UserReport_Finance?Type=118/107</code>)的复刻:搜索(会员ID/账变类型/渠道/数据排序/日期)、按钮(查询/重置/导出)、快捷(上一日/下一日 + 日/日区间/月)、表列(会员ID/账变金额/账变次数/最后更新时间)与 页面总计/总计 行均照 V1 现状,<b>未做任何 UI/交互调整、未新增搜索条件</b>。<br>
+      2. 🆕 309 仅新增顶部口径标注:数据源为账变(到账),与数据统计页「金额/次/人」原指标同源同口径;待领/过期在 <a class="lnk" href="task-record-309.html">任务领取记录</a>,不在本表。<br>
+      3. 示例数据与数据统计页联动:每日奖励 到账 1366.19 / 26次 / 25人(占位)。<br>
+      <span style="color:#cfa">* 全部为原型占位数据。</span>
+    </div>
+  </div>
+</body>
+</html>

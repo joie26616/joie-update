@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>309 · 存款入口统一图标(完整页面 · 按页面分类)</title>
+<style>
+  :root{--org:#ED6B2E;--red:#E8302B;--t1:#222;--t2:#888;--bd:#eee;--gold:#F0853A;--amber:#854F0B;--amberbg:#FAEEDA;--amberbd:#BA7517;}
+  *{box-sizing:border-box;}
+  body{margin:0;padding:24px;background:#9a9a9a;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);}
+  .lead{color:#fff;max-width:1500px;margin:0 auto 18px;}
+  .lead h1{font-size:20px;margin:0 0 4px;}
+  .lead .s{font-size:13px;opacity:.9;}
+  .badge{background:var(--amberbd);color:#fff;padding:1px 7px;border-radius:6px;font-size:11px;}
+  .gallery{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;}
+  .item{width:320px;}
+  .item .name{color:#fff;font-weight:700;font-size:14px;margin-bottom:8px;text-align:center;}
+  .phone{width:320px;height:600px;background:#f3f4f6;border-radius:20px;border:7px solid #1d1d1f;position:relative;overflow:hidden;font-size:13px;}
+
+  /* 通用存款元素(金色 + 🎁)*/
+  .gift{position:absolute;background:var(--red);border:2px solid #fff;border-radius:11px;font-size:10px;line-height:1;padding:2px 4px;}
+  /* 底部导航 */
+  .tabbar{position:absolute;left:0;right:0;bottom:0;background:#fff;display:flex;justify-content:space-around;align-items:flex-end;padding:6px 0 8px;border-top:1px solid #eee;height:62px;}
+  .tab{position:relative;text-align:center;font-size:10px;color:#999;flex:1;}
+  .tab .em{font-size:18px;display:block;}
+  .tab.on{color:var(--red);}
+  .depc-wrap{flex:1;text-align:center;}
+  .depc{position:relative;width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#ffd76b,var(--gold));color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;margin:-20px auto 0;border:3px solid #fff;box-shadow:0 3px 7px rgba(0,0,0,.2);}
+  .depc .gift{top:-6px;right:-6px;}
+  .depc-wrap .g{color:var(--org);font-size:10px;font-weight:700;margin-top:2px;}
+
+  .scroll{position:absolute;left:0;right:0;top:0;bottom:62px;overflow:auto;}
+  /* 顶部余额栏 */
+  .topbar{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#F0584F,#F58A7E);color:#fff;padding:12px 14px;}
+  .topbar .bal{font-weight:800;font-size:16px;}
+  .add{position:relative;width:30px;height:30px;border-radius:50%;background:#fff;color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;}
+  .add .gift{top:-7px;right:-7px;}
+  /* 卡片/网格 */
+  .sec{padding:12px;}
+  .gg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .tile{background:#fff;border-radius:10px;height:62px;display:flex;align-items:center;justify-content:center;font-size:22px;}
+  .ban{background:#fff;border-radius:10px;height:90px;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:10px;color:#fff;}
+  .b1{background:linear-gradient(135deg,#ffb38a,#ED6B2E);} .b2{background:linear-gradient(135deg,#9b7bff,#6b2fd0);}
+  /* 列表 */
+  .li{background:#fff;border-radius:10px;padding:11px 12px;display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .li .ic{position:relative;width:28px;height:28px;border-radius:7px;background:#ffeede;color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:15px;}
+  .li.dep .ic{background:var(--gold);color:#fff;}
+  .li.dep .ic .gift{top:-7px;right:-7px;}
+  .li .ar{margin-left:auto;color:#ccc;}
+  /* 存款按钮 */
+  .depbtn{position:relative;display:block;text-align:center;background:linear-gradient(135deg,#ffd76b,var(--gold));color:#fff;font-weight:800;border-radius:12px;padding:13px;font-size:16px;margin:10px 0;}
+  .depbtn .gift{top:-8px;right:14px;}
+  /* 账户头部 */
+  .acc-hd{background:linear-gradient(135deg,#F0584F,#F58A7E);color:#fff;padding:18px 14px;display:flex;align-items:center;gap:12px;}
+  .acc-hd .av{width:46px;height:46px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;}
+  /* 弹窗 */
+  .mask{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;}
+  .pop{width:230px;background:#fff;border-radius:14px;padding:18px 16px;text-align:center;}
+  .pop .t{font-weight:800;font-size:15px;margin-bottom:4px;}
+  .pop .d{font-size:12px;color:var(--t2);margin-bottom:14px;}
+  /* VIP */
+  .vip-hd{background:linear-gradient(135deg,#3a2b6b,#6b3fd0);color:#fff;padding:20px 14px;text-align:center;}
+  .vip-hd .lv{font-size:22px;font-weight:800;}
+  .prog{height:8px;background:rgba(255,255,255,.3);border-radius:5px;margin-top:12px;overflow:hidden;}
+  .prog i{display:block;height:100%;width:62%;background:#ffd76b;}
+  .note{color:#fff;max-width:1500px;margin:18px auto 0;font-size:12px;opacity:.9;background:rgba(0,0,0,.25);border-radius:8px;padding:12px 14px;}
+</style>
+</head>
+<body>
+<div class="lead">
+  <h1>存款入口统一图标 · 完整页面(按页面分类) <span class="badge">309 · #40 延伸</span></h1>
+  <div class="s">前端所有「存款 / 充值」入口统一逻辑:<b>存款有奖励时入口加 🎁 图标</b>。下面按页面展示完整页面与各自的存款入口位置(🎁 标识)。</div>
+</div>
+
+<div class="gallery">
+
+  <!-- 1 首页 Home -->
+  <div class="item">
+    <div class="name">① 首页 Home</div>
+    <div class="phone">
+      <div class="scroll">
+        <div class="topbar"><div><div style="font-size:11px;opacity:.9">Balance</div><div class="bal">₹ 1,000.00</div></div><div class="add">＋<span class="gift">🎁</span></div></div>
+        <div class="sec">
+          <div class="ban b1">🎉 充值赠送 banner</div>
+          <div class="gg">
+            <div class="tile">🎰</div><div class="tile">🎲</div><div class="tile">🃏</div>
+            <div class="tile">⚽</div><div class="tile">🎯</div><div class="tile">🎡</div>
+          </div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on"><span class="em">🏠</span>Home</div>
+        <div class="tab"><span class="em">🎁</span>Activity</div>
+        <div class="depc-wrap"><div class="depc">💰<span class="gift">🎁</span></div><div class="g">Deposit</div></div>
+        <div class="tab"><span class="em">💸</span>Promotion</div>
+        <div class="tab"><span class="em">👤</span>Account</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 活动页 Activity -->
+  <div class="item">
+    <div class="name">② 活动页 Activity</div>
+    <div class="phone">
+      <div class="scroll">
+        <div class="topbar" style="justify-content:center;flex-direction:column;text-align:center"><div style="font-weight:800;font-size:18px">LOGO</div><div style="font-size:12px;margin-top:4px">Total bonus ₹13,998.41</div></div>
+        <div class="sec">
+          <div class="gg">
+            <div class="tile">🏅</div><div class="tile">👤➕</div><div class="tile">🎟️</div>
+            <div class="tile" style="position:relative">🎡<span class="gift" style="top:4px;right:18px">3</span></div><div class="tile">🎁</div><div class="tile">🏆</div>
+          </div>
+          <div style="margin-top:10px"><div class="ban b1" style="height:70px">🧧 Gifts</div><div class="ban b2" style="height:70px">📅 Attendance</div></div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab"><span class="em">🏠</span>Home</div>
+        <div class="tab on"><span class="em">🎁</span>Activity</div>
+        <div class="depc-wrap"><div class="depc">💰<span class="gift">🎁</span></div><div class="g">Deposit</div></div>
+        <div class="tab"><span class="em">💸</span>Promotion</div>
+        <div class="tab"><span class="em">👤</span>Account</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 我的 Account -->
+  <div class="item">
+    <div class="name">③ 我的 / Account</div>
+    <div class="phone">
+      <div class="scroll">
+        <div class="acc-hd"><div class="av">👤</div><div><div style="font-weight:800">member888</div><div style="font-size:12px;opacity:.9">余额 ₹1,000.00</div></div></div>
+        <div class="sec">
+          <div class="li dep"><span class="ic">💰<span class="gift">🎁</span></span> 充值 Deposit <span class="ar">›</span></div>
+          <div class="li"><span class="ic">💵</span> 提现 Withdraw <span class="ar">›</span></div>
+          <div class="li"><span class="ic">📊</span> 账变记录 <span class="ar">›</span></div>
+          <div class="li"><span class="ic">👑</span> VIP 中心 <span class="ar">›</span></div>
+          <div class="li"><span class="ic">⚙️</span> 设置 <span class="ar">›</span></div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab"><span class="em">🏠</span>Home</div>
+        <div class="tab"><span class="em">🎁</span>Activity</div>
+        <div class="depc-wrap"><div class="depc">💰<span class="gift">🎁</span></div><div class="g">Deposit</div></div>
+        <div class="tab"><span class="em">💸</span>Promotion</div>
+        <div class="tab on"><span class="em">👤</span>Account</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 存款页 Deposit -->
+  <div class="item">
+    <div class="name">④ 存款页 Deposit</div>
+    <div class="phone">
+      <div class="scroll">
+        <div class="topbar" style="justify-content:center"><div style="font-weight:800">Deposit 存款</div></div>
+        <div class="sec">
+          <div style="font-size:12px;color:var(--t2);margin-bottom:6px">选择金额(充值赠送中)</div>
+          <div class="gg">
+            <div class="tile" style="position:relative;font-size:15px;font-weight:700">₹100<span class="gift" style="top:4px;right:6px">🎁</span></div>
+            <div class="tile" style="position:relative;font-size:15px;font-weight:700">₹500<span class="gift" style="top:4px;right:6px">🎁</span></div>
+            <div class="tile" style="font-size:15px;font-weight:700">₹1000</div>
+          </div>
+          <div style="background:#fff;border-radius:10px;padding:12px;margin-top:12px;font-size:12px;color:var(--t2)">充 ₹100 送 ₹20<br>到账 = 存款额 + 奖励额</div>
+          <div class="depbtn">You Get ₹120 <span class="gift">🎁</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 余额不足弹窗(游戏页)-->
+  <div class="item">
+    <div class="name">⑤ 余额不足弹窗(游戏页)</div>
+    <div class="phone">
+      <div class="scroll" style="bottom:0">
+        <div class="topbar" style="justify-content:center"><div style="font-weight:800">🎰 Game</div></div>
+        <div class="sec" style="filter:blur(1px);opacity:.6"><div class="ban b1">游戏区</div><div class="gg"><div class="tile">🎲</div><div class="tile">🎲</div><div class="tile">🎲</div></div></div>
+      </div>
+      <div class="mask">
+        <div class="pop"><div class="t">余额不足</div><div class="d">充值即享赠送奖励,立即领取</div>
+          <div class="depbtn" style="margin:0">去存款 <span class="gift">🎁</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6 VIP 中心 -->
+  <div class="item">
+    <div class="name">⑥ VIP 中心</div>
+    <div class="phone">
+      <div class="scroll">
+        <div class="vip-hd"><div class="lv">VIP 3</div><div style="font-size:12px;opacity:.9;margin-top:4px">距 VIP4 还需充值 ₹5,000</div><div class="prog"><i></i></div></div>
+        <div class="sec">
+          <div class="li"><span class="ic">🎁</span> VIP 月奖金 <span class="ar">›</span></div>
+          <div class="li"><span class="ic">⬆️</span> 升级礼包 <span class="ar">›</span></div>
+          <div class="depbtn">充值升级 <span class="gift">🎁</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="note">
+  ⚠️ 说明:仓库未含 V1 用户端前端,以上为按常见 App 结构归纳的<b>完整页面 + 存款入口分布</b>。「存款是否有奖励」可复用后端 <code>tab_PayType.RechargeRifts</code>(充值赠送比率)/ 充值达标返现 / 首充礼包等配置,前端据此决定 🎁 图标显隐。提供 V1 前端仓库后可逐页落地确切文件。
+</div>
+</body>
+</html>

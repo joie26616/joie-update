@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>月签到升级 · 前端原型(连续签到 + 补签 + 满签 + VIP路线)</title>
+<style>
+  :root{--org:#ED6B2E;--gold:#C8941A;--goldbg:#FFF7E6;--red:#E8505B;--grn:#56B870;--t1:#222;--t2:#888;--t3:#aaa;--bd:#eee;--amber:#854F0B;--amberbg:#FAEEDA;--amberbd:#BA7517;--gray:#9aa0a6;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:#9a9a9a;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);}
+  .phone{max-width:400px;margin:0 auto;background:#f4f5f7;min-height:100vh;position:relative;padding-bottom:24px;}
+  .top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#fff;}
+  .top .rec{display:flex;align-items:center;gap:6px;color:#444;font-size:14px;}
+  .hero{background:linear-gradient(135deg,#F3A057,#ED6B2E);color:#fff;padding:18px 16px 20px;border-radius:0 0 12px 12px;}
+  .hero h1{font-size:22px;margin:0 0 6px;font-weight:700;}
+  .hero p{font-size:12px;line-height:1.5;margin:0;opacity:.95;}
+  .lock{font-size:11px;opacity:.9;margin-top:12px;display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);border-radius:18px;padding:5px 12px;}
+
+  /* 演示情景切换 */
+  .demobar{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--t2);margin:10px 10px 0;}
+  .dp{font-size:11px;border:1px solid #ddd;background:#fff;border-radius:14px;padding:4px 12px;cursor:pointer;color:#555;}
+  .dp.on{background:var(--org);color:#fff;border-color:var(--org);}
+
+  .card{background:#fff;margin:10px;border-radius:12px;padding:14px 14px 16px;}
+  .ttl{font-size:14px;font-weight:700;color:#333;margin:0 0 12px;display:flex;align-items:center;gap:6px;}
+  .ttl .hint{font-size:11px;font-weight:400;color:var(--t3);}
+
+  /* 满签进度 */
+  .ms{position:relative;display:flex;justify-content:space-between;margin:8px 6px 4px;}
+  .ms::before{content:"";position:absolute;top:13px;left:14px;right:14px;height:3px;background:#eee;border-radius:2px;}
+  .msbar{position:absolute;top:13px;left:14px;height:3px;background:var(--gold);border-radius:2px;z-index:1;transition:.3s;}
+  .msn{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:62px;}
+  .msdot{width:28px;height:28px;border-radius:50%;background:#eee;color:#999;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid #fff;}
+  .msn.done .msdot{background:var(--gold);color:#fff;}
+  .msn.prog .msdot{background:#fff;color:var(--gold);border:2px solid var(--gold);}
+  .msn.claimable .msdot{background:var(--red);color:#fff;animation:pulse 1.2s infinite;}
+  .msn.fail .msdot{background:#e6e6e6;color:#b8b8b8;}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,80,91,.5);}50%{box-shadow:0 0 0 6px rgba(232,80,91,0);}}
+  .mslbl{font-size:11px;color:var(--t2);margin-top:5px;text-align:center;line-height:1.3;}
+  .mslbl b{color:var(--gold);display:block;font-size:12px;}
+  .msn.claimable .mslbl b{color:var(--red);}
+  .msn.fail .mslbl,.msn.fail .mslbl b{color:#bcbcbc;}
+
+  /* 日历 */
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .cell{position:relative;aspect-ratio:1/1.18;border-radius:9px;background:#f6f6f8;border:1px solid #f0f0f2;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;cursor:default;padding:2px;}
+  .cell .d{font-size:10px;color:var(--t3);position:absolute;top:3px;left:5px;}
+  .cell .ic{font-size:16px;line-height:1;}
+  .cell .rw{font-size:9px;color:var(--t2);margin-top:1px;}
+  .cell.signed{background:var(--goldbg);border-color:#F2DFB0;}
+  .cell.signed .ic{color:var(--gold);}
+  .cell.resign{background:#EAF6EE;border-color:#CDEBD6;}
+  .cell.resign .ic{color:var(--grn);}
+  .cell.miss{background:#FDECEC;border-color:#F8D4D4;cursor:pointer;}
+  .cell.miss .ic{color:var(--red);}
+  .cell.expired{background:#f0f0f0;border-color:#e2e2e2;}
+  .cell.expired .ic,.cell.expired .rw,.cell.expired .d{color:#bcbcbc;}
+  .cell.today{background:#fff;border:2px solid var(--org);cursor:pointer;}
+  .cell.today .ic{color:var(--org);}
+  .cell.future{opacity:.65;}
+  .cell .corner{position:absolute;top:2px;right:3px;font-size:8px;background:var(--grn);color:#fff;border-radius:6px;padding:0 4px;}
+  .cell.expired .corner{background:#c4c4c4;}
+  .cell .ms-flag{position:absolute;bottom:2px;right:3px;font-size:9px;}
+  .cell .ms-flag.dim{opacity:.35;filter:grayscale(1);}
+
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;font-size:11px;color:var(--t2);}
+  .lg{display:inline-flex;align-items:center;gap:4px;}
+  .sw{width:12px;height:12px;border-radius:3px;display:inline-block;}
+
+  /* 规则 */
+  .rules{font-size:12px;color:#666;line-height:1.7;}
+  .rules h4{margin:0 0 6px;font-size:13px;color:#333;}
+  .rtable{width:100%;border-collapse:collapse;margin:6px 0 10px;font-size:11px;}
+  .rtable th,.rtable td{border:1px solid #eee;padding:4px 6px;text-align:center;}
+  .rtable th{background:#faf9f7;color:var(--amber);font-weight:700;}
+  .note{font-size:11px;color:var(--t3);background:#f7f7f9;border-radius:6px;padding:8px 10px;margin-top:8px;}
+
+
+  /* 弹窗 */
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .mask.on{display:flex;}
+  .modal{background:#fff;border-radius:16px;width:100%;max-width:340px;padding:20px 18px;max-height:86vh;overflow:auto;position:relative;}
+  .xclose{position:absolute;top:10px;right:14px;font-size:22px;line-height:1;color:#bbb;cursor:pointer;}
+  .xclose:hover{color:#888;}
+  #rsBody .red{color:var(--red);font-weight:700;}
+  #rsBody .gold{color:var(--gold);font-weight:700;}
+  .rsform{width:100%;border-collapse:collapse;margin:4px 0 8px;font-size:12.5px;}
+  .rsform th{text-align:left;color:var(--t2);font-weight:600;font-size:12px;padding:4px 0;border:none;}
+  .rsform td{padding:6px 0;border:none;color:#666;}
+  .rsform b{color:#333;font-weight:700;}
+  .rsms{margin:6px 0 2px;font-size:14px;font-weight:700;color:var(--gold);text-align:center;background:var(--goldbg);border-radius:8px;padding:9px;}
+  .modal h3{margin:0 0 4px;font-size:17px;text-align:center;}
+  .modal .msub{font-size:12px;color:var(--t2);text-align:center;margin-bottom:14px;}
+  .rt{border:1.5px solid #eee;border-radius:12px;padding:12px;margin-bottom:10px;cursor:pointer;transition:.15s;}
+  .rt.on{border-color:var(--org);background:#FFF6F0;}
+  .rt.dis{opacity:.5;cursor:not-allowed;background:#f7f7f7;}
+  .rt .rh{display:flex;align-items:center;justify-content:space-between;}
+  .rt .rv{font-size:15px;font-weight:700;color:#333;}
+  .rt .rtag{font-size:10px;color:#fff;background:var(--gold);border-radius:8px;padding:1px 8px;}
+  .rt.dis .rtag{background:#bbb;}
+  .rt .rd{font-size:12px;color:var(--t2);margin-top:6px;line-height:1.6;}
+  .rt .rd b{color:var(--org);}
+  .btn{display:block;width:100%;text-align:center;padding:12px;border-radius:24px;font-size:15px;font-weight:700;border:none;cursor:pointer;margin-top:6px;}
+  .btn.prim{background:var(--org);color:#fff;}
+  .btn.ghost{background:#fff;color:var(--t2);border:1px solid #ddd;margin-top:8px;}
+  .okwrap{text-align:center;}
+  .okwrap .em{font-size:42px;}
+  .okwrap .amt{font-size:26px;font-weight:800;color:var(--gold);margin:6px 0;}
+  .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;font-size:13px;padding:10px 18px;border-radius:20px;z-index:60;opacity:0;transition:.3s;pointer-events:none;}
+  .toast.on{opacity:1;}
+  .claimall{display:block;width:100%;margin-top:14px;padding:11px;border:none;border-radius:22px;background:linear-gradient(135deg,#F3A057,#ED6B2E);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(237,107,46,.3);}
+  .claimall.off{background:#e6e6e6;color:#a8acb4;box-shadow:none;cursor:not-allowed;}
+  .cell.future .rw{color:#c4c4c8;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top"><span style="font-size:20px">‹</span><span class="rec">🕐 签到记录</span></div>
+  <div class="hero">
+    <h1>每日签到</h1>
+    <p>连续签到得每日彩金,连签解锁满签阶梯大奖。漏签可补签(补发一半),补签打钩计入连续。</p>
+    <div class="lock" id="lockTip" style="display:none">🔒 本月已锁定 <b id="lockRoute">VIP5</b> 路线 · 周期 2026-06</div>
+  </div>
+
+  <!-- 演示情景切换(展示「1号起签」与「月中首签」两种打卡显示) -->
+  <div class="demobar" id="demoBar" style="display:none">
+    演示情景:
+    <span class="dp on" data-s="normal" onclick="setScenario('normal')">1 号起签</span>
+    <span class="dp" data-s="miss1" onclick="setScenario('miss1')">漏 1 天(场景a)</span>
+    <span class="dp" data-s="mid" onclick="setScenario('mid')">月中首签(场景b)</span>
+  </div>
+
+  <!-- 满签进度 -->
+  <div class="card" id="mainCard" style="display:none">
+    <div class="ttl">🏆 满签阶梯奖 <span class="hint">连续签到天数(含补签)解锁</span></div>
+    <div class="ms" id="msRow"></div>
+    <button class="claimall" id="claimAll" onclick="claimAllMs()">一键领取满签奖(<span id="caN">0</span>项 · 合计 <span id="caSum">0</span>)</button>
+  </div>
+
+  <!-- 日历 -->
+  <div class="card" id="calCard" style="display:none">
+    <div class="ttl">📅 6 月签到 <span class="hint" id="calSub">今天第 10 天 · 每日充值1000送30</span></div>
+    <div class="cal" id="cal"></div>
+    <div class="legend">
+      <span class="lg"><i class="sw" style="background:#FFF7E6;border:1px solid #F2DFB0"></i>已签</span>
+      <span class="lg"><i class="sw" style="background:#EAF6EE;border:1px solid #CDEBD6"></i>补签</span>
+      <span class="lg"><i class="sw" style="background:#FDECEC;border:1px solid #F8D4D4"></i>漏签(可补)</span>
+      <span class="lg"><i class="sw" style="background:#f0f0f0;border:1px solid #e2e2e2"></i>漏签(超期·不可补)</span>
+      <span class="lg"><i class="sw" style="background:#fff;border:2px solid var(--org)"></i>今日</span>
+    </div>
+  </div>
+
+  <!-- 规则 -->
+  <div class="card rules" id="ruleCard" style="display:none">
+    <h4>📖 补签规则</h4>
+    <table class="rtable">
+      <tr><th>漏签日</th><th>充值倍数</th><th id="rtBaseHead">需充值</th><th>补发</th></tr>
+      <tbody id="rtBody"></tbody>
+    </table>
+    <div class="note">
+      · 满签口径:节点 3/7/15/当月最后一天 = <b>当下连续签到天数(含补签打钩)</b>达到节点。<br/>
+      · 补签:只能往前补 <b>5 天</b>,无次数上限;漏签超 5 天 → <b>连续中断,该天及之后阶梯不可达</b>。<br/>
+      · 首日选路线:可选「当前 VIP 等级及以下」,选定<b>当月锁定不可改</b>;下月 1 号重选。<br/>
+      · 领取:每日奖在签到页弹框领取;满签奖走 309「统一领取 / 一键领取」,bonus collection 显示待领取。<br/>
+      · 数据为原型占位,落地以 V1 SignIn 接口 + 后台 VIP×31天配置为准。
+    </div>
+  </div>
+
+</div>
+
+<!-- 首日选路线弹窗 -->
+<div class="mask on" id="routeMask">
+  <div class="modal">
+    <h3>选择本月签到路线</h3>
+    <div class="msub">你当前为 <b style="color:#ED6B2E">VIP5</b>,可选「当前等级及以下」路线。<br/>选定后<b>本月锁定不可更改</b>。</div>
+    <div id="routeList"></div>
+    <button class="btn prim" id="routeConfirm" onclick="confirmRoute()" disabled style="opacity:.5">请选择路线</button>
+  </div>
+</div>
+
+<!-- 补签弹窗(分场景:a 单日 / b 多日累计 / c 单日+触发阶段奖) -->
+<div class="mask" id="resignMask" onclick="if(event.target===this)closeMask('resignMask')">
+  <div class="modal">
+    <span class="xclose" onclick="closeMask('resignMask')">×</span>
+    <h3 id="rsTtl">补签</h3>
+    <div class="msub">补签后该日打钩,计入连续;单日奖励补发一半。</div>
+    <div id="rsBody"></div>
+    <button class="btn prim" onclick="goDeposit()">确认补签 · 前往存款页</button>
+  </div>
+</div>
+
+<!-- 通用成功弹窗(统一领取) -->
+<div class="mask" id="okMask">
+  <div class="modal okwrap">
+    <div class="em" id="okEm">🎉</div>
+    <h3 id="okTtl">签到成功</h3>
+    <div class="amt" id="okAmt">+30</div>
+    <div class="msub" id="okSub">已到账,继续连签解锁满签大奖</div>
+    <button class="btn prim" id="okBtn" onclick="okConfirm()">知道了</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ===== 路线配置(VIP × 月签到);ms 节点 3/7/15 + last(当月最后一天大奖) =====
+  const ROUTES = {
+    1:  {vip:1,  base:100,   reward:2,   ms:{3:5,   7:15,  15:40,  last:100}},
+    5:  {vip:5,  base:1000,  reward:30,  ms:{3:30,  7:100, 15:300, last:1000}},
+    8:  {vip:8,  base:5000,  reward:200, ms:{3:300, 7:900, 15:2500,last:6000}},
+    10: {vip:10, base:10000, reward:500, ms:{3:800, 7:2000,15:5000,last:15000}},
+  };
+  const CUR_VIP = 5;          // 会员当前 VIP 等级(上限)
+  const TODAY = 10;           // 今天 = 当月第 10 天(日历日)
+  const LAST_DAY = 30;        // 当月最后一天(6 月=30);大奖节点
+  const WINDOW = 5;           // 补签窗口:只能往前补 5 天
+  const HALF = 0.5;
+  const RESIGN_SEG = [        // 补签分段:漏签日区间 → 充值倍数
+    {s:1,e:5,m:2},{s:6,e:10,m:3},{s:11,e:15,m:4},
+    {s:16,e:20,m:5},{s:21,e:25,m:7},{s:26,e:31,m:10},
+  ];
+  // 演示情景:normal=1号起签(含1个补签+1个可补漏签);mid=月中10号首签(1-4超期/5-9可补)
+  const SCENARIOS = {
+    normal:{first:1,  days:{1:1,2:1,3:3,4:1,5:1,6:1,7:1,8:1,9:1}}, // 1-9连续(day3为补签已完成),连续=9
+    miss1: {first:1,  days:{1:1,2:1,3:1,4:1,5:2,6:1,7:1,8:1,9:1}}, // 仅day5可补 → 补签场景a/c
+    mid:   {first:10, days:{1:2,2:2,3:2,4:2,5:2,6:2,7:2,8:2,9:2}}, // 10号首签:1-4超期,5-9可补 → 补签场景b
+  };
+
+  let route=null, chosen=null;
+  let days={}, claimedMs={}, firstDay=1, curScenario='normal';
+  let okCb=null;             // 成功弹窗确认回调(用于合并领取)
+
+  // ===== 首日选路线 =====
+  function openRoute(){
+    document.getElementById('routeMask').classList.add('on');
+    const list=document.getElementById('routeList'); list.innerHTML='';
+    Object.values(ROUTES).forEach(r=>{
+      const dis=r.vip>CUR_VIP;
+      const div=document.createElement('div');
+      div.className='rt'+(dis?' dis':'');
+      div.innerHTML=`<div class="rh"><span class="rv">VIP${r.vip} 路线</span>
+        <span class="rtag">${dis?'高于当前等级':'满月大奖 '+r.ms.last}</span></div>
+        <div class="rd">每日:充值 <b>${r.base}</b> 送 <b>${r.reward}</b>${dis?' · 不可选':''}</div>`;
+      if(!dis) div.onclick=()=>{chosen=r.vip;[...list.children].forEach(c=>c.classList.remove('on'));div.classList.add('on');
+        const b=document.getElementById('routeConfirm');b.disabled=false;b.style.opacity=1;b.textContent=`确认选择 VIP${r.vip} 路线`;};
+      list.appendChild(div);
+    });
+    const b=document.getElementById('routeConfirm');b.disabled=true;b.style.opacity=.5;b.textContent='请选择路线';chosen=null;
+  }
+  function confirmRoute(){
+    if(!chosen) return;
+    route=ROUTES[chosen];
+    document.getElementById('routeMask').classList.remove('on');
+    document.getElementById('lockTip').style.display='inline-block';
+    document.getElementById('lockRoute').textContent='VIP'+route.vip;
+    document.getElementById('demoBar').style.display='flex';
+    ['mainCard','calCard','ruleCard'].forEach(id=>document.getElementById(id).style.display='block');
+    renderRuleTable();
+    setScenario('normal');
+    toast(`已锁定 VIP${route.vip} 路线`);
+  }
+
+  // ===== 演示情景 =====
+  function setScenario(s){
+    curScenario=s; firstDay=SCENARIOS[s].first;
+    days=Object.assign({},SCENARIOS[s].days);
+    claimedMs={};
+    document.querySelectorAll('.dp').forEach(p=>p.classList.toggle('on',p.dataset.s===s));
+    document.getElementById('calSub').textContent=`今天第 ${TODAY} 天`+(s==='mid'?'(本月首签)':'')+` · 每日充值${route.base}送${route.reward}`;
+    renderCal(); renderMs();
+  }
+
+  // ===== 补签分段表 =====
+  function segOf(day){ return RESIGN_SEG.find(x=>day>=x.s&&day<=x.e); }
+  function renderRuleTable(){
+    document.getElementById('rtBaseHead').textContent='需充值(基础'+route.base+')';
+    document.getElementById('rtBody').innerHTML=RESIGN_SEG.filter(x=>x.s<=LAST_DAY).map(x=>
+      `<tr><td>第${x.s}–${Math.min(x.e,LAST_DAY)}天</td><td>${x.m}倍</td><td>${route.base*x.m}</td><td>${Math.round(route.reward*HALF)}</td></tr>`).join('');
+  }
+
+  // ===== 日历 =====
+  function isFillable(d){ return days[d]===2 && d<TODAY && d>=TODAY-WINDOW; }
+  function isExpired(d){ return days[d]===2 && d<TODAY-WINDOW; }
+  function renderCal(){
+    const cal=document.getElementById('cal'); cal.innerHTML='';
+    for(let d=1; d<=LAST_DAY; d++){
+      const st=days[d]||0;
+      const cell=document.createElement('div');
+      let cls='cell', ic='', rw='充'+route.base, corner='', flag='', flagDim='';
+      const todayOpen = d===TODAY && st!==1 && st!==3;
+      if(todayOpen){ cls+=' today'; ic='签到'; rw='送'+route.reward; }
+      else if(st===1){ cls+=' signed'; ic='✓'; rw='+'+route.reward; }
+      else if(st===3){ cls+=' resign'; ic='✓'; rw='+'+Math.round(route.reward*HALF); corner='补'; }
+      else if(isFillable(d)){ cls+=' miss'; ic='✗'; rw='补签'; }
+      else if(isExpired(d)){ cls+=' expired'; ic='✕'; rw='超期不可补'; }
+      else { cls+=' future'; ic='·'; rw='充'+route.base; }
+      if([3,7,15,LAST_DAY].includes(d)){ flag='🏆'; if(isExpired(d)||(d<TODAY&&st!==1&&st!==3&&!isFillable(d))) flagDim=' dim'; }
+      cell.className=cls;
+      cell.innerHTML=`<span class="d">${d}</span><span class="ic">${ic}</span><span class="rw">${rw}</span>`+
+        (corner?`<span class="corner">${corner}</span>`:'')+(flag?`<span class="ms-flag${flagDim}">${flag}</span>`:'');
+      if(isFillable(d)) cell.onclick=()=>openResign(d);
+      else if(todayOpen) cell.onclick=()=>signToday();
+      cal.appendChild(cell);
+    }
+  }
+
+  // ===== 连续天数 / 满签 =====
+  // 当下连续签到天数:从今天往前数连续的 已签/补签(今日未签则从昨天起)
+  function curStreak(){
+    let d=TODAY;
+    if(days[d]!==1&&days[d]!==3) d--;
+    let s=0;
+    while(d>=1&&(days[d]===1||days[d]===3)){ s++; d--; }
+    return s;
+  }
+  // 最近一个「超期不可补」漏签日(连续硬中断点)
+  function latestExpired(){ let m=0; for(let d=1;d<TODAY;d++){ if(isExpired(d)) m=d; } return m; }
+  // 理论可达的最大连续(中断点之后到月末都可签/补)
+  function maxStreak(){ return LAST_DAY - latestExpired(); }
+  function nodeList(){
+    return [
+      {day:3,  reward:route.ms[3]},
+      {day:7,  reward:route.ms[7]},
+      {day:15, reward:route.ms[15]},
+      {day:LAST_DAY, reward:route.ms.last, big:true},
+    ];
+  }
+  function hasReward(n){ return n.reward!=='—'&&n.reward!=null; }
+  function claimableNodes(){ const cs=curStreak(); return nodeList().filter(n=>cs>=n.day&&!claimedMs[n.day]&&hasReward(n)); }
+
+  function renderMs(){
+    const row=document.getElementById('msRow'); row.innerHTML='';
+    const cs=curStreak(), ms=maxStreak();
+    nodeList().forEach(n=>{
+      const reached=cs>=n.day, claimed=!!claimedMs[n.day], reachable=n.day<=ms;
+      let cls='msn';
+      const canClaim = reached && !claimed && hasReward(n);   // 只判断「是否能领取」
+      if(canClaim) cls+=' claimable'; else if(claimed) cls+=' done'; else if(reachable) cls+=' prog'; else cls+=' fail';
+      const div=document.createElement('div'); div.className=cls;   // 状态只用圆点动效表达(可领取=红色脉冲)
+      const lbl=(n.big?'满月':n.day+'天');
+      div.innerHTML=`<div class="msdot">${claimed?'✓':n.day}</div><div class="mslbl">${lbl}<b>${n.reward}</b></div>`;
+      row.appendChild(div);
+    });
+    const bar=document.createElement('div'); bar.className='msbar';
+    bar.style.width=`calc((100% - 28px) * ${Math.min(cs/LAST_DAY,1)})`;
+    row.appendChild(bar);
+    // 能否领取统一由「一键领取」按键状态表示(有可领→启用,无可领→禁用)
+    const cl=claimableNodes(), btn=document.getElementById('claimAll');
+    if(cl.length>=1){ btn.disabled=false; btn.classList.remove('off');
+      btn.innerHTML=`一键领取满签奖(${cl.length}项 · 合计 ${cl.reduce((s,n)=>s+n.reward,0)})`;
+    } else { btn.disabled=true; btn.classList.add('off');
+      btn.innerHTML='暂无可领取的满签奖'; }
+  }
+
+  // ===== 交互 =====
+  function signToday(){
+    days[TODAY]=1; renderCal();
+    const nc=claimableNodes();
+    if(nc.length){           // 当日签到同时达成阶梯奖 → 合并领取
+      const sum=route.reward+nc.reduce((s,n)=>s+n.reward,0);
+      const detail=`今日签到 +${route.reward}`+nc.map(n=>` · ${n.day===LAST_DAY?'满月大奖':n.day+'天阶梯奖'} +${n.reward}`).join('')+'<br>点击一并到账(走 309 统一领取)';
+      showOk('🎉','签到成功 · 阶梯奖一并领取','+'+sum,detail,()=>{ nc.forEach(n=>claimedMs[n.day]=1); renderMs(); });
+    } else {
+      showOk('🎉','签到成功','+'+route.reward,'今日已签 · 继续连签解锁满签大奖',null);
+    }
+    renderMs();
+  }
+  function fillableDays(){ const a=[]; for(let d=1;d<TODAY;d++){ if(isFillable(d)) a.push(d); } return a; }
+  function nodeReward(day){ const n=nodeList().find(x=>x.day===day); return n?n.reward:0; }
+  // 假设补签 day 后是否「新」达成某阶段奖,返回节点天数(否则 0)
+  function completesNode(day){
+    const before=curStreak(); const sv=days[day]; days[day]=3; const after=curStreak(); days[day]=sv;
+    const n=nodeList().find(nn=>after>=nn.day&&before<nn.day&&!claimedMs[nn.day]&&hasReward(nn));
+    return n?n.day:0;
+  }
+  function msName(day){ return day===LAST_DAY?'满月阶段奖':day+'天阶段奖'; }
+  // 补签弹框:场景 a(单日)/ b(多日)统一为无边框表单(充值 / 奖励 累计)+ 表外阶段奖
+  function openResign(clickedDay){
+    let fds=fillableDays(); if(!fds.length) fds=[clickedDay];
+    const half=Math.round(route.reward*HALF);
+    let cumReq=0, rows='';
+    fds.forEach((d,i)=>{
+      cumReq+=route.base*segOf(d).m;
+      rows+=`<tr><td><b>${cumReq}</b></td><td><b>${half*(i+1)}</b></td></tr>`;
+    });
+    let html=`<table class="rsform"><tr><th>充值</th><th>奖励</th></tr>${rows}</table>`;
+    // 阶段奖:单日仅在补后达成时显示(场景c);多日显示补满后可达成的最高阶段奖
+    let mday=0, mr=0;
+    if(fds.length===1){ const node=completesNode(fds[0]); if(node){ mday=node; mr=nodeReward(node); } }
+    else { const node=completesNodeMulti(fds); mday=node||((route.ms[3]&&route.ms[3]!=='—')?3:0); mr=(mday===3?route.ms[3]:nodeReward(mday)); }
+    if(mday) html+=`<div class="rsms">${msName(mday)} <b>+${mr}</b></div>`;
+    document.getElementById('rsTtl').textContent='补签';
+    document.getElementById('rsBody').innerHTML=html;
+    document.getElementById('resignMask').classList.add('on');
+  }
+  // 补满全部可补日后新达成的最高阶段奖
+  function completesNodeMulti(fds){
+    const before=curStreak(); const sv={}; fds.forEach(d=>{sv[d]=days[d];days[d]=3;});
+    const after=curStreak(); fds.forEach(d=>days[d]=sv[d]);
+    let top=0; nodeList().forEach(nn=>{ if(after>=nn.day&&before<nn.day&&!claimedMs[nn.day]&&hasReward(nn)) top=nn.day; });
+    return top;
+  }
+  function goDeposit(){ window.location.href='recharge-page.html'; }   // 确认补签 → 存款页
+  function claimAllMs(){
+    const cl=claimableNodes(); if(!cl.length) return;
+    const sum=cl.reduce((s,n)=>s+n.reward,0);
+    cl.forEach(n=>claimedMs[n.day]=1); renderMs();
+    showOk('🎉','领取成功','+'+sum,'继续连签解锁满签大奖',null);
+  }
+  function showOk(em,ttl,amt,sub,cb){
+    document.getElementById('okEm').textContent=em;
+    document.getElementById('okTtl').textContent=ttl;
+    document.getElementById('okAmt').textContent=amt;
+    document.getElementById('okSub').innerHTML=sub;
+    document.getElementById('okBtn').textContent=cb?'一并领取':'知道了';
+    okCb=cb||null;
+    document.getElementById('okMask').classList.add('on');
+  }
+  function okConfirm(){ if(okCb){ const f=okCb; okCb=null; f(); } closeMask('okMask'); }
+  function closeMask(id){ document.getElementById(id).classList.remove('on'); }
+  let tmr=null;
+  function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tmr); tmr=setTimeout(()=>t.classList.remove('on'),1600); }
+
+  openRoute();   // 首屏:演示首日选路线
+</script>
+</body>
+</html>

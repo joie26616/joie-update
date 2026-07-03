@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>309 需求优化 · 活动页面导航</title>
+<style>
+  :root{--bg:#eceae3;--card:#fff;--t1:#1f1e1c;--t2:#5f5e5a;--t3:#8a8980;--bd:rgba(0,0,0,.12);--r:10px;--p:#7752FD;--amber:#854F0B;--amberbg:#FAEEDA;--amberbd:#BA7517;}
+  *{box-sizing:border-box;}
+  body{margin:0;padding:26px 18px;background:var(--bg);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);line-height:1.6;}
+  .wrap{max-width:760px;margin:0 auto;}
+  h1{font-size:21px;font-weight:600;margin:0 0 4px;}
+  .sub{font-size:13px;color:var(--t3);margin-bottom:22px;}
+  .act{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;margin-bottom:14px;}
+  .act .hd{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .act .name{font-size:16px;font-weight:600;}
+  .tag{background:var(--amberbg);color:var(--amber);border:1px solid var(--amberbd);border-radius:8px;font-size:11px;padding:1px 8px;}
+  .need{font-size:13px;color:var(--t2);margin:0 0 12px;padding-left:2px;}
+  .need li{margin:2px 0;}
+  .links{display:flex;gap:10px;flex-wrap:wrap;}
+  a.go{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-size:13px;padding:8px 14px;border-radius:8px;border:1px solid var(--bd);color:var(--p);background:#fff;}
+  a.go:hover{border-color:var(--p);}
+  a.go.prim{background:var(--p);color:#fff;border-color:var(--p);}
+  .small{font-size:11px;color:var(--t3);margin-left:6px;}
+  .tabs{display:flex;gap:8px;margin-bottom:18px;}
+  .tabbtn{font-size:15px;font-weight:600;padding:8px 20px;border-radius:10px;border:1px solid var(--bd);background:#fff;color:var(--t2);cursor:pointer;}
+  .tabbtn.on{background:var(--p);color:#fff;border-color:var(--p);}
+  .grp{font-size:14px;font-weight:700;color:var(--p);margin:20px 0 8px;padding-left:2px;border-left:3px solid var(--p);padding-left:8px;}
+  .dir{font-size:12px;color:var(--t2);background:#faf9fc;border:1px solid var(--bd);border-radius:8px;padding:9px 11px;margin:6px 0 0;line-height:1.8;}
+  .dir .k{display:inline-block;min-width:64px;color:var(--amber);font-weight:700;vertical-align:top;}
+  .dir code{background:#fff;border:1px solid var(--bd);border-radius:3px;padding:0 4px;font-size:11px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="tabs">
+    <button class="tabbtn on" id="t309" onclick="showTab('309')">309 需求优化</button>
+    <button class="tabbtn" id="t310" onclick="showTab('310')">310 需求</button>
+    <button class="tabbtn" id="t311" onclick="showTab('311')">311 后台优化</button>
+    <button class="tabbtn" id="tSummary" onclick="showTab('Summary')" style="margin-left:auto;background:#1f1e1c;color:#fff;border-color:#1f1e1c">📋 需求汇总</button>
+  </div>
+
+  <div id="tab309">
+  <div class="sub">按活动名称归类;点击进入「需求优化完成后」的页面。需求 ↔ 优化页面一一对应。</div>
+
+  <div class="act" id="req-taskedit"><span id="req-38"></span><span id="req-37"></span>
+    <div class="hd"><span class="name">日/周任务优化(前后端统一目录)</span><span class="tag">#1</span><span class="tag">#4</span><span class="tag">#38</span><span class="tag">#37 + 邀请内容</span></div>
+    <ul class="need">
+      <li><b>覆盖入口</b>(归属「活动奖励」下,非「活动管理」):<b>每日任务列表</b> 与 <b>每周任务列表</b> 的 4 个新增按钮 <b>新增充提任务 / 新增投注任务 / 新增邀请任务 / 新增充值投注任务</b>(V1 <code>GetDailyConfig/GetWeeklyConfig?projectID=1/2/3/5</code>);<b>入口及各自配置页的 V1 字段一律不变</b> —— 任务类型(按入口固定:充提任务/投注任务/邀请任务/充值投注)、任务名称、任务分类(按类型级联:充值·提现 / 彩票·电子·真人·体育·棋牌 / 邀请人 / 充值投注)、目标类型、任务目标、任务排序、开启状态;309 仅在各表单内<b>新增</b>以下字段。</li>
+      <li><b>#1 展示条件(新增)</b>:每个任务新增可选择条件 <b>[全员] / [充值要求]</b>;选中「充值要求」→ 显示 <b>[首充/人] + 金额输入框</b>,首充达到该金额的会员才能看到此任务。</li>
+      <li><b>#4 领取方式(加选项)</b>:V1 领取方式(<b>直接领取 / 开宝箱领取</b>)不变,新增 <b>[任务结束]</b>;选中「任务结束」→ 出 2 个选项:<b>① 直接领取 ② 宝箱领取</b>(另可设领取有效时间,天,默认 0 = 不限期,以任务结束时间为准)。</li>
+      <li><b>#38 邀请任务</b>(新增邀请任务表单内):选中 [邀请人] → 新增 <b>领取条件:充值/人 + 金额输入框</b>(被邀请人每人充值达标才可领奖);目标类型=邀请人数 时必填 [首充额度/每人],日/周列表 [邀请任务] 表头一致新增 [充值金额] 列。</li>
+      <li><b>#38 归属确认</b>:落在<b>每日/每周任务的「邀请任务」类型</b>(<code>tab_DailyConfig</code>/<code>tab_WeeklyConfig</code>),<b>非</b>独立的「邀请人任务」(<code>tab_Tasks</code>)模块——后者是另一套 V1 活动。</li>
+      <li><b>#37 前端 · 活动奖励/任务中心(Activity Award,前后端一起优化的同类项)</b>:加筛选 任务周期(周/日)+ 任务类型(充值/打码/邀请);筛选 pill 红点 = 该类有「完成可领取」,邀请任务卡 invited / Deposit 比值(ⓘ 提示);<b>双态优化</b> —— 同一任务「上期可领未领 + 本期进行中」→ 待领取置顶高亮(红按钮+过期倒计时)、本期进度独立分区、顶部聚合「N 项待领取·一键领取」。</li>
+    </ul>
+    <div class="links">
+      <a class="go prim" href="http://localhost:8309/daily-task-edit.html" target="_blank">任务配置页(模拟 V1 四入口·V1 字段不变 + 309 新增) ↗</a>
+      <a class="go prim" href="http://localhost:8309/invite-task-edit.html" target="_blank">新增邀请任务(领取条件+首充门槛) ↗</a>
+      <a class="go" href="http://localhost:8309/task-config-daily-309.html" target="_blank">每日任务配置(309优化) ↗</a>
+      <a class="go" href="http://localhost:8309/task-config-weekly-309.html" target="_blank">每周任务配置(309优化) ↗</a>
+      <a class="go prim" href="http://localhost:8309/activity-award-frontend.html" target="_blank">Activity Award 前端(#37) ↗</a>
+      <a class="go" href="http://localhost:8309/claim-unified.html" target="_blank">优化后 Bonus collection(领取) ↗</a>
+      <a class="go" href="#form-1-4" style="background:#f3f0fb;color:#6f42c1;border-color:#d6c9f2">🗂️ 全局表单③·任务配置/次日快照 →</a>
+      <a class="go" href="#form-4-37" style="background:#f3f0fb;color:#6f42c1;border-color:#d6c9f2">🗂️ 全局表单②·任务领取记录 →</a>
+    </div>
+  </div>
+
+  <div class="act" id="req-claim">
+    <div class="hd"><span class="name">全站统一领取 + 一键领取</span><span class="tag">#4 + 规范</span><span class="tag">#21</span></div>
+    <ul class="need">
+      <li>统一领取成功弹窗(基于 V2 VIP van-dialog 扩展):单项/多项+合计;替代散落 toast</li>
+      <li>一键领取:只提交「已可领」的<b>直接领取类</b>(Check 跳转类、宝箱不提交)→ 结果弹窗三态(全部成功/部分成功/全部失败,沿用 V1 msgCode);部分成功失败原因仅竞态两种:<b>已过期 / 已领取</b></li>
+      <li>结合活动结束领取(#4):领取截止<b>实时倒计时</b>·到期卡即时隐藏;未到领取时间置灰+<b>距可领倒计时</b>,到点刷新自动转可领并计入合计;已领/已过期不显示;领取有效期=活动结束+N天(0=不限,显示「领取有效期 不限」)</li>
+      <li><b>🆕 宝箱(开宝箱领取)</b>:不计入合计、不进一键领取,须逐个开箱;进面板有待开宝箱→<b>优先自动弹</b>宝箱弹框(任务结束类有效期内每天登录仅自动弹一次);开箱到账后列表卡消失;金额只展示「最高可得」,实发以开箱 ActualAmount 为准</li>
+      <li><b>#21 整合进 Bonus collection</b>:充值会员玩彩票最后一注输/三方退出返平台,<b>余额&lt;最低下注额→自动弹出</b>本面板(聚合所有开启活动·一键领取);游戏页加 <b>🎁浮窗</b>随时唤起;底部<b>常驻充值引导条·四场景文案</b>统一后缀「想继续游戏?直接充值」(无奖无宝箱时隐藏一键领取栏)。复用统一领取,仅加触发+浮窗+充值引导。</li>
+      <li><b>🆕 #38 邀请任务卡</b>:未达标显示 <b>[去邀请] + 达标进度条</b>(被邀请人充值≥N/人);全部达标→任务结束发放,转普通待领卡走统一领取/一键领取</li>
+    </ul>
+    <div class="links">
+      <a class="go prim" href="http://localhost:8309/claim-unified.html" target="_blank">统一领取+一键领取规范 ↗</a>
+      <a class="go" href="http://localhost:8309/treasure-chest.html" target="_blank">开宝箱领奖(宝箱弹框)↗</a>
+      <a class="go" href="http://localhost:8309/v2-claim-pages.html" target="_blank">V2 现状:VIP弹窗 + 签到Toast ↗</a>
+      <a class="go" href="#form-4-37" style="background:#f3f0fb;color:#6f42c1;border-color:#d6c9f2">🗂️ 全局表单②·领取状态记录 →</a>
+    </div>
+  </div>
+
+  <div class="act">
+    <div class="hd"><span class="name">前端领奖提示(红点)</span><span class="tag">#40</span></div>
+    <ul class="need">
+      <li>底部导航 <b>Activity</b>:其下任一活动「有奖励待领取」或「满足参与条件」→ 显示红点(聚合)</li>
+      <li>Activity <b>二级导航 icon</b>:每个活动入口独立判断,有奖励待领 / 可参与 → 显红点(多项可领显数字角标)</li>
+      <li>数据支撑:奖励中心 GetRewardCenterList 的 ReceiveStatus(可领)+ MaxRewardableAmount(可参与)聚合</li>
+      <li>底部导航沿用 V2 现状(home/activity/<b>promotion 中间</b>/wallet/main),仅在 Activity 加聚合红点,<b>不改中间为 Deposit</b>(deposit 优化已移出 309)</li>
+    </ul>
+    <div class="links">
+      <a class="go prim" href="http://localhost:8309/reward-reddot.html" target="_blank">领奖红点提示 前端 ↗</a>
+    </div>
+  </div>
+
+
+
+  <!-- ===== 全局表单(V1 后台数据/记录表单 · 涉309需调整) ===== -->
+  <div class="act" style="border:2px solid #6f42c1">
+    <div class="hd"><span class="name">🗂️ 全局表单</span><span class="tag" style="background:#f3f0fb;color:#6f42c1;border-color:#d6c9f2">V1后台 数据/记录/报表 · 涉309需调整</span><span class="tag" style="background:#eef7ff;color:#1976d2;border-color:#cfe4fb">📄 设计文档:<code>Ar_V3.../docs/发奖领取拆分-数据模型与防污染设计.md</code></span></div>
+    <div class="sub" style="margin:0 0 6px;background:#fbfaff;border:1px dashed #d6c9f2;border-radius:5px;padding:7px 10px;color:#5b3bb5"><b>📄 发奖/领取拆分设计</b>(记录→资金→报表三层防污染):三张原型 <b>任务领取记录(task-record-309)→ 资金账变·只记到账(finance-record-309)→ 数据统计详情(award-stat-detail-309)</b> 已按此打通;详见文档 <code>docs/发奖领取拆分-数据模型与防污染设计.md</code>。</div>
+    <div class="sub" style="margin:0 0 10px">309 需求会触及的 **V1 真实后台**「数据 / 记录 / 报表」表单,点进为 8901 现状页;右侧注更新点与问题。<b>贯穿性:①统一领取状态机(待领/已领/已过期/未到时间)+幂等去重 ②"发放"与"领取"分离·加待领取记录表 ③任务配置字段同步"次日快照" ④存量默认兼容·过期只作废不回滚账变。</b></div>
+
+    <div id="form-20" style="font-weight:700;color:#2E7D4F;margin:10px 0 4px">① #20 批量彩金 · 财务管理(领取状态/方式/过期 + 已领未领统计) <span style="font-weight:600;font-size:12px;background:#fdecea;color:#C23B45;border-radius:6px;padding:1px 8px">⚠️ #20 已移出 309 · 本组仅留档标注</span></div>
+    <div class="links">
+      <a class="go prim" href="http://localhost:8901/Admin_UERP/Recharge/ManualRechargeRecords/" target="_blank">🖥️ 后台操作审核记录 ↗</a>
+      <a class="go" href="http://localhost:8901/Admin_UERP/Recharge/ManualRechargeApprovalList/" target="_blank">🖥️ 后台操作审核列表 ↗</a>
+      <a class="go" href="http://localhost:8309/finance-record-309.html" target="_blank">🆕 资金账变·只记到账(覆盖彩金+任务派奖·309优化) ↗</a>
+    </div>
+    <div class="dir"><span class="k">更新</span>搜索加 [领取状态:全部/已领/未领/已过期];列加 [领取方式][领取状态][过期时间];仅 子类型=彩金充值 生效;汇总已领/未领/过期数。</div>
+    <div class="dir"><span class="k">问题</span>领取状态<b>无来源</b>(弹窗领取需待领表)、彩金充值<b>子类型混淆</b>、<b>过期回收</b>只作废待领不回滚账变、<b>存量</b>无字段。<span class="k" style="background:#e9f7ef;color:#226c42">方案</span>新增彩金待领取记录表(JOIN 取状态)、按 FundTypeEnum 过滤、过期 Job 置"已过期"、存量默认"自动/已领"。</div>
+    <div class="dir"><span class="k" style="background:#f3f0fb;color:#6f42c1">资金层·贯穿</span><b>账变 = 钱真到账才记一笔</b>(资金账变<b>同时覆盖 ①彩金弹窗领取 + ③任务派奖延迟领取</b>)。新老「发奖」定义不同:<b>旧=发即到账</b>;<b>新=发奖不动钱、领取才到账、过期不写不冲账</b>。<b>资金/财务报表按"到账"统计、别按"发放"</b>,否则待领/过期虚增成本。对账:发放额(领取记录 <code>CreateDate</code>)− 到账额(账变时间)= 待领 + 过期,靠 <code>OrderNo</code> 打通。</div>
+
+    <div id="form-4-37" style="font-weight:700;color:#2E7D4F;margin:14px 0 4px">② #4 任务结束后领取 + #37 任务筛选 · 活动管理/会员(领取记录) <span style="font-weight:500;font-size:12px">↩ 需求: <a href="#req-37" style="color:#3a6fb0;text-decoration:none">活动奖励</a> · <a href="#req-taskedit" style="color:#3a6fb0;text-decoration:none">任务编辑</a> · <a href="#req-38" style="color:#3a6fb0;text-decoration:none">邀请任务</a> · <a href="#req-claim" style="color:#3a6fb0;text-decoration:none">统一领取</a></span></div>
+    <div class="links">
+      <a class="go prim" href="http://localhost:8309/task-record-309.html" target="_blank">🆕 任务领取记录·日/周合并·发放-领取拆分(309优化) ↗</a>
+      <a class="go prim" href="http://localhost:8309/award-stat-detail-309.html" target="_blank">📊 数据统计·每日/每周奖励详情·发放-领取拆分(309优化) ↗</a>
+    </div>
+    <div class="dir"><span class="k">更新</span>日/周记录<b>合并一页</b>(按「任务周期」筛选);原表字段语义不变(D-22):<code>CreateDate</code>=记录创建/发放、<code>FinishDate</code>=任务完成;🆕加 [<b>ClaimDate 领取到账</b>][领取机制 RewardMode][领取状态 ClaimStatus][领取有效期 ClaimDeadline][实发值],历史数据零回填;数据统计「每日/每周奖励详情」拆 [发放额/领取额/领取率/待领/过期]。<b>防污染</b>:资金口径走 🆕ClaimDate 到账、旧数据读取端「RewardMode=0 ⇒ 领取时间=CreateDate」自动等价。</div>
+    <div class="dir"><span class="k" style="background:#f3f0fb;color:#6f42c1">#38 归属</span><b>邀请任务 = 每日/每周任务的一个任务类型</b>(tab_DailyConfig/WeeklyConfig · 类型=邀请任务),其领取记录并入<b>任务领取记录合并页</b>(邀请类型行含「被邀请人首充门槛/人 + 有效邀请人数」)。独立的「邀请人任务」(tab_Tasks)是另一套 V1 活动,<b>不属 #38</b>,已移出 309。</div>
+    <div class="dir"><span class="k">问题</span>"任务结束领取"<b>中间态缺失</b>(需达成时间+可领起止+状态)、多来源<b>状态口径不统一</b>、<b>开宝箱</b>ReceiveType=2 别把展示区间当已发。<span class="k" style="background:#e9f7ef;color:#226c42">方案</span>记录表加达成/领取有效起止/状态/形式字段、统一状态枚举+去重键、记实发值。</div>
+    <div class="dir"><span class="k" style="background:#f0f0f0;color:#999">已剔除</span>以下为 V1 <b>独立活动、非 309 需求</b>,已从 309 移出(仅口径留档):<b>首充奖励记录</b>(<code>tab_UserRewardRecord</code>·首充奖励任务)、<b>新会员礼包记录</b>(<code>GiftPackUserRewardRecord</code>)、<b>邀请人任务</b>(<code>tab_Tasks</code>)。它们的领取将来会复用 309 统一领取状态机,但本身不在 309 范围。</div>
+
+    <div id="form-1-4" style="font-weight:700;color:#2E7D4F;margin:14px 0 4px">③ #1 展示条件 + #4 领取方式 · 活动管理(任务配置 · 次日快照) <a href="#req-taskedit" style="font-weight:500;font-size:12px;color:#3a6fb0;text-decoration:none">↩ 需求·任务编辑</a></div>
+    <div class="links">
+      <a class="go prim" href="http://localhost:8309/task-config-daily-309.html" target="_blank">🆕 每日任务配置(309优化) ↗</a>
+      <a class="go" href="http://localhost:8309/task-config-weekly-309.html" target="_blank">🆕 每周任务配置(309优化) ↗</a>
+    </div>
+    <div class="dir"><span class="k">更新</span>新增 [展示条件类型+阈值(首充/人)] 字段;V1 [领取方式](直接/开宝箱)加选项 [任务结束](+领取形式①直接②宝箱、领取有效时间)(配置页,但影响数据逻辑)。<span class="k">问题</span>新增字段若没进"<b>次日快照</b>"复制→次日快照丢字段、领取校验/展示失效;<b>存量突变</b>。<span class="k" style="background:#e9f7ef;color:#226c42">方案</span>同步扩展快照表字段+复制逻辑、新字段默认=旧行为兼容存量。</div>
+  </div>
+
+  <div class="sub" style="margin-top:18px">说明:8901 = 老后台静态版(渲染页);8309 = 前端/原型(可交互)。两套服务需保持运行。</div>
+  </div><!-- /tab309 -->
+
+  <!-- ===================== 310 需求 ===================== -->
+  <div id="tab310" style="display:none">
+    <div class="sub">310 = <b>签到升级(#19 月签到)</b>。卡片分两块:<b>📌 调整点</b> / <b>🟢 优化入口</b>(按 310 重构目录·六章)。<b>VIP月奖金已剔除(D-13)、优惠券/代理不做</b>;<b>⏸ #36 七日集星产品内部暂停 —— 不列入 310 优化范围(310 相关优化一律不含该需求),原型/文档留档备查</b>。</div>
+
+    <div class="grp">A · 签到升级(#19 月签到)</div>
+
+    <div class="act">
+      <div class="hd"><span class="name">月签到升级(月签 + 补签 + 满签)</span><span class="tag">#19</span><span class="tag" style="background:#E8F3EC;color:#2E7D4F;border-color:#9AD3AE">🆕 原型</span></div>
+
+      <div style="font-size:12px;font-weight:700;color:#854F0B;margin:2px 0 4px">📌 调整点</div>
+      <ul class="need">
+        <li>签到 7 天单套 → <b>月签 · 分 VIP 路线</b>(每天充值金额 + 奖励,31 天全可配);后台<b>单模版制</b>:每 VIP 仅 1 套,按当月实际天数 28/29/30/31 自动截断。</li>
+        <li><b>里程碑奖励(满签阶梯)</b>:节点运营自由增删(默认 3/7/15)+ <b>满签大奖恒落当月最后一天</b>;🆕<b>判定方式</b> 连续/累计 可选(事实与判定分离,历史零回填);🆕<b>领奖有效期</b>(当月末/达成后N天/不限,发放时快照)。</li>
+        <li><b>补签</b>:往前补 N 天(默认5)· 分段倍率 · 补发比例(默认50%)· 无次数上限;<b>需充值 = 当天充值 × 倍率</b>;连续模式漏签超窗口 → 连续中断(累计模式仅不累加)。</li>
+        <li><b>首签选 VIP 路线并当月锁定</b>(≤ 当前等级;升级当月不变,下月重选)—— 前台行为,后台无需配置。</li>
+        <li>领取两类:<b>每日奖</b>签到页弹框;<b>节点/满签奖</b>按领奖有效期纳入 <b>309 统一领取/一键领取</b>。</li>
+        <li>🆕<b>数据统计</b>:会员签到记录(V1 只加字段)—— 判定方式/累计天数列、总充值口径、按判定方式分列统计。</li>
+      </ul>
+
+      <div style="font-size:12px;font-weight:700;color:#2E7D4F;margin:14px 0 4px">🟢 优化入口(按 310 重构目录 · 六章)</div>
+      <div class="links" style="margin-top:2px">
+        <a class="go prim" href="http://localhost:8309/310-doc.html" target="_blank" style="background:#1f1d2b;border-color:#1f1d2b">📖 310 需求文档(重构目录·六章) ↗</a>
+        <a class="go prim" href="http://localhost:8309/monthly-signin-doc.html" target="_blank" style="background:#1f1d2b;border-color:#1f1d2b">📖 详细 PRD(11 节·菜单切换) ↗</a>
+      </div>
+      <div class="dir"><span class="k">一 需求规则</span><a href="http://localhost:8309/310-doc.html#s1" target="_blank">需求与规则总览 ↗</a> —— #19 + 🆕判定方式(连续/累计)+ 🆕领奖有效期;⏸ 集星不含</div>
+      <div class="dir"><span class="k">二 前台</span><a href="http://localhost:8309/monthly-signin.html" target="_blank">月签到页 ↗</a> —— 路线锁档 / 补签三场景 / 节点与月末大奖 / 当日合并领取</div>
+      <div class="dir"><span class="k">三 后台配置</span><a href="http://localhost:8309/monthly-signin-admin-v2.html" target="_blank">签到配置(单模版制) ↗</a> —— 每VIP一套31天按月截断;判定方式 / 领奖有效期 / 批量生成节点 / 跨VIP递增生成</div>
+      <div class="dir"><span class="k">四 领取</span><a href="http://localhost:8309/claim-unified-310.html" target="_blank">统一领取(310版·含满签奖) ↗</a> · <a href="http://localhost:8309/bonus-collection.html" target="_blank">奖励中心清单 ↗</a> —— 每日奖=跳签到页;节点/满签奖纳入一键</div>
+      <div class="dir"><span class="k">五 数据统计</span><a href="http://localhost:8901/Admin_UERP/UserInfo/SinIn" target="_blank">🖥️ 会员签到记录(V1只加字段) ↗</a> —— 搜索+判定方式;列+判定方式/累计天数;统计小结:签到奖励合计/总充值/占比 + 按判定方式分列</div>
+      <div class="dir"><span class="k">六 模型扩展</span><code>《310-月签到-单模版配置数据模型(定稿).md》</code> · 扩展预留 ①月度覆盖 ②月份开放(均不构成本版范围,入口层+轻量表;详见 <a href="http://localhost:8309/monthly-signin-doc.html" target="_blank">PRD「🧩 扩展能力设计」↗</a>)</div>
+      <div class="links" style="margin-top:6px">
+        <span class="small">✅ 配置定稿采用<b>单模版制</b>:每 VIP 仅 1 套 31 天配置、全月通用,按当月实际天数(28/29/30/31)自动截断,满签大奖恒落当月最后一天,录入量 12→1;跨 VIP 用「生成/复制」弹窗按递增(倍率/固定增量)预填。方案1(VIP×12月)、方案2(VIP×3模版)均已弃用。</span>
+      </div>
+    </div>
+
+    <div class="sub" style="margin-top:18px">链接说明:🖥️ V1后台 = 8901 静态渲染页(可点);📱 V2前端 = localhost:5173(需登录后显示数据);📦 路径为源码目录(只读参考)。配套:《310版本详细需求文档.md》。</div>
+  </div><!-- /tab310 -->
+
+  <!-- ===================== 311 后台优化 ===================== -->
+  <div id="tab311" style="display:none">
+    <div class="sub">311 = <b>后台优化(原 313+314 合并)</b>。8 个后台独立小功能(财务/绑卡/风控 + 后台/会员治理),全后台改动、风险同级,可与 310 并行。每项列 V1 后台代码目录 + 🖥️ 8901 可点页面(在真实页上看现状,优化点见说明)。</div>
+
+    <div class="grp">A · 财务 / 绑卡 / 风控</div>
+
+    <div class="act">
+      <div class="hd"><span class="name">银行卡历史绑定次数 风控标记</span><span class="tag">#8</span></div>
+      <ul class="need">
+        <li>新增「历史绑定次数」:标记同一银行卡号绑定过多少个<b>不同 id</b>(仅后台展示,不传三方),用于内部风控参考(防水军套利删卡换绑)。</li>
+        <li><b>提现锁定</b> + <b>银行卡列表</b>两页都加该列;数值 <b>≠1 整体标粗标红</b>。</li>
+      </ul>
+      <div class="dir"><span class="k">📦 V1后台</span>提现锁定 <code>UserInfoController.WithdrawalExamine</code>(<code>Views/UserInfo/WithdrawalExamine.cshtml</code>);银行卡查询 <code>UsersBanks</code> / <code>UsersBanksOpt</code></div>
+      <div class="links" style="margin-top:10px">
+        <a class="go prim" href="http://localhost:8901/Admin_UERP/UserInfo/WithdrawalExamine/" target="_blank">🖥️ 提现锁定列表 ↗</a>
+        <a class="go" href="http://localhost:8901/Admin_UERP/UserInfo/UsersBanks/" target="_blank">🖥️ 会员银行卡查询 ↗</a>
+      </div>
+    </div>
+
+    <div class="act">
+      <div class="hd"><span class="name">提现银行卡 行别管理排序</span><span class="tag">#17</span><span class="tag" style="background:#FFF3DA;color:#A86B12;border-color:#E6C77A">涉前台</span></div>
+      <ul class="need">
+        <li>银行行别配置确认/新增<b>自动排序</b> + 新增<b>(排序)(绑定数量)</b>两列。</li>
+        <li><b>前台绑卡</b>按后台排序展示选择顺序(排序高优先;排序都 0 时按总绑定数量)。</li>
+      </ul>
+      <div class="dir"><span class="k">📦 V1后台</span>行别列表 <code>SystemController.GetBanks</code>(<code>Views/System/GetBanks.cshtml</code>);行别编辑 <code>BankController.BankOpt</code>;绑卡数 <code>System/WithdrawBankCount</code></div>
+      <div class="links" style="margin-top:10px">
+        <a class="go prim" href="http://localhost:8901/Admin_UERP/System/GetBanks/" target="_blank">🖥️ 银行行别管理 ↗</a>
+        <a class="go" href="http://localhost:8901/Admin_UERP/System/WithdrawBankCount/" target="_blank">🖥️ 绑定银行卡数 ↗</a>
+        <a class="go" href="http://localhost:5173/" target="_blank">📱 V2前端·绑卡(需登录) ↗</a>
+      </div>
+    </div>
+
+    <div class="act">
+      <div class="hd"><span class="name">提现锁定页 筛选(打码量倍数)</span><span class="tag">#14</span></div>
+      <ul class="need"><li>提现锁定页搜索区新增筛选:<b>本次打码量倍数</b>区间(*** ~ ***)。</li></ul>
+      <div class="dir"><span class="k">📦 V1后台</span>同 #8 提现锁定 <code>UserInfoController.WithdrawalExamine</code>(<code>Views/UserInfo/WithdrawalExamine.cshtml</code>),改搜索区</div>
+      <div class="links" style="margin-top:10px">
+        <a class="go prim" href="http://localhost:8901/Admin_UERP/UserInfo/WithdrawalExamine/" target="_blank">🖥️ 提现锁定列表 ↗</a>
+      </div>
+    </div>
+
+    <div class="act">
+      <div class="hd"><span class="name">活动黑名单 批量增加备注字数</span><span class="tag">#7</span></div>
+      <ul class="need"><li>会员活动黑名单「批量增加」的<b>备注框字数限制</b>,调整到与用户详情页一致。</li></ul>
+      <div class="dir"><span class="k">📦 V1后台</span><code>SystemController.MemberActivityBlackList</code>(<code>Views/System/MemberActivityBlackList.cshtml</code>);导入弹窗 <code>ActivityBlackListDataImport</code></div>
+      <div class="links" style="margin-top:10px">
+        <a class="go prim" href="http://localhost:8901/Admin_UERP/System/MemberActivityBlackList/" target="_blank">🖥️ 会员活动黑名单 ↗</a>
+      </div>
+    </div>
+
+    <div class="grp">B · 后台 / 会员治理</div>
+
+    <div class="act">
+      <div class="hd"><span class="name">绑定内容改多选</span><span class="tag">#24</span><span class="tag" style="background:#EEF;color:#5350c4;border-color:#bcb">V3优化</span></div>
+      <ul class="need"><li>参数配置「请选择绑定内容」(银行卡/USDT/电子钱包/PIX)由<b>单选改多选</b>;或拆成多个配置,每套各自生效。</li></ul>
+      <div class="dir"><span class="k">📦 V1后台</span><code>SystemController.ParameterConfig</code>(<code>Views/System/ParameterConfig.cshtml</code> 的 <code>BindType</code> 下拉)</div>
+      <div class="links" style="margin-top:10px">
+        <a class="go prim" href="http://localhost:8901/Admin_UERP/System/ParameterConfig/" target="_blank">🖥️ 参数配置 ↗</a>
+      </div>
+    </div>
+
+    <div class="act">
+      <div class="hd"><span class="name">后台账号 30天未登录自动冻结</span><span class="tag">#25</span><span class="tag" style="background:#E8F3EC;color:#2E7D4F;border-color:#9AD3AE">可做·低成本</span></div>
+      <ul class="need">
+        <li>后台管理员账号超 30 天未登录 → <b>自动冻结</b>(IsLock=1);登录密码对则自动解冻。</li>
+        <li>评估:<code>sys_Users</code> 已有 <code>UserLoginDate</code>(登录会更新)+ <code>UserState</code>/<code>IsLock</code> → <b>加 1 个 Job + 一句 UPDATE</b> 即可;排除超管 / 未登录新号(用 UserAddDate 兜底)。</li>
+      </ul>
+      <div class="dir"><span class="k">📦 V1后台</span><code>SystemController.UserList</code>(<code>Views/System/UserList.cshtml</code> / <code>UserOpt.cshtml</code>);实体 <code>SysUsersEntity</code>(UserLoginDate/UserState/IsLock)</div>
+      <div class="links" style="margin-top:10px">
+        <a class="go prim" href="http://localhost:8901/Admin_UERP/System/UserList/" target="_blank">🖥️ 后台用户列表 ↗</a>
+      </div>
+    </div>
+
+    <div class="act">
+      <div class="hd"><span class="name">会员列表 批量导出代理账号+二维码</span><span class="tag">#23</span></div>
+      <ul class="need"><li>会员管理-会员列表,批量导出时附带<b>内部代理账号 + 推广二维码</b>。</li></ul>
+      <div class="dir"><span class="k">📦 V1后台</span><code>UserInfoController.UserManage</code>(<code>Views/UserInfo/UserManage.cshtml</code>);现有导出 <code>UserManageAgentExport</code> / <code>UserManageExportOld</code></div>
+      <div class="links" style="margin-top:10px">
+        <a class="go prim" href="http://localhost:8901/Admin_UERP/UserInfo/UserManage/" target="_blank">🖥️ 会员列表 ↗</a>
+      </div>
+    </div>
+
+    <div class="act">
+      <div class="hd"><span class="name">会员留存 按代理线查询</span><span class="tag">#6</span></div>
+      <ul class="need"><li>会员留存报表搜索区新增<b>「按代理线查询」</b>筛选。</li></ul>
+      <div class="dir"><span class="k">📦 V1后台</span><code>ReportController.KeepUserReport</code>(<code>Views/Report/KeepUserReport.cshtml</code>)</div>
+      <div class="links" style="margin-top:10px">
+        <a class="go prim" href="http://localhost:8901/Admin_UERP/Report/KeepUserReport/" target="_blank">🖥️ 会员留存报表 ↗</a>
+      </div>
+    </div>
+
+    <div class="sub" style="margin-top:18px">链接说明:🖥️ V1后台 = 8901 现状页(可点,在真实页上看现状再加优化);📱 V2前端 = 5173(需登录)。8 项除 #17(前台绑卡排序)涉前台外,<b>均为纯后台改动</b>,风险同级、可合并迭代。配套:《需求汇总-活动相关(剔除不做项).md》。</div>
+  </div><!-- /tab311 -->
+
+  <!-- ===================== 需求汇总 ===================== -->
+  <div id="tabSummary" style="display:none">
+    <div class="sub">来源:历史需求池(40 条)。已按指令<b>剔除不做项</b>,整理其余需求。标注:<span style="color:#2E7D4F">✅已做</span> / 🔵已规划版本 / ⚪待排期;🆕 有 8309 原型。</div>
+
+    <div class="dir" style="margin-bottom:14px"><span class="k" style="color:#C23B45">✖ 已剔除</span>不做:<b>2 3 5 9 10 11 12 13 15 16 18 20 21(子2.1/2.2/3) 22 25(仅"白名单IP30天清除") 26 28 29 30 31 34 35 38</b>。<br/>注:#3(VIP计算周期改造)、#29(VIP月奖金限领) <b>取消不做</b>(原 311 版本及 310-活动三 一并撤销,8309 已移除对应 tab/卡片);#25 保留「账号30天未登录冻结」,剔除「白名单IP清除」(缺埋点)。<br/>⏸ <b>#36(七日集星)产品内部暂停</b> —— 不列入 310 优化范围(310 相关优化一律不含该需求),原型/文档留档备查(<code>seven-day-star*.html</code>)。</div>
+
+    <div class="grp">一 · 活动类需求(主体)</div>
+
+    <div class="act">
+      <div class="hd"><span class="name">任务展示条件</span><span class="tag">#1</span><span class="tag" style="background:#E8F3EC;color:#2E7D4F;border-color:#9AD3AE">309·已做</span></div>
+      <ul class="need"><li>每周/每日任务增加「展示条件」:[全员](默认)/ [充值要求](选中显示 [首充/人]+金额输入框,首充达标会员才展示该任务)。</li></ul>
+      <div class="links"><a class="go prim" href="http://localhost:8309/daily-task-edit.html" target="_blank">日/周任务编辑(展示条件) ↗</a></div>
+    </div>
+
+    <div class="act">
+      <div class="hd"><span class="name">彩金领取方式增加「任务结束后领取」</span><span class="tag">#4</span><span class="tag" style="background:#E8F3EC;color:#2E7D4F;border-color:#9AD3AE">309·已做</span></div>
+      <ul class="need"><li>V1 领取方式现为 直接领取 / 开宝箱领取(达标即领);新增「任务结束」;选中出 2 个选项:① 直接领取 ② 宝箱领取。</li></ul>
+      <div class="links"><a class="go prim" href="http://localhost:8309/daily-task-edit.html" target="_blank">任务编辑 ↗</a><a class="go" href="http://localhost:8309/claim-unified.html" target="_blank">统一领取 ↗</a></div>
+    </div>
+
+    <div class="act">
+      <div class="hd"><span class="name">签到领奖(充值领奖)升级:月31天+补签</span><span class="tag">#19</span><span class="tag">🔵310</span><span class="tag" style="background:#E8F3EC;color:#2E7D4F;border-color:#9AD3AE">🆕原型</span></div>
+      <ul class="need"><li>周7天 → 月31天;分VIP配置每日条件+奖励;满签阶梯(3/7/15/31);补签(分段倍数·补发半额);首日选VIP路线锁定当月。</li></ul>
+      <div class="links"><a class="go prim" href="http://localhost:8309/monthly-signin-doc.html" target="_blank" style="background:#1f1d2b;border-color:#1f1d2b">📖 需求文档 ↗</a><a class="go prim" href="http://localhost:8309/monthly-signin.html" target="_blank">前台·月签到 ↗</a><a class="go prim" href="http://localhost:8309/monthly-signin-admin-v2.html" target="_blank">后台·签到配置(单模版制) ↗</a><a class="go" href="http://localhost:8901/Admin_UERP/UserInfo/SinIn" target="_blank">📊 数据统计(V1·会员签到记录) ↗</a></div>
+    </div>
+
+    <div class="act">
+      <div class="hd"><span class="name">活动奖金领取提醒弹窗 → 整合进 Bonus collection</span><span class="tag">#21</span><span class="tag" style="background:#E8F3EC;color:#2E7D4F;border-color:#9AD3AE">🔵309·🆕原型</span></div>
+      <ul class="need"><li>充值会员玩彩票最后一注输/三方退出返平台,余额 &lt; 最低下注额时<b>自动弹出 Bonus collection</b>(聚合所有开启活动·一键领取);游戏页加 🎁 浮窗随时唤起;底部常驻充值引导条·四场景文案统一后缀「想继续游戏?直接充值」。**已整合进 309 bonus collection,复用统一领取**。<i style="color:#999">(子需求 2.1/2.2/3 已剔除)</i></li></ul>
+      <div class="links"><a class="go prim" href="http://localhost:8309/claim-unified.html" target="_blank">统一领取+一键领取 ↗</a></div>
+    </div>
+
+    <div class="act">
+      <div class="hd"><span class="name">充值赠送详情记录(前端存款页)</span><span class="tag">#27</span><span class="tag" style="background:#f0f0f0;color:#999;border-color:#ddd">⏸ 移出309 · 记入工作日报</span><span class="tag" style="background:#E8F3EC;color:#2E7D4F;border-color:#9AD3AE">🆕原型(留存)</span></div>
+      <ul class="need"><li>存款页 You Get = 存款额 + 赠送额可视化(前端,非后台记录页)。<b>deposit 优化已移出 309 范围</b>,原型页留存备查,决议记入 2026-07-01 工作日报。</li></ul>
+      <div class="links"><a class="go prim" href="http://localhost:8309/recharge-page.html" target="_blank">充值主页 ↗</a><a class="go" href="http://localhost:8309/deposit-page-frontend.html" target="_blank">存款页(You Get) ↗</a></div>
+    </div>
+
+    <div class="act">
+      <div class="hd"><span class="name">活动中心任务页筛选</span><span class="tag">#37</span><span class="tag" style="background:#E8F3EC;color:#2E7D4F;border-color:#9AD3AE">309·已做</span></div>
+      <ul class="need"><li>任务页增加筛选:任务周期(周/日)、任务类型(充值/打码/邀请)。</li></ul>
+      <div class="links"><a class="go prim" href="http://localhost:8309/activity-award-frontend.html" target="_blank">Activity Award 前端 ↗</a></div>
+    </div>
+
+    <div class="act">
+      <div class="hd"><span class="name">邀请转盘 / 代理分享页加社交分享</span><span class="tag">#32</span><span class="tag" style="background:#E8F3EC;color:#2E7D4F;border-color:#9AD3AE">🔵309</span></div>
+      <ul class="need"><li>邀请转盘和代理分享页面增加社交平台(WhatsApp/Telegram 等)分享功能。</li></ul>
+    </div>
+
+    <div class="grp">二 · 风控 / 财务 / 绑卡类(待排期)</div>
+    <div class="act">
+      <ul class="need" style="margin:2px 0">
+        <li><b>#7</b> 会员活动黑名单「批量增加」备注框字数限制,调整到与用户详情页一致。</li>
+        <li><b>#8</b> 银行卡「历史绑定次数」风控标记:同卡号绑过多少不同 id(仅后台展示,不传三方);提现锁定 + 银行卡列表两页都加;≠1 标粗标红。<i style="color:#999">(需可提前锁定的后台)</i></li>
+        <li><b>#14</b> 提现锁定页增加筛选:本次打码量倍数区间(*** ~ ***)。</li>
+        <li><b>#17</b> 银行行别管理:自动排序 + 新增(排序)(绑定数量)两列;前台绑卡按排序展示(排序高优先,相同按总绑定数量)。</li>
+      </ul>
+    </div>
+
+    <div class="grp">三 · 会员 / 代理 / 系统类(待排期)</div>
+    <div class="act">
+      <ul class="need" style="margin:2px 0">
+        <li><b>#6</b> 会员留存增加「按代理线查询」。</li>
+        <li><b>#23</b> 会员列表增加批量导出内部代理账号 + 二维码。</li>
+        <li><b>#24</b> 「请选择绑定内容」改多选(或拆多个配置各自生效)。<i style="color:#999">(V3 中优化)</i></li>
+        <li><b>#25</b> 后台账号 30 天未登录自动冻结。<i style="color:#2E7D4F">可做·低成本(`sys_Users` 有 UserLoginDate+IsLock,加 Job 即可)</i>;「白名单IP30天清除」缺埋点已剔除。</li>
+      </ul>
+    </div>
+
+    <div class="sub" style="margin-top:18px">归属:<b>309</b> #1 #4 #21 #27 #32 #37 · <b>310</b> #19 · <b>311</b> #6 #7 #8 #14 #17 #23 #24 #25(后台优化·原313+314) · <s>312 取消</s>。<b>#21/#32 已并入 309</b>;313+314 合并为 311。配套文档:《需求汇总-活动相关(剔除不做项).md》。</div>
+  </div><!-- /tabSummary -->
+
+  <script>
+    function showTab(t){
+      ['309','310','311','Summary'].forEach(function(k){
+        var pane=document.getElementById('tab'+k); if(pane) pane.style.display = k===t?'block':'none';
+        var btn=document.getElementById('t'+k); if(btn) btn.classList.toggle('on', k===t);
+      });
+      window.scrollTo(0,0);
+    }
+  </script>
+</div>
+</body>
+</html>

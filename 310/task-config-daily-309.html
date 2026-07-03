@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>每日任务配置 · 309优化(活动管理 / 每日任务列表)</title>
+<style>
+  /* ===== 还原 V1 老后台列表/报表视觉 ·独立内嵌版 ===== */
+  :root{--theme:#1976d2;--info:#7752fd;--success:#4db24d;--danger:#ef5350;
+    --bd:#e1e4ea;--th:#f2f4f8;--t1:#464a53;--t2:#99abb4;--bg:#f8f6fe;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);font-family:-apple-system,"PingFang SC","Microsoft YaHei",Arial,sans-serif;color:var(--t1);font-size:13px;}
+  .page-titles{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:13px 22px;border-bottom:1px solid var(--bd);flex-wrap:wrap;gap:8px;}
+  .page-titles h3{color:var(--theme);font-size:18px;margin:0;font-weight:600;}
+  .breadcrumb{margin:4px 0 0;padding:0;list-style:none;display:flex;gap:6px;font-size:12px;color:var(--t2);}
+  .breadcrumb li::after{content:"›";margin-left:6px;color:#cfd4dc;}
+  .breadcrumb li:last-child::after{content:"";}
+  .breadcrumb li.active{color:var(--theme);}
+  .container-fluid{padding:16px 22px;max-width:1360px;margin:0 auto;}
+  .card{background:#fff;border:1px solid var(--bd);border-radius:4px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .card-hd{padding:11px 16px;border-bottom:1px solid #eef0f4;font-weight:600;font-size:14px;color:var(--t1);}
+  .card-body{padding:16px;}
+  .btn{border:none;border-radius:4px;padding:7px 16px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;line-height:1.2;text-decoration:none;}
+  .btn-info{background:var(--info);color:#fff;} .btn-default{background:#fff;border:1px solid #ddd;color:#555;}
+  .btn-md{padding:8px 18px;} .btn-sm{padding:4px 11px;font-size:12px;}
+  .btn-cfg{background:#fff;border:1px solid var(--info);color:var(--info);font-weight:600;}
+  .fa{font-style:normal;}
+  .searchbox{display:flex;flex-direction:column;gap:8px;}
+  .group-advanced{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;}
+  .form-group{display:flex;flex-direction:column;gap:4px;}
+  .control-label{font-size:12px;color:#555;}
+  .form-control{border:1px solid #ddd;border-radius:4px;padding:7px 10px;font-size:13px;background:#fff;min-width:120px;}
+  .group-button{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:4px;}
+  .group-button .left{display:flex;gap:10px;}
+  table.dl{width:100%;border-collapse:collapse;}
+  table.dl th,table.dl td{border:1px solid var(--bd);padding:8px 10px;text-align:center;white-space:nowrap;}
+  table.dl thead th{background:var(--th);color:#555;font-weight:600;}
+  table.dl tbody tr:nth-child(even){background:#fafbfd;}
+  table.dl tbody tr:hover{background:#f5f7fb;}
+  .badge309{font-size:10px;background:#f3f0fb;color:#6f42c1;border-radius:4px;padding:0 5px;margin-left:3px;}
+  .type-rc{color:var(--info);} .type-dm{color:var(--theme);} .type-iv{color:#4db24d;}
+  .on-y{color:var(--success);font-weight:600;} .on-n{color:#99abb4;}
+  .cond-all{background:#eef0f3;color:#8a93a3;font-size:11px;border-radius:4px;padding:1px 8px;}
+  .cond-rc{background:#eef7ff;color:var(--theme);font-size:11px;border-radius:4px;padding:1px 8px;}
+  .time-now{background:#eef7ff;color:var(--theme);font-size:11px;border-radius:4px;padding:1px 8px;} .time-end{background:#f1edff;color:var(--info);font-size:11px;border-radius:4px;padding:1px 8px;}
+  .form-direct{background:#eef0f3;color:#8a93a3;font-size:11px;border-radius:4px;padding:1px 8px;} .form-chest{background:#FBF1DE;color:#C8941A;font-size:11px;border-radius:4px;padding:1px 8px;}
+  .pagercss{display:flex;justify-content:flex-end;align-items:center;gap:5px;margin-top:12px;font-size:12px;}
+  .pagercss a{border:1px solid var(--bd);border-radius:3px;padding:5px 10px;color:#666;cursor:pointer;background:#fff;}
+  .pagercss a.on{background:var(--info);color:#fff;border-color:var(--info);}
+  .pagercss .info{color:var(--t2);margin-right:8px;}
+  .desc{font-size:12px;color:var(--t2);margin-top:10px;line-height:1.8;}
+  .desc h4{margin:12px 0 4px;color:var(--t1);font-size:13px;}
+  .desc b{color:var(--info);}
+  @media(max-width:820px){.group-advanced{flex-direction:column;align-items:stretch;}}
+  table.dl th.c309h{background:#f3f0fb;color:#6f42c1;border-bottom:2px solid #7752fd;}
+  table.dl td.c309{background:#faf8ff;}
+
+  /* 横向滚动条常显(macOS 默认滚动时才浮现) */
+  #tblScroll{scrollbar-width:auto;scrollbar-color:#b9b3d9 #efeef5;}
+  #tblScroll::-webkit-scrollbar{-webkit-appearance:none;height:12px;}
+  #tblScroll::-webkit-scrollbar-thumb{background:#b9b3d9;border-radius:6px;border:2px solid #efeef5;}
+  #tblScroll::-webkit-scrollbar-track{background:#efeef5;border-radius:6px;}
+
+  /* 开启状态:照抄 V1 layui switch(开启|关闭) */
+  .sw{position:relative;display:inline-block;width:62px;height:22px;border:1px solid #d2d2d2;border-radius:20px;background:#fff;cursor:pointer;vertical-align:middle;transition:.1s linear;}
+  .sw i{position:absolute;left:3px;top:2px;width:16px;height:16px;border-radius:50%;background:#d2d2d2;transition:.1s linear;}
+  .sw em{position:absolute;right:8px;top:0;line-height:20px;font-size:12px;color:#999;font-style:normal;}
+  .sw.on{border-color:#5FB878;background:#5FB878;}
+  .sw.on i{left:41px;background:#fff;}
+  .sw.on em{left:8px;right:auto;color:#fff;}
+  /* 开关反馈 toast(仿 V1 layui modalMsg,居中 2.5s) */
+  #swToast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);color:#fff;font-size:14px;padding:12px 26px;border-radius:4px;z-index:9999;display:none;white-space:nowrap;}
+
+  /* 前两列冻结(照抄 V1:ID/任务名称 fixed left,横滑时不动) */
+  table.dl th:nth-child(1),table.dl td:nth-child(1){position:sticky;left:0;z-index:2;background:#fff;width:60px;min-width:60px;}
+  table.dl th:nth-child(2),table.dl td:nth-child(2){position:sticky;left:60px;z-index:2;background:#fff;box-shadow:6px 0 6px -4px rgba(0,0,0,.12);}
+  table.dl thead th:nth-child(1),table.dl thead th:nth-child(2){z-index:3;background:var(--th);}
+  table.dl tbody tr:nth-child(even) td:nth-child(1),table.dl tbody tr:nth-child(even) td:nth-child(2){background:#fafbfd;}
+  table.dl tbody tr:hover td:nth-child(1),table.dl tbody tr:hover td:nth-child(2){background:#f5f7fb;}
+</style>
+</head>
+<body>
+  <div class="page-titles">
+    <div>
+      <h3>每日任务配置 · 309优化</h3>
+      <ul class="breadcrumb"><li>活动管理</li><li class="active">每日任务列表</li></ul>
+    </div>
+    <a class="btn btn-cfg" href="index.html">← 返回</a>
+  </div>
+
+  <div class="container-fluid">
+    <!-- 搜索 + 新增 -->
+    <div class="card"><div class="card-body">
+      <div class="searchbox">
+        <div class="group-advanced">
+          <div class="form-group"><input class="form-control" style="width:185px" placeholder="请输入任务名称"></div>
+          <div class="form-group">
+            <select class="form-control" style="width:150px"><option value="-2">状态</option><option value="-1">全部</option><option value="1">开启</option><option value="0">关闭</option></select></div>
+          <div class="form-group">
+            <select class="form-control" style="width:150px"><option value="-2">选择类型</option><option value="-1">全部</option><option value="1">充提任务</option><option value="2">投注任务</option><option value="3">邀请任务</option><option value="5">充值投注任务</option></select></div>
+        </div>
+        <div class="group-button">
+          <div class="left">
+            <button class="btn btn-info btn-md"><span class="fa">🔍</span> 查 询</button>
+            <button class="btn btn-default btn-md"><span class="fa">↻</span> 重 置</button>
+          </div>
+          <span style="display:flex;gap:8px;flex-wrap:nowrap;white-space:nowrap"><a class="btn btn-info btn-md" href="daily-task-edit.html" target="_blank"><span class="fa">＋</span> 新增充值任务</a><a class="btn btn-info btn-md" href="daily-task-edit.html" target="_blank"><span class="fa">＋</span> 新增投注任务</a><a class="btn btn-info btn-md" href="invite-task-edit.html" target="_blank"><span class="fa">＋</span> 新增邀请任务</a><a class="btn btn-info btn-md" href="daily-task-edit.html" target="_blank"><span class="fa">＋</span> 新增充值投注任务</a></span>
+        </div>
+      </div>
+    </div></div>
+
+    <!-- 配置列表 -->
+    <div class="card">
+      <div class="card-body">
+        <div id="tblScroll" style="overflow-x:auto;overflow-y:visible">
+        <table class="dl" style="min-width:1560px">
+          <thead><tr>
+            <th>ID</th><th>任务名称</th><th>目标类型</th><th>目标</th><th>奖励金额</th><th>排序</th><th>开启状态</th>
+            <th class="c309h">展示条件 <span class="badge309">🆕309</span></th><th class="c309h">领取方式 <span class="badge309">🆕309</span></th><th class="c309h">领取形式 <span class="badge309">🆕309</span></th><th class="c309h">领取有效时间 <span class="badge309">🆕309</span></th>
+            <th>执行时间</th><th>操作人</th><th>操作时间</th><th>操作</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td>1</td><td>每日首充</td><td class="type-rc">充值</td><td>充值 ≥ 100</td><td>58</td><td>1</td><td><span class="sw on" onclick="togSw(this)"><i></i><em>开启</em></span></td>
+              <td><span class="cond-all">全员</span></td><td><span class="time-now">直接领取(V1现状)</span></td><td>—</td><td>0(不限期)</td>
+              <td>2026-07-03 00:00:00</td><td>admin</td><td>2026-07-02 10:12:35</td><td style="white-space:nowrap"><a class="btn btn-info btn-sm" href="daily-task-edit.html" target="_blank">编辑</a> <a class="btn btn-info btn-sm" href="javascript:;" onclick="delRow(this,'每日首充')">删除</a></td>
+            </tr>
+            <tr>
+              <td>2</td><td>每日打码 5万</td><td class="type-dm">打码</td><td>打码 ≥ 50000</td><td>5 ~ 50</td><td>2</td><td><span class="sw on" onclick="togSw(this)"><i></i><em>开启</em></span></td>
+              <td><span class="cond-rc">充值要求·首充/人 ≥500</span></td><td><span class="time-end">任务结束 🆕</span></td><td><span class="form-chest">② 宝箱领取</span></td><td>3 天</td>
+              <td>2026-07-03 00:00:00</td><td>admin</td><td>2026-07-02 09:40:12</td><td style="white-space:nowrap"><a class="btn btn-info btn-sm" href="daily-task-edit.html" target="_blank">编辑</a> <a class="btn btn-info btn-sm" href="javascript:;" onclick="delRow(this,'每日打码 5万')">删除</a></td>
+            </tr>
+            <tr>
+              <td>3</td><td>每日邀请 1 人</td><td class="type-iv">邀请</td><td>有效邀请 ≥ 1 · 首充 ≥500/人 <span class="badge309">🆕#38</span></td><td>20</td><td>3</td><td><span class="sw on" onclick="togSw(this)"><i></i><em>开启</em></span></td>
+              <td><span class="cond-all">全员</span></td><td><span class="time-end">任务结束 🆕</span></td><td><span class="form-direct">① 直接领取</span></td><td>7 天</td>
+              <td>2026-07-03 00:00:00</td><td>op01</td><td>2026-07-01 18:22:08</td><td style="white-space:nowrap"><a class="btn btn-info btn-sm" href="invite-task-edit.html" target="_blank">编辑</a> <a class="btn btn-info btn-sm" href="javascript:;" onclick="delRow(this,'每日邀请 1 人')">删除</a></td>
+            </tr>
+            <tr>
+              <td>4</td><td>每日次充</td><td class="type-rc">充值</td><td>充值 ≥ 200</td><td>40</td><td>4</td><td><span class="sw" onclick="togSw(this)"><i></i><em>关闭</em></span></td>
+              <td><span class="cond-rc">充值要求·首充/人 ≥1000</span></td><td><span class="time-now">直接领取(V1现状)</span></td><td>—</td><td>0(不限期)</td>
+              <td>2026-07-03 00:00:00</td><td>admin</td><td>2026-06-30 15:03:41</td><td style="white-space:nowrap"><a class="btn btn-info btn-sm" href="daily-task-edit.html" target="_blank">编辑</a> <a class="btn btn-info btn-sm" href="javascript:;" onclick="delRow(this,'每日次充')">删除</a></td>
+            </tr>
+            <tr>
+              <td>5</td><td>每日打码 10万</td><td class="type-dm">打码</td><td>打码 ≥ 100000</td><td>10 ~ 100</td><td>5</td><td><span class="sw on" onclick="togSw(this)"><i></i><em>开启</em></span></td>
+              <td><span class="cond-all">全员</span></td><td><span class="time-end">任务结束 🆕</span></td><td><span class="form-chest">② 宝箱领取</span></td><td>3 天</td>
+              <td>2026-07-03 00:00:00</td><td>op02</td><td>2026-06-29 11:47:56</td><td style="white-space:nowrap"><a class="btn btn-info btn-sm" href="daily-task-edit.html" target="_blank">编辑</a> <a class="btn btn-info btn-sm" href="javascript:;" onclick="delRow(this,'每日打码 10万')">删除</a></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+        <div class="pagercss">
+          <span class="info">共 18 条 / 2 页</span>
+          <a class="on">1</a><a>2</a><a>下一页</a>
+        </div>
+
+        <div class="desc">
+          <h4>🟣 更新点(#1 展示条件 + #4 领取方式)</h4>
+          <b>#1 展示条件</b>:每个任务新增「展示条件」= 默认「<b>全员</b>」可见,或选「<b>充值要求</b>」→ 填 [首充/人] 金额,首充达标会员才展示。<br>
+          <b>#4 领取方式</b>:V1 领取方式(<b>直接领取 / 开宝箱领取</b>)不变,新增「<b>任务结束</b>」;选中出 2 个选项:<b>① 直接领取 ② 宝箱领取</b>;并可设「<b>领取有效时间</b>(天,默认 0=不限期,以任务结束时间为准)」。<br>
+          <b>[目标] 列说明(309 优化展示,不照抄 V1)</b>:V1 现状该列仅显示纯数字 <code>TaskTarget</code>(充值投注任务显示「充值目标,投注目标」两数,如 <code>1000,5000</code>);本页按 309 优化保留描述性文案(如「充值 ≥ 100」「有效邀请 ≥ 1 · 首充 ≥500/人」),其中「首充 ≥N/人」为 🆕#38 新增门槛、非 V1 字段 —— 开发落地时 [目标] 列仍存纯数字 <code>TaskTarget</code>,#38 首充门槛为独立新增字段(仅任务分类=邀请人时生效),列表展示文案由前端拼接,不改 V1 数据结构。
+          <h4>⚠️ 数据逻辑问题</h4>
+          1. <b>次日快照丢字段</b>(关键)—— V1 任务走「配置表 → 次日快照(Detail)」复制;<b>新增字段若没同步进快照复制逻辑</b>,次日快照将缺「展示条件 / 领取方式 / 领取形式 / 有效时间」,导致次日展示判定与领取校验失效。<br>
+          2. <b>存量突变</b> —— 存量任务无新字段,若默认值处理不当会改变原有行为(如原本全员可见变成不可见)。
+          <h4>✅ 解决方案</h4>
+          1. <b>同步扩展次日快照表字段 + 复制逻辑</b>,保证 Config→Detail 携带全部新字段。<br>
+          2. 新字段给<b>默认值 = 旧行为</b>(展示条件=全员 / 领取方式=V1 现状(直接/开宝箱) / 有效时间=0 不限期),兼容存量。<br>
+          3. 领取校验:「任务结束领取」需到期且在有效期内;领取走统一状态机 + 幂等去重。<br>
+          <span style="color:#cfa;">* 全部为原型占位数据。编辑跳转 <b>daily-task-edit.html</b>(示意页;V1 各新增入口/各自配置页/[任务分类] 选项均不变)。</span>
+        </div>
+      </div>
+    </div>
+  </div>
+<script>
+  function togSw(el){
+    var on=el.classList.toggle('on');
+    el.querySelector('em').textContent = on?'开启':'关闭';
+    var t=document.getElementById('swToast');
+    if(!t){t=document.createElement('div');t.id='swToast';document.body.appendChild(t);}
+    t.textContent='更新成功';t.style.display='block';
+    clearTimeout(t._tm);t._tm=setTimeout(function(){t.style.display='none';},2500);
+  }
+  function delRow(a,name){
+    if(confirm('请确认是否删除:'+name+'\n删除后无法恢复,请谨慎处理!')){
+      var tr=a.closest('tr'); tr.parentNode.removeChild(tr);
+    }
+  }
+</script>
+</body>
+</html>

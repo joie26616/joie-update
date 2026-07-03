@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>数据统计 · 每日奖励详情(309优化 · 方案①到账口径)</title>
+<style>
+  /* ===== 严格按 V1 D_StatisticsDetail 页面样式(节选「活动」组) ===== */
+  :root{--theme:#1976d2;--info:#7752fd;--bd:#e1e4ea;--t1:#464a53;--t2:#99abb4;--bg:#f8f6fe;--amber:#854F0B;--amberbg:#FAEEDA;--amberbd:#BA7517;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);font-family:-apple-system,"PingFang SC","Microsoft YaHei",Arial,sans-serif;color:var(--t1);font-size:13px;}
+  .page-titles{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:13px 22px;border-bottom:1px solid var(--bd);}
+  .page-titles h3{color:var(--theme);font-size:18px;margin:0;font-weight:600;}
+  .breadcrumb{margin:4px 0 0;padding:0;list-style:none;display:flex;gap:6px;font-size:12px;color:var(--t2);}
+  .breadcrumb li::after{content:"›";margin-left:6px;color:#cfd4dc;}
+  .breadcrumb li:last-child::after{content:"";}
+  .breadcrumb li.active{color:var(--theme);}
+  .btn-cfg{background:#fff;border:1px solid var(--info);color:var(--info);font-weight:600;border-radius:4px;padding:7px 16px;font-size:13px;cursor:pointer;text-decoration:none;}
+  .container-fluid{padding:16px 22px;max-width:1200px;margin:0 auto;}
+  .card{background:#fff;border:1px solid var(--bd);border-radius:4px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.03);padding:16px;}
+  .btn-info{background:#1976d2;color:#fff;border:none;border-radius:4px;padding:7px 14px;font-size:13px;cursor:pointer;}
+  /* V1 搜索区:日期 / 渠道 / 代理ID + 查询;右侧 上一日/下一日 + 日/日区间/月 */
+  .srow{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  .srow .flds{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+  .srow label{font-size:13px;margin:0 6px 0 0;}
+  .form-control{border:1px solid #ddd;border-radius:4px;padding:7px 10px;font-size:13px;background:#fff;width:150px;}
+  .customtab2{display:flex;gap:6px;list-style:none;margin:0;padding:0;}
+  .customtab2 li a{display:block;height:30px;line-height:28px;padding:0 12px;border:1px solid #808080;color:#666;font-size:12px;cursor:pointer;border-radius:3px;text-decoration:none;}
+  .customtab2 li a.active{background:var(--info);color:#fff;border-color:var(--info);}
+  /* V1 数据卡(data-box) */
+  .data-box{border:1px solid var(--bd);border-radius:4px;margin-top:8px;}
+  .data-title{display:flex;justify-content:space-between;align-items:center;background:#f2f4f8;padding:10px 14px;font-size:14px;}
+  .data-title b{color:var(--t1);}
+  .data-list-ul{padding:6px 14px 10px;}
+  .data-li{padding:7px 0;border-bottom:1px dashed #eef0f4;font-size:13px;line-height:1.7;}
+  .data-li:last-child{border-bottom:none;}
+  .price-red{color:#ef5350;font-weight:600;}
+  .num-blue{color:#1976d2;}
+  .lnk{color:#7752fd;cursor:pointer;text-decoration:none;}
+  .ctx{color:#b6bdc7;}
+  .ctx .price-red,.ctx .num-blue,.ctx .lnk{color:#b6bdc7;}
+  /* 🆕 309 新增子指标行 */
+  .sub309{background:var(--amberbg);border:1px solid var(--amberbd);border-radius:4px;margin:6px 0 2px 18px;padding:6px 10px;font-size:12.5px;color:var(--amber);}
+  .sub309 b{font-size:13.5px;}
+  .badge309{background:var(--amberbd);color:#fff;border-radius:6px;font-size:10px;padding:0 6px;margin-right:6px;}
+  .note{font-size:12px;color:var(--t2);margin-top:12px;line-height:1.8;background:#fbfaff;border:1px dashed #d6c9f2;border-radius:6px;padding:10px 14px;}
+  .note b{color:var(--info);}
+</style>
+</head>
+<body>
+  <div class="page-titles">
+    <div>
+      <h3>数据统计 · 每日奖励详情(309优化)</h3>
+      <ul class="breadcrumb"><li>报表管理</li><li>数据统计</li><li class="active">每日奖励详情(节选)</li></ul>
+    </div>
+    <a class="btn-cfg" href="309-doc.html">← 返回</a>
+  </div>
+
+  <div class="container-fluid">
+    <!-- 搜索区:严格照 V1(日期 / 渠道 / 代理ID + 查询;上一日/下一日 + 日/日区间/月),无新增搜索条件 -->
+    <div class="card">
+      <div class="srow">
+        <div class="flds">
+          <span><label for="Date">日期</label><input class="form-control" id="Date" value="2026-07-01"></span>
+          <span><label>渠道</label><select class="form-control"><option value="">全部</option><option>渠道17</option><option>渠道16</option><option>渠道15</option><option>渠道14</option><option>渠道13(sit环境)</option></select></span>
+          <span><label>代理ID</label><input class="form-control" type="number" placeholder="代理ID"></span>
+          <button class="btn-info">🔍 查 询</button>
+        </div>
+        <ul class="customtab2">
+          <li><a>上一日</a></li><li><a>下一日</a></li>
+          <li style="width:14px"></li>
+          <li><a class="active">日</a></li><li><a>日区间</a></li><li><a>月</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 「活动」数据卡(节选;仅 每日/每周奖励 两行涉及 309,上下行为 V1 现状上下文) -->
+    <div class="card" style="padding:0;border:none;background:none;box-shadow:none;">
+      <div class="data-box" style="background:#fff">
+        <div class="data-title"><b>活动</b><button class="btn-info" style="padding:4px 10px;font-size:12px">🔍 重新计算</button></div>
+        <div class="data-list-ul">
+          <div class="data-li ctx">12.电子大奖:<span class="price-red">0.00</span><span class="num-blue">,0次</span><span class="num-blue">,0人</span>,<a class="lnk">🔗 详情</a><span style="font-size:11px">(V1 现状 · 不涉 309)</span></div>
+
+          <div class="data-li">13.每日奖励:<span class="price-red">1366.19</span><span class="num-blue">,26次</span><span class="num-blue">,25人</span>,<a class="lnk" href="finance-record-309.html" target="_blank">🔗 详情</a>
+            <div class="sub309"><span class="badge309">🆕309 发放/领取拆分</span>发放额 <b>1,586.19</b>(31笔) · 待领 <b>160.00</b>(3笔) · 已过期 <b>60.00</b>(2笔) · 领取率 <b>86.1%</b> <a class="lnk" href="task-record-309.html" target="_blank" style="margin-left:6px">🔗 待领/过期明细(任务领取记录)</a></div>
+          </div>
+
+          <div class="data-li">14.每周奖励:<span class="price-red">0.00</span><span class="num-blue">,0次</span><span class="num-blue">,0人</span>,<a class="lnk" href="finance-record-309.html" target="_blank">🔗 详情</a>
+            <div class="sub309"><span class="badge309">🆕309 发放/领取拆分</span>发放额 <b>0.00</b>(0笔) · 待领 <b>0.00</b>(0笔) · 已过期 <b>0.00</b>(0笔) · 领取率 <b>—</b> <a class="lnk" href="task-record-309.html" target="_blank" style="margin-left:6px">🔗 待领/过期明细(任务领取记录)</a></div>
+          </div>
+
+          <div class="data-li ctx">15.首充奖励:<span class="price-red">0.00</span><span class="num-blue">,0次</span><span class="num-blue">,0人</span>,<a class="lnk">🔗 详情</a><span style="font-size:11px">(V1 现状 · 不涉 309)</span></div>
+        </div>
+      </div>
+
+      <div class="note">
+        <b>🟣 口径说明(方案① · 零污染)</b><br>
+        1. 原指标「<b>金额 / 次 / 人</b>」保持 V1 账变来源不动 = <b>实际领取到账口径</b>(金额=到账额、次数=到账笔数、人数=到账人数);旧数据(发即领)发放≡到账完全等价,SQL/接口零改动。<br>
+        2. 🆕 子指标为新增:<b>发放额/笔数</b> by 领取记录 <code>CreateDate</code>;<b>待领 / 已过期</b> 来自任务领取记录 <code>ClaimStatus</code>(不在账变中);<b>领取率</b> = 到账额 ÷ 发放额(发放额为 0 时显示 —)。<br>
+        3. 对账:<b>发放额 − 到账额 = 待领 + 已过期</b>(1,586.19 − 1,366.19 = 160 + 60 ✓),靠 <code>OrderNo</code> 打通。<br>
+        4. 🔗 详情(原有)→ <a class="lnk" href="finance-record-309.html">资金账变记录</a>(到账明细,V1 现有跳转不变);🆕 待领/过期明细 → <a class="lnk" href="task-record-309.html">任务领取记录</a>。<br>
+        5. 搜索条件无新增(维度与 V1 现有 日期/渠道/代理ID 一致);本页为 V1 数据统计页「活动」组<b>节选</b>,其余组不涉 309、保持现状。<br>
+        <span style="color:#cfa">* 全部为原型占位数据。</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

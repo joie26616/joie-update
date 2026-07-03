@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>309 · 新增邀请任务(V1 表单不变 + 309 新增字段)</title>
+<style>
+  :root{--bg:#fff;--t1:#1f1e1c;--t2:#555;--t3:#8a8980;--bd:#dcdcdc;--p:#7752FD;--err:#e24b4a;
+    --amber:#854F0B;--amberbg:#FAEEDA;--amberbd:#BA7517;}
+  *{box-sizing:border-box;}
+  body{margin:0;padding:24px;background:#fff;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);line-height:1.5;}
+  .legend{display:flex;gap:14px;font-size:12px;margin-bottom:10px;flex-wrap:wrap;}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:2px;vertical-align:-1px;margin-right:5px;}
+  .simbar{background:#f7f7fb;border:1px dashed #b9b3d9;border-radius:6px;padding:8px 12px;margin-bottom:18px;font-size:12px;color:#5b3bb5;}
+  .cols{display:flex;gap:48px;flex-wrap:wrap;}
+  .col{flex:1;min-width:360px;}
+  .row{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+  label.lb{width:150px;font-size:14px;color:var(--t1);text-align:right;flex:none;}
+  .req::before{content:"* ";color:var(--err);}
+  input,select{flex:1;height:38px;border:1px solid var(--bd);border-radius:4px;padding:0 12px;font-size:14px;background:#fff;color:var(--t1);}
+  input:focus,select:focus{outline:none;border-color:var(--p);}
+  input:disabled{background:#f4f4f4;color:#999;}
+  input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  input[type=number]{-moz-appearance:textfield;}
+  .radio{display:flex;gap:20px;font-size:14px;align-items:center;flex-wrap:wrap;}
+  .radio input{flex:none;width:16px;height:16px;}
+  .rng{display:flex;align-items:center;gap:8px;flex:1;}
+  .rng input{max-width:150px;}
+  .ml label.lb{width:64px;font-size:13px;}
+  .ml .row{margin-bottom:12px;gap:8px;}
+  .ml .row label.lb2{width:74px;font-size:13px;color:var(--t2);text-align:right;flex:none;}
+  .new{background:var(--amberbg);border:1px solid var(--amberbd);border-radius:4px;padding:10px 12px;margin:-4px 0 16px 0;}
+  .new .r{display:flex;align-items:center;gap:12px;}
+  .new label.lb{color:var(--amber);}
+  .new .desc{font-size:12px;color:var(--amber);margin-top:6px;padding-left:162px;}
+  .badge{background:var(--amberbd);color:#fff;padding:1px 7px;border-radius:6px;font-size:11px;}
+  .btns{margin-top:8px;}
+  .btn{height:36px;padding:0 18px;border:none;border-radius:4px;font-size:14px;cursor:pointer;margin-right:10px;color:#fff;}
+  .btn.save{background:var(--p);} .btn.back{background:#3b3b3b;}
+</style>
+</head>
+<body>
+<div class="legend">
+  <span style="color:var(--t2)"><i style="background:#fff;border:1px solid var(--bd)"></i>V1 现有字段(不变)</span>
+  <span style="color:var(--amber)"><i style="background:var(--amberbg);border:1px solid var(--amberbd)"></i>309 新增(只加字段,不改 V1)</span>
+</div>
+<div class="simbar">本页 = V1「活动奖励 / 每日·每周任务列表 / <b>新增邀请任务</b>」入口进入的配置页(GetDailyConfig / GetWeeklyConfig?projectID=3)。入口、任务类型、任务名称、任务分类(V1 级联仅「邀请人」)、目标类型、任务目标、任务排序、开启状态均保持 V1 现状,仅新增琥珀色字段。生效时间:每日=明天生效 / 每周=下周生效。</div>
+
+<div class="cols">
+  <div class="col">
+    <div class="row"><label class="lb">任务类型:</label><span style="font-size:14px">邀请任务</span></div>
+    <div class="row"><label class="lb req">任务名称:</label><input /></div>
+    <div class="row"><label class="lb req">任务分类:</label><select id="taskCat" onchange="toggleClaimCond()"><option value="">请选择</option><option value="8" selected>邀请人</option></select></div>
+    <div class="row"><label class="lb req">目标类型:</label>
+      <select id="goalType" onchange="toggleFirst()"><option value="">请选择</option><option value="7">邀请人数</option></select>
+    </div>
+    <div class="row"><label class="lb">任务目标:</label><input type="number" value="0" /></div>
+
+    <div class="new">
+      <div class="r"><label class="lb">展示条件:</label>
+        <select id="showCond" onchange="toggleShowCond()" style="max-width:160px"><option value="all">全员</option><option value="recharge">充值要求</option></select>
+        <span id="showFirstLb" style="font-size:14px;color:var(--amber);display:none">首充/人</span>
+        <input id="showAmt" type="number" placeholder="金额" style="max-width:140px;display:none" />
+      </div>
+      <div class="desc"><span class="badge">309 新增 · #1</span> 默认「全员」可见;选「充值要求」→ 显示 [首充/人] + 金额输入框,首充达到该金额的会员才能看到此任务</div>
+    </div>
+
+    <div class="row"><label class="lb">领取方式:</label>
+      <div class="radio">
+        <label><input type="radio" name="rt" value="direct" checked onclick="onReceiveChange()"> 即时直接领取</label>
+        <label><input type="radio" name="rt" value="box" onclick="onReceiveChange()"> 即时开宝箱领取</label>
+        <label style="background:var(--amberbg);border:1px solid var(--amberbd);border-radius:4px;padding:2px 10px;color:var(--amber)"><input type="radio" name="rt" value="end" onclick="onReceiveChange()"> 任务结束 <span class="badge">309 新增 · #4</span></label>
+      </div>
+    </div>
+
+    <div class="new" id="endBlock" style="display:none">
+      <div class="r"><label class="lb req">领取形式:</label>
+        <div class="radio">
+          <label><input type="radio" name="rf" value="direct" checked onclick="onReceiveChange()"> ① 直接领取</label>
+          <label><input type="radio" name="rf" value="box" onclick="onReceiveChange()"> ② 宝箱领取</label>
+        </div>
+      </div>
+      <div class="r" style="margin-top:8px"><label class="lb req">领取有效时间:</label><input type="number" value="0" style="max-width:120px" /><span style="font-size:13px;color:var(--amber);margin-left:8px">天(默认 0 = 无有效期,可随时领取)</span></div>
+      <div class="desc"><span class="badge">309 新增 · #4</span> V1 领取方式(直接领取 / 开宝箱领取)不变,仅新增「任务结束」:以任务结束时间为准,选中出 2 个选项 <b>① 直接领取 ② 宝箱领取</b>,并可设领取有效时间(天)</div>
+    </div>
+
+    <div class="new" id="claimCond">
+      <div class="r"><label class="lb">领取条件:</label>
+        <span style="font-size:14px;color:var(--amber)">充值/人</span>
+        <input type="number" placeholder="金额" style="max-width:180px" />
+      </div>
+      <div class="desc"><span class="badge">309 新增</span> 充值/人:被邀请人每人充值达到该金额,会员才可领取此任务奖励(选中任务分类「邀请人」时显示)</div>
+    </div>
+
+    <div class="new" id="firstAmt" style="display:none">
+      <div class="r"><label class="lb req">首充额度/每人:</label><input type="number" placeholder="必填" style="max-width:180px" /></div>
+      <div class="desc"><span class="badge">309 新增 · #38</span> 目标类型为「邀请人数」时出现;每个被邀请人首充 ≥ 此额度才计入有效人数</div>
+    </div>
+
+    <div class="row" id="directAward"><label class="lb req">奖励金额:</label><input type="number" value="0" /></div>
+
+    <div id="boxAward" style="display:none">
+      <div class="row"><label class="lb req">实际奖励金额:</label><div class="rng"><input type="number" placeholder="最小金额" /> ~ <input type="number" placeholder="最大金额" /></div></div>
+      <div class="row"><label class="lb">前台展示中奖金额:</label><div class="rng"><input type="number" placeholder="最小金额" /> ~ <input type="number" placeholder="最大金额" /></div></div>
+      <div class="row"><label class="lb">活动中心展示最高金额:</label><input type="number" style="max-width:150px;flex:none" /></div>
+    </div>
+
+    <div class="row"><label class="lb">生效时间:</label><input value="明天生效(每周任务=下周生效)" disabled /></div>
+    <div class="row"><label class="lb">任务排序:</label><input type="number" value="0" /></div>
+    <div class="row"><label class="lb">开启状态:</label><div class="radio"><label><input type="radio" name="st" checked> 禁用</label><label><input type="radio" name="st"> 启用</label></div></div>
+    <div class="btns"><button class="btn save">保存</button><button class="btn back" onclick="history.back()">返回</button></div>
+  </div>
+
+  <div class="col ml">
+    <div class="row"><label class="lb">英语</label><label class="lb2">任务名称:</label><input /><label class="lb2">任务描述:</label><input /></div>
+    <div class="row"><label class="lb">泰语</label><label class="lb2">任务名称:</label><input /><label class="lb2">任务描述:</label><input /></div>
+    <div class="row"><label class="lb">中文简体</label><label class="lb2">任务名称:</label><input /><label class="lb2">任务描述:</label><input /></div>
+    <div class="row"><label class="lb">马来语</label><label class="lb2">任务名称:</label><input /><label class="lb2">任务描述:</label><input /></div>
+    <div class="row"><label class="lb">阿拉伯语</label><label class="lb2">任务名称:</label><input /><label class="lb2">任务描述:</label><input /></div>
+    <div class="row"><label class="lb">泰米尔语</label><label class="lb2">任务名称:</label><input /><label class="lb2">任务描述:</label><input /></div>
+    <div class="row"><label class="lb">泰卢固语</label><label class="lb2">任务名称:</label><input /><label class="lb2">任务描述:</label><input /></div>
+  </div>
+</div>
+<script>
+  function toggleFirst(){
+    document.getElementById('firstAmt').style.display = (document.getElementById('goalType').value==='7')?'block':'none';
+  }
+  function toggleClaimCond(){
+    document.getElementById('claimCond').style.display = (document.getElementById('taskCat').value==='8')?'block':'none';
+  }
+  function toggleShowCond(){
+    var rc = document.getElementById('showCond').value==='recharge';
+    document.getElementById('showAmt').style.display = rc?'block':'none';
+    document.getElementById('showFirstLb').style.display = rc?'inline':'none';
+  }
+  function onReceiveChange(){
+    var rt = document.querySelector('input[name=rt]:checked').value;
+    var end = rt==='end';
+    document.getElementById('endBlock').style.display = end?'block':'none';
+    var form = end ? document.querySelector('input[name=rf]:checked').value : rt;
+    document.getElementById('directAward').style.display = form==='direct'?'flex':'none';
+    document.getElementById('boxAward').style.display = form==='box'?'block':'none';
+  }
+  toggleClaimCond();
+  toggleFirst();
+  onReceiveChange();
+</script>
+</body>
+</html>

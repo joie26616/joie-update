@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>310 需求文档(重构目录)· 月签到(31天签到)</title>
+<style>
+  :root{--bg:#eceae3;--card:#fff;--t1:#1f1e1c;--t2:#5f5e5a;--t3:#8a8980;--bd:rgba(0,0,0,.12);--r:10px;--p:#7752FD;--amber:#854F0B;--amberbg:#FAEEDA;--amberbd:#BA7517;--green:#2E7D4F;}
+  *{box-sizing:border-box;}
+  body{margin:0;padding:26px 18px;background:var(--bg);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);line-height:1.65;}
+  .wrap{max-width:860px;margin:0 auto;}
+  h1{font-size:22px;font-weight:700;margin:0 0 4px;}
+  .sub{font-size:13px;color:var(--t3);margin-bottom:20px;}
+  h2{font-size:17px;font-weight:700;color:var(--p);border-left:4px solid var(--p);padding-left:10px;margin:28px 0 10px;}
+  h3{font-size:14px;font-weight:700;margin:16px 0 6px;color:var(--t1);}
+  .act{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;margin-bottom:14px;}
+  .tag{background:var(--amberbg);color:var(--amber);border:1px solid var(--amberbd);border-radius:8px;font-size:11px;padding:1px 8px;margin-right:4px;}
+  ul{font-size:13px;color:var(--t2);margin:4px 0 10px;padding-left:20px;}
+  li{margin:3px 0;}
+  .links{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 4px;}
+  a.go{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-size:13px;padding:7px 13px;border-radius:8px;border:1px solid var(--bd);color:var(--p);background:#fff;}
+  a.go.prim{background:var(--p);color:#fff;border-color:var(--p);}
+  .pg{border:1px dashed #cfc7ea;border-radius:8px;padding:10px 14px;margin:10px 0;background:#fcfbff;}
+  .pg .t{font-weight:700;font-size:13.5px;margin-bottom:4px;}
+  .pg .row{font-size:12.5px;color:var(--t2);margin:3px 0;}
+  .pg .k{display:inline-block;min-width:62px;font-weight:700;color:var(--amber);vertical-align:top;}
+  .pg .k.tech{color:#1976d2;}
+  code{background:#f4f2fb;border:1px solid var(--bd);border-radius:3px;padding:0 4px;font-size:11.5px;}
+  .toc{background:#fff;border:1px solid var(--bd);border-radius:var(--r);padding:12px 18px;font-size:13px;margin-bottom:18px;}
+  .toc a{color:var(--p);text-decoration:none;margin-right:14px;}
+  .warn{background:#fdecea;border:1px solid #f2b8b5;border-radius:6px;padding:6px 10px;font-size:12px;color:#C23B45;display:inline-block;margin:4px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>310 需求文档(重构目录)· 月签到(31天签到)</h1>
+  <div class="sub">按「需求 → 说明 → 前端页面 → 后端配置 → 报表记录」框架重组;每个页面附 功能说明 / 交互说明 / 技术参考。核心口径:<b>单模版制</b>(每 VIP 一套 31 天配置、全月通用,按当月实际天数 28/29/30/31 自动截断)· 节点判定方式可选 <b>连续 / 累计</b> · 领奖有效期发放时快照 · 会员首签锁 VIP 路线。原导航页(index)保持不变,本页为 310 新目录入口。</div>
+  <div class="toc">
+    目录:<a href="#s1">一 · 需求与规则总览</a><a href="#s2">二 · 前台(月签到页)</a><a href="#s3">三 · 后台配置(单模版制)</a><a href="#s4">四 · 领取(Bonus collection 310版)</a><a href="#s5">五 · 数据统计(会员签到记录)</a><a href="#s6">六 · 数据模型与扩展预留</a>
+  </div>
+
+  <!-- ================= 一 ================= -->
+  <h2 id="s1">一 · 月签到 · 需求与规则总览</h2>
+  <div class="act">
+    <h3>1.1 对应需求</h3>
+    <span class="tag">#19 月签到升级(月签+补签+满签)</span><span class="tag">🆕 奖励判定方式(连续/累计)</span><span class="tag">🆕 领奖有效期</span>
+    <div class="warn">⏸ #36 七日集星产品内部暂停,不列入 310 优化范围,不在本目录。</div>
+
+    <h3>1.2 需求说明</h3>
+    <ul>
+      <li><b>签到 7 天单套 → 月签 · 分 VIP 路线</b>:每天「充值金额 + 可领取奖金」,31 天全可配;自然月按实际天数(28/29/30/31)自动截断。</li>
+      <li><b>签到奖励节点(Milestone)</b>:节点(如 3/7/15 天)运营可自由增删调 + <b>满签大奖恒落当月最后一天</b>;🆕<b>奖励判定方式</b> 开关 —— 连续签到(断签未补则重算,补签可续)/ 累计签到(当月累计达标,允许间断),仅影响节点/大奖判定,不影响每日奖与补签。</li>
+      <li><b>补签</b>:只能往前补 N 天(默认 5)· 分段倍数 · 补发比例(默认 50%)· 无次数上限;<b>需充值 = 被补那天的充值金额 × 段倍率</b>(自动计算);确认补签跳存款页;漏签超补签窗口 → 连续中断。</li>
+      <li><b>VIP 路线锁档</b>:当月<b>首次签到</b>时自选 ≤ 当前等级路线并锁定当月(中途升级不影响,下月重选);后台无需配置。</li>
+      <li><b>领取两类</b>:每日签到奖 = 签到页弹框领(沿用现状);节点/满签大奖 = 达成即发放,按 🆕<b>领奖有效期</b>(当月末 23:59 / 达成后 N 天 / 不限)领取,纳入 <b>309 统一领取 / 一键领取</b>(bonus collection 待领取)。</li>
+    </ul>
+    <div class="links">
+      <a class="go prim" href="monthly-signin-doc.html" target="_blank">📖 详细 PRD(11 节·菜单切换,含「🧩 扩展能力设计」) ↗</a>
+    </div>
+  </div>
+
+  <!-- ================= 二 ================= -->
+  <h2 id="s2">二 · 前台 · 月签到页</h2>
+  <div class="act">
+    <div class="pg">
+      <div class="t">① 月签到(前台) — <a href="monthly-signin.html" target="_blank">monthly-signin.html ↗</a></div>
+      <div class="row"><span class="k">功能</span>31 天日历(按当月实际天数渲染);VIP 路线选择(≤ 当前等级);每日签到(充值门槛 + 奖励);补签(分段倍数 · 补发半额);签到奖励节点与月末大奖展示;当日签到合并领取。</div>
+      <div class="row"><span class="k">交互</span>当月首签弹路线选择并<b>当月锁定</b>;补签三场景弹框(a 单日 / b 多日累计 / c 触发阶梯 —— 无边框表单、× 关闭,确认补签 → 存款页);月中进入按已锁路线展示;节点达成状态与领取倒计时。</div>
+      <div class="row"><span class="k tech">技术</span>配置一律经 <code>GetSignInConfig(SelectedVip, 当月)</code> 实时取;锁档表 <code>MemberSignInMonth</code>(MemberID+YearMonth 唯一,选择时校验 ≤ 当前等级);判定方式(连续/累计)决定节点进度算法与文案;发放时快照金额 / <code>ClaimDeadline</code>。</div>
+    </div>
+  </div>
+
+  <!-- ================= 三 ================= -->
+  <h2 id="s3">三 · 后台配置(单模版制)</h2>
+  <div class="act">
+    <div class="pg">
+      <div class="t">① 签到配置 — <a href="monthly-signin-admin-v2.html" target="_blank">monthly-signin-admin-v2.html ↗</a></div>
+      <div class="row"><span class="k">功能</span>每 VIP 仅 1 套 31 天配置、全月通用(录入量 12→1;修复原 3 模版制无平年 2 月 28 天的缺口)。四区:① 快速配置(基础值一键填充 / 区间批量修改,<b>仅辅助不落库</b>)② 每日签到 31 行(例外日高亮 / 29-31 行短月标注 / 节点只读投影)③ 签到奖励节点(<b>判定方式开关</b> + <b>领奖有效期</b> + 节点自由增删 + <b>批量生成节点</b>[间隔+首值+递增+最高上限=满签大奖] + 满签大奖固定行)④ 补签规则(补签天数 / 分段 / 倍率 / 补发比例 / 需充值自动 / 覆盖度条)。顶部:<b>跨 VIP 递增生成</b>(倍率 × / 固定增量 +,充值与奖励分别配置)。</div>
+      <div class="row"><span class="k">交互</span>软提示不阻断(空值 / 充值 0 补签免费 / 节点 &gt;28 短月不可达 / 分段缺口重叠 / VIP 倒挂);节点重复输入自动定位既有行;[保存并配置下一 VIP];生成弹窗黄底建议值(改过变白)、覆盖前列出目标确认;未保存离开拦截。</div>
+      <div class="row"><span class="k tech">技术</span>数据模型 = <code>SignInTpl / SignInDay / SignInMilestone(RewardType: Normal/Completion) / SignInResignSeg</code> + 会员侧 <code>MemberSignInMonth</code>;基础值与工具参数<b>不落库</b>;补签需充值 = 当天充值 × 倍率;<code>MilestoneMode</code>(1连续/2累计)、<code>ClaimWindowType/Days</code>(领奖有效期,发放时快照)落主表;详见《310-月签到-单模版配置数据模型(定稿).md》。</div>
+    </div>
+  </div>
+
+  <!-- ================= 四 ================= -->
+  <h2 id="s4">四 · 领取 · Bonus collection(310 版)</h2>
+  <div class="act">
+    <div class="pg">
+      <div class="t">① 统一领取 / 一键领取(310 版) — <a href="claim-unified-310.html" target="_blank">claim-unified-310.html ↗</a></div>
+      <div class="row"><span class="k">功能</span>310 增量 = <b>满签阶梯奖 🏆 待领卡</b>纳入统一领取 / 一键领取 / 合计;领取截止倒计时取发放时快照的 <code>ClaimDeadline</code>(即后台「领奖有效期」配置)。</div>
+      <div class="row"><span class="k">交互</span><b>每日签到奖 = Check(跳转参加)</b>跳签到页用签到页弹框领,不进统一弹窗、不计一键(沿用现状);其余交互全同 309 规范(统一弹窗 / 一键 / 竞态口径 / 宝箱 / 四场景充值文案,见 <a href="309-doc.html#s3" target="_blank">309-doc 三 ↗</a>)。</div>
+      <div class="row"><span class="k tech">技术</span>310 增量单独在本页,<b>不混入 309 版</b>(claim-unified.html);逾期未领自动失效、不冲账(同 309 D-22 口径)。</div>
+    </div>
+    <div class="pg">
+      <div class="t">② 奖励中心清单 — <a href="bonus-collection.html" target="_blank">bonus-collection.html ↗</a></div>
+      <div class="row"><span class="k">功能</span>🆕310 标注:满签阶梯奖 = 「直接领取 · 待领取」并纳入一键领取;每日签到 = 「跳转参加」;⏸ 七日集星不纳入 bonus collection。</div>
+    </div>
+  </div>
+
+  <!-- ================= 五 ================= -->
+  <h2 id="s5">五 · 数据统计 · 会员签到记录(V1 真实表单)</h2>
+  <div class="act">
+    <div class="pg">
+      <div class="t">① 会员签到记录 — <a href="http://localhost:8901/Admin_UERP/UserInfo/SinIn/" target="_blank">8901 · UserInfo/SinIn ↗</a>(V1 页面<b>只加字段不改结构</b>)</div>
+      <div class="row"><span class="k">功能</span>沿用<b>会员 ID 维度</b>;🆕搜索项:所属月份 / VIP / <b>判定方式(连续/累计)</b> / 满签进度(文案中性化「达成 X 天节点」);🆕列:所属月份 / VIP / <b>判定方式</b>(月记录快照,历史空值=连续默认)/ 连续天数 / <b>累计天数</b> / 补签次数 / 满签已领;🆕统计小结:签到人次 · 参与会员 · 月末满签 · 补签次数 · 每日签到奖派彩 · 满签阶梯奖派彩 · 签到奖励合计(派彩)· <b>总充值</b> · <b>签到奖励/总充值</b>(成本占比)+ <b>按判定方式分列小计</b>(参与会员 / 月末满签 / 阶梯奖派彩)。</div>
+      <div class="row"><span class="k">交互</span>统计小结<b>全部按当前查询条件统计</b>;快捷时间片(今天/昨天/本周/上周/本月/上月/所有)。</div>
+      <div class="row"><span class="k tech">技术</span>🆕总充值口径 = <b>查询范围内参与签到会员的充值总额</b>(已注明 PRD);判定方式(连续/累计)的记录区分<b>已定稿:事实与判定分离</b>(连续/累计双天数并存 + 判定方式快照,历史空值 = 连续兜底、零回填),见 PRD「里程碑奖励」章节的设计说明。</div>
+    </div>
+  </div>
+
+  <!-- ================= 六 ================= -->
+  <h2 id="s6">六 · 数据模型与扩展预留</h2>
+  <div class="act">
+    <ul>
+      <li><b>配置模型(定稿)</b>:<code>SignInTpl</code>(聚合根:补签天数 / 判定方式 / 领奖有效期)+ <code>SignInDay</code>(31 行)+ <code>SignInMilestone</code>(Normal 节点 + Completion 满签大奖)+ <code>SignInResignSeg</code>(补签分段)+ 会员侧 <code>MemberSignInMonth</code>(月锁档);基础值与批量工具参数一律<b>不落库</b>。</li>
+      <li><b>唯一读取入口 <code>GetSignInConfig(vip, yyyymm)</code></b>:截断 / 大奖重锚 / 判定口径 / 领奖窗口全在入口内解析;禁止散点直查配置表。</li>
+      <li><b>运行期</b>:实时读取 + <b>发放时快照</b>(金额 / ClaimDeadline 写死进会员记录),改配置即时作用于未发放部分、历史不受污染。</li>
+      <li><b>扩展预留(不构成当前版本开发范围)</b>:A 月度配置覆盖(稀疏覆盖层,入口内 merge)/ B 月份级开放控制(<code>SignInOpenMonth</code> 轻量表 + 入口一次校验);硬性约束:不新增复杂配置体系、不做月份维度核心重构,扩展只允许「入口层扩展 + 新增轻量表」;若排期先 B 后 A。</li>
+    </ul>
+    <div class="links">
+      <a class="go prim" href="monthly-signin-doc.html" target="_blank">📖 PRD「🧩 扩展能力设计」节 ↗</a>
+      <a class="go" href="http://localhost:8901/Admin_UERP/UserInfo/SinIn/" target="_blank">🖥️ 会员签到记录(现状+注入) ↗</a>
+    </div>
+    <div class="row" style="font-size:12.5px;color:var(--t2)">📄 模型文档:<code>/Users/joie/work/版本需求和优化/310-月签到-单模版配置数据模型(定稿).md</code></div>
+  </div>
+
+  <div class="sub" style="margin-top:20px">说明:本页为 310 月签到(31天签到)需求新目录(2026-07-03),结构与样式对齐 <a href="309-doc.html">309-doc.html</a>;原导航 <a href="index.html">index.html</a> 未改动。8901 = V1 老后台静态版(只注入不改结构),8309 = 原型(可交互)。</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>七日集星 · 活动配置(后台)</title>
+<style>
+  /* ===== 还原 V1 老后台视觉(Bootstrap4 + Layui + style.css)·独立内嵌版 ===== */
+  :root{--theme:#1976d2;--info:#7752fd;--success:#4db24d;--danger:#ef5350;--warn:#ffb22b;
+    --bd:#e1e4ea;--th:#f2f4f8;--t1:#464a53;--t2:#99abb4;--bg:#f8f6fe;
+    --bronze:#b87333;--silver:#8a93a3;--gold:#C8941A;--diamond:#3aa6c4;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);font-family:-apple-system,"PingFang SC","Microsoft YaHei",Arial,sans-serif;color:var(--t1);font-size:13px;}
+  /* 标题区 */
+  .page-titles{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:13px 22px;border-bottom:1px solid var(--bd);flex-wrap:wrap;gap:8px;}
+  .page-titles h3{color:var(--theme);font-size:18px;margin:0;font-weight:600;}
+  .breadcrumb{margin:0;padding:0;list-style:none;display:flex;gap:6px;font-size:12px;color:var(--t2);}
+  .breadcrumb li::after{content:"›";margin-left:6px;color:#cfd4dc;}
+  .breadcrumb li:last-child::after{content:"";}
+  .breadcrumb li.active{color:var(--theme);}
+  .container-fluid{padding:16px 22px;max-width:1200px;margin:0 auto;}
+  /* 卡片 */
+  .card{background:#fff;border:1px solid var(--bd);border-radius:4px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .card-hd{padding:11px 16px;border-bottom:1px solid #eef0f4;font-weight:600;font-size:14px;color:var(--t1);display:flex;align-items:center;gap:8px;}
+  .card-hd .badge-new{font-size:10px;font-weight:700;color:#fff;background:var(--danger);border-radius:3px;padding:1px 6px;}
+  .card-hd .sub{font-size:11px;font-weight:400;color:var(--t2);margin-left:4px;}
+  .card-body{padding:16px;}
+  /* 按钮 */
+  .btn{border:none;border-radius:4px;padding:7px 16px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;line-height:1.2;text-decoration:none;}
+  .btn-info{background:var(--info);color:#fff;} .btn-success{background:var(--success);color:#fff;}
+  .btn-danger{background:var(--danger);color:#fff;} .btn-default{background:#fff;border:1px solid #ddd;color:#555;}
+  .btn-theme{background:var(--theme);color:#fff;}
+  .btn-md{padding:8px 20px;} .btn-sm{padding:4px 11px;font-size:12px;}
+  .fa{font-style:normal;}
+  /* Layui 风格配置表单 */
+  .lform-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px dashed #eef0f4;flex-wrap:wrap;}
+  .lform-item:last-child{border-bottom:none;}
+  .l-label{width:120px;color:#555;text-align:right;flex:0 0 auto;}
+  .l-label.req::before{content:"*";color:var(--danger);margin-right:3px;}
+  .form-control{border:1px solid #ddd;border-radius:4px;padding:7px 10px;font-size:13px;background:#fff;}
+  .form-control.sm{width:90px;} .form-control.md{width:140px;}
+  .l-desc{color:var(--t2);font-size:12px;}
+  /* 开关 */
+  .sw{position:relative;width:44px;height:22px;border-radius:11px;background:#ccc;cursor:pointer;transition:.2s;flex:0 0 auto;}
+  .sw.on{background:var(--success);}
+  .sw::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;}
+  .sw.on::after{left:24px;}
+  /* 段位 checkbox chip */
+  .chk{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--bd);border-radius:14px;padding:4px 13px;cursor:pointer;font-size:12px;color:#555;user-select:none;}
+  .chk.on{background:#f1edff;border-color:var(--info);color:var(--info);font-weight:600;}
+  .chk .dot{width:9px;height:9px;border-radius:50%;}
+  .b-bronze{background:var(--bronze);} .b-silver{background:var(--silver);} .b-gold{background:var(--gold);} .b-diamond{background:var(--diamond);}
+  /* 段位 tab(仿 V1 nav-item1) */
+  .ttabs{display:flex;gap:0;border:1px solid var(--bd);border-bottom:none;border-radius:5px 5px 0 0;overflow:hidden;width:max-content;max-width:100%;}
+  .ttab{padding:9px 22px;cursor:pointer;color:#666;font-size:13px;background:#fafafa;border-right:1px solid var(--bd);}
+  .ttab:last-child{border-right:none;}
+  .ttab.on{background:var(--info);color:#fff;font-weight:700;}
+  .pkgwrap{border:1px solid var(--bd);border-radius:0 5px 5px 5px;padding:14px;}
+  /* 基础值条 */
+  .basebar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#f7f9fc;border:1px solid #eef0f4;border-radius:5px;padding:11px 14px;margin-bottom:14px;}
+  .basebar .fld{display:flex;align-items:center;gap:7px;}
+  .basebar .fld label{color:#555;}
+  /* 表格 */
+  table.dl{width:100%;border-collapse:collapse;}
+  table.dl th,table.dl td{border:1px solid var(--bd);padding:8px 10px;text-align:center;}
+  table.dl thead th{background:var(--th);color:#555;font-weight:600;}
+  table.dl tbody tr:nth-child(even){background:#fafbfd;}
+  table.dl tbody tr:hover{background:#f5f7fb;}
+  table.dl td .form-control{width:96px;margin:0 auto;}
+  .colttl{font-weight:600;font-size:13px;margin:0 0 8px;display:flex;align-items:center;gap:6px;color:var(--t1);}
+  .colttl .badge-new{font-size:10px;font-weight:700;color:#fff;background:var(--danger);border-radius:3px;padding:1px 6px;}
+  .two{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-top:14px;}
+  .note{background:#FFF8E8;border:1px solid #f0e0b8;border-radius:5px;padding:10px 13px;color:#8a6d1a;font-size:12px;line-height:1.8;margin-top:12px;}
+  .note b{color:#6d5410;}
+  .reward-legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .rl{flex:1;min-width:190px;border:1px solid var(--bd);border-left-width:3px;border-radius:5px;padding:9px 12px;background:#fff;}
+  .rl .rh{font-weight:700;font-size:12.5px;margin-bottom:2px;}
+  .rl .rd{font-size:11.5px;color:var(--t2);}
+  .rl.star{border-left-color:var(--gold);} .rl.daily{border-left-color:var(--info);} .rl.mile{border-left-color:var(--danger);}
+  .save{display:flex;gap:12px;justify-content:center;padding:8px 0 2px;}
+  .toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;font-size:13px;padding:10px 18px;border-radius:20px;z-index:60;opacity:0;transition:.3s;pointer-events:none;}
+  .toast.on{opacity:1;}
+  @media(max-width:820px){.two{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+  <!-- 标题 + 面包屑(V1 page-titles) -->
+  <div class="page-titles">
+    <h3>七日集星 · 活动配置</h3>
+    <ul class="breadcrumb"><li>活动管理</li><li>活动配置</li><li class="active">七日集星</li></ul>
+  </div>
+
+  <div class="container-fluid">
+    <!-- 奖励口径速览 -->
+    <div class="reward-legend">
+      <div class="rl star"><div class="rh">⭐ 集星(任务奖励)</div><div class="rd">完成任一任务 = +1 星 · 每天最多 3 星 · 一轮最多 21 星</div></div>
+      <div class="rl daily"><div class="rh">💰 当天签到奖金</div><div class="rd">当天完成 ≥1 任务即可领 · 现金 · 按段位「第 N 天」配置</div></div>
+      <div class="rl mile"><div class="rh">🏆 集星里程碑彩金</div><div class="rd">累计 7 / 14 / 21 星 · 现金 · 按段位配置 · 每节点每轮限领一次</div></div>
+    </div>
+
+    <!-- ① 活动设置 -->
+    <div class="card">
+      <div class="card-hd">⚙️ 活动设置 <span class="sub">独立活动 · 归「活动配置」· 与 VIP 无关</span></div>
+      <div class="card-body">
+        <div class="lform-item">
+          <span class="l-label req">派奖结算时间</span>
+          <input class="form-control sm" value="00:00" id="settleTime">
+          <span class="l-desc">当日任务达标,于此时点(次日凌晨)<b>结算后派彩</b>;未到结算时间会员端为「未到派奖时间」不可领</span>
+        </div>
+        <div class="lform-item">
+          <span class="l-label">第 7 天邀请条件</span>
+          <input class="form-control md" value="沿用「有效邀请人」配置" readonly style="background:#f5f5f7;color:#888">
+          <a class="btn btn-default btn-sm" href="javascript:;" onclick="toast('演示:跳转 系统配置 › 有效邀请人')">配置入口 →</a>
+          <span class="l-desc">第 7 天「邀请有效下级」沿用平台<b>有效邀请人</b>口径,不写死;投注/邀请口径沿用 V1 现有定义</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② 段位配置 -->
+    <div class="card">
+      <div class="card-hd">🏅 段位配置 <span class="sub">每段位独立 · 数值随段位上涨 · 含「每日任务 + 当天签到奖金」与「集星里程碑彩金」</span></div>
+      <div class="card-body">
+        <div class="ttabs" id="tiers"></div>
+        <div class="pkgwrap">
+          <!-- 基础值批量填充 -->
+          <div class="basebar">
+            <div class="fld"><label>基础充值条件</label><input class="form-control sm" id="bReq"></div>
+            <div class="fld"><label>基础投注条件</label><input class="form-control sm" id="bBet"></div>
+            <div class="fld"><label>基础邀请人数</label><input class="form-control sm" id="bInv"></div>
+            <div class="fld"><label>基础当天奖金</label><input class="form-control sm" id="bRwd"></div>
+            <button class="btn btn-default btn-sm" onclick="fillAll()"><span class="fa">↧</span> 批量填充 7 天</button>
+          </div>
+
+          <div class="two">
+            <div>
+              <div class="colttl">📅 每日任务 + 当天签到奖金(7 天)</div>
+              <table class="dl">
+                <thead><tr><th>天数</th><th>当天签到奖金</th><th>充值阈值</th><th>投注阈值</th><th>邀请有效下级</th></tr></thead>
+                <tbody id="dayBody"></tbody>
+              </table>
+              <div class="l-desc" style="margin-top:6px">说明:每行「当天签到奖金」= 当天完成 ≥1 任务可领的现金;充/投/邀阈值用于判定<b>得星</b>(达标几个得几星)。</div>
+            </div>
+            <div>
+              <div class="colttl">🏆 集星里程碑彩金 <span class="badge-new">现金</span></div>
+              <table class="dl">
+                <thead><tr><th>累计星数</th><th>里程碑彩金</th></tr></thead>
+                <tbody id="msBody"></tbody>
+              </table>
+              <div class="l-desc" style="margin-top:6px">累计星到节点发放,按<b>锁定段位</b>计,每节点每轮限领一次。</div>
+            </div>
+          </div>
+
+          <div class="note">
+            奖励发放逻辑:① 完成任一任务 <b>+1 ⭐</b>(每天最多 3,一轮最多 21);② 当天完成 ≥1 任务领<b>当天签到奖金</b>(上表「当天签到奖金」列);③ 集满 <b>7 / 14 / 21 ⭐</b> 领<b>里程碑彩金</b>(右表)。会员<b>首次领取锁定段位</b>,之后 6 天按本段位阈值统计;当日达标、<b>结算时间后派彩</b>。
+          </div>
+        </div>
+
+        <div class="save">
+          <button class="btn btn-info btn-md" onclick="toast('配置已保存(原型)')">确认保存</button>
+          <button class="btn btn-default btn-md" onclick="history.back()">返 回</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="toast" id="toast"></div>
+
+<script>
+  // 段位配置(数值随段位上涨;青铜为示例基线)
+  const TIERS = {
+    青铜: {req:100, bet:500, inv:1, rwd:10, days:[
+      {rwd:10,req:100,bet:500,inv:1},{rwd:20,req:200,bet:1000,inv:2},{rwd:30,req:500,bet:2500,inv:3},
+      {rwd:50,req:1000,bet:5000,inv:3},{rwd:100,req:2000,bet:10000,inv:3},{rwd:150,req:3000,bet:15000,inv:4},
+      {rwd:200,req:5000,bet:25000,inv:5}], ms:{7:300,14:500,21:1000}},
+    白银: {req:200, bet:1000, inv:1, rwd:20, days:null, ms:{7:500,14:800,21:1800}},
+    黄金: {req:500, bet:2500, inv:2, rwd:40, days:null, ms:{7:900,14:1500,21:3000}},
+    钻石: {req:1000,bet:5000, inv:3, rwd:80, days:null, ms:{7:1800,14:3000,21:6000}},
+  };
+  const MS_NODES=[7,14,21];
+  let cur='青铜';
+
+  function renderTabs(){
+    const t=document.getElementById('tiers'); t.innerHTML='';
+    Object.keys(TIERS).forEach(k=>{
+      const d=document.createElement('div'); d.className='ttab'+(k===cur?' on':'');
+      d.textContent=k+' 段位'; d.onclick=()=>{cur=k;render();}; t.appendChild(d);
+    });
+  }
+  function render(){
+    renderTabs();
+    const r=TIERS[cur];
+    bReq.value=r.req; bBet.value=r.bet; bInv.value=r.inv; bRwd.value=r.rwd;
+    let rows='';
+    for(let d=1;d<=7;d++){
+      const day=r.days? r.days[d-1] : {rwd:r.rwd*d, req:r.req*d, bet:r.bet*d, inv:r.inv+Math.floor(d/2)};
+      rows+=`<tr><td>第 ${d} 天</td>
+        <td><input class="form-control sm" value="${day.rwd}"></td>
+        <td><input class="form-control" value="${day.req}"></td>
+        <td><input class="form-control" value="${day.bet}"></td>
+        <td><input class="form-control sm" value="${day.inv}"></td></tr>`;
+    }
+    document.getElementById('dayBody').innerHTML=rows;
+    document.getElementById('msBody').innerHTML=MS_NODES.map(n=>
+      `<tr><td>${n} ⭐</td><td><input class="form-control sm" value="${r.ms[n]}"></td></tr>`).join('');
+  }
+  function fillAll(){
+    const req=+bReq.value, bet=+bBet.value, inv=+bInv.value, rwd=+bRwd.value;
+    document.querySelectorAll('#dayBody tr').forEach(tr=>{
+      const i=tr.querySelectorAll('input'); i[0].value=rwd; i[1].value=req; i[2].value=bet; i[3].value=inv;
+    });
+    toast('已按基础值批量填充 7 天');
+  }
+  let tmr=null;
+  function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tmr); tmr=setTimeout(()=>t.classList.remove('on'),3000); }
+  render();
+</script>
+</body>
+</html>

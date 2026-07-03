@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Deposit · 前端原型(You Get)</title>
+<style>
+  :root{--red:#E8615C;--redl:#F2938E;--t1:#222;--t2:#888;--bd:#eee;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:#9a9a9a;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);}
+  .phone{max-width:400px;margin:0 auto;background:#f4f5f7;min-height:100vh;padding-bottom:72px;position:relative;}
+  .top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#fff;font-size:18px;font-weight:600;}
+  .top .h{font-size:14px;color:#444;font-weight:400;}
+  .bal{margin:10px;background:var(--red);color:#fff;border-radius:14px;padding:18px;}
+  .bal .l{font-size:14px;opacity:.95;}
+  .bal .n{font-size:30px;font-weight:700;margin-top:6px;}
+  .bal .mask{text-align:right;letter-spacing:3px;opacity:.8;margin-top:18px;}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 10px;}
+  .pm{background:#fff;border-radius:10px;padding:14px 6px 8px;text-align:center;position:relative;cursor:pointer;border:2px solid transparent;}
+  .pm.on{background:var(--redl);border-color:var(--red);}
+  .pm .ic{width:30px;height:30px;border-radius:6px;background:#eee;margin:0 auto 6px;}
+  .pm .nm{font-size:12px;color:#555;}
+  .pm.on .nm{color:#fff;}
+  .bns{position:absolute;top:-4px;right:-2px;background:var(--red);color:#fff;font-size:10px;padding:2px 5px;border-radius:4px 4px 4px 0;}
+  .sec{margin:12px 10px 0;background:#fff;border-radius:12px;padding:14px 16px;}
+  .sec h3{font-size:16px;margin:0 0 12px;display:flex;align-items:center;gap:6px;}
+  .chan{background:var(--redl);color:#fff;border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.6;}
+  .amts{display:flex;gap:10px;flex-wrap:wrap;}
+  .amt{flex:1;min-width:120px;border:1px solid var(--bd);border-radius:10px;padding:10px 12px;text-align:center;cursor:pointer;}
+  .amt.on{background:var(--redl);color:#fff;border-color:var(--red);}
+  .amt .a{font-size:18px;font-weight:700;}
+  .amt .b{font-size:12px;color:var(--red);margin-top:2px;}
+  .amt.on .b{color:#fff;}
+  .bar{position:fixed;left:0;right:0;bottom:0;max-width:400px;margin:0 auto;background:#fff;border-top:1px solid var(--bd);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
+  .bar .m{font-size:13px;color:#666;} .bar .m b{display:block;color:#222;font-size:14px;}
+  .go{background:var(--red);color:#fff;border:none;border-radius:24px;padding:12px 22px;font-size:15px;font-weight:600;cursor:pointer;text-align:center;line-height:1.2;}
+  .go small{display:block;font-size:11px;font-weight:400;opacity:.9;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top"><span>‹</span><span>Deposit</span><span class="h">Deposit history</span></div>
+
+  <div class="bal">
+    <div class="l">🧧 Balance</div>
+    <div class="n">₹126,358.44 ⟳</div>
+    <div class="mask">**** ****</div>
+  </div>
+
+  <div class="grid">
+    <div class="pm" onclick="pm(this,4)"><span class="bns">+4%</span><div class="ic"></div><div class="nm">ARPay</div></div>
+    <div class="pm on" onclick="pm(this,44)"><span class="bns">40%+4%</span><div class="ic"></div><div class="nm">LocalUPI</div></div>
+    <div class="pm" onclick="pm(this,44)"><span class="bns">40%+4%</span><div class="ic"></div><div class="nm">LocalUSDT</div></div>
+    <div class="pm" onclick="pm(this,44)"><span class="bns">40%+4%</span><div class="ic"></div><div class="nm">LocalBank</div></div>
+    <div class="pm" onclick="pm(this,4)"><span class="bns">+4%</span><div class="ic"></div><div class="nm">USDT</div></div>
+    <div class="pm" onclick="pm(this,4)"><span class="bns">+4%</span><div class="ic"></div><div class="nm">ArUpiPay</div></div>
+    <div class="pm" onclick="pm(this,4)"><span class="bns">+4%</span><div class="ic"></div><div class="nm">fa 2=44</div></div>
+    <div class="pm" onclick="pm(this,4)"><span class="bns">+4%</span><div class="ic"></div><div class="nm">fa===</div></div>
+  </div>
+
+  <div class="sec">
+    <h3>🧴 Select channel</h3>
+    <div class="chan">Local UPI<br/>Balance:100 - 1M</div>
+  </div>
+
+  <div class="sec">
+    <h3>🧧 Deposit amount</h3>
+    <div class="amts">
+      <div class="amt on" data-dep="1000" data-bonus="1000" onclick="amt(this)"><div class="a">₹ 1K</div><div class="b">Bonus + ₹1K</div></div>
+      <div class="amt" data-dep="20000" data-bonus="100" onclick="amt(this)"><div class="a">₹ 20K</div><div class="b">Bonus + ₹100</div></div>
+    </div>
+    <div style="margin-top:12px;border:1px solid #BA7517;background:#FAEEDA;border-radius:12px;padding:11px 14px;color:#854F0B;font-weight:700;font-size:14px">Nạp ₫35.000.000　Tặng ₫17.500.000</div>
+  </div>
+
+  <div class="bar">
+    <div class="m">Recharge Method:<b>Local UPI</b></div>
+    <button class="go" id="go">You Get ₹2,000.00</button>
+  </div>
+</div>
+
+<script>
+  function fmt(n){return '₹'+n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function fmt0(n){return '₹'+n.toLocaleString('en-IN');}
+  function amt(el){
+    document.querySelectorAll('.amt').forEach(function(x){x.classList.remove('on')});
+    el.classList.add('on'); calc(el);
+  }
+  function calc(el){
+    var dep=+el.dataset.dep, bonus=+el.dataset.bonus, total=dep+bonus;
+    document.getElementById('go').textContent='You Get '+fmt(total);
+  }
+  function pm(el,r){document.querySelectorAll('.pm').forEach(function(x){x.classList.remove('on')});el.classList.add('on');}
+  calc(document.querySelector('.amt.on'));
+</script>
+</body>
+</html>

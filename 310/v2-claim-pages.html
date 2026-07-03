@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>V2 · VIP 领取成功弹窗 + 签到 Toast(还原)</title>
+<style>
+  :root{--red:#F95959;--gold:#F0A93A;--org:#ED6B2E;--t1:#222;--t2:#888;--bd:#eee;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:#9a9a9a;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);}
+  .stage{display:flex;gap:30px;flex-wrap:wrap;align-items:flex-start;padding:24px;}
+  .item .name{color:#fff;font-weight:700;font-size:14px;margin-bottom:8px;text-align:center;}
+  .phone{width:340px;height:640px;background:#f4f5f7;border-radius:22px;border:8px solid #1d1d1f;position:relative;overflow:hidden;}
+  .nav{display:flex;align-items:center;padding:13px 12px;color:#fff;background:var(--red);font-weight:600}
+  .nav .bk{width:28px;font-size:20px} .nav .t{flex:1;text-align:center;margin-right:28px}
+
+  /* ===== VIP ===== */
+  .vip-hd{background:linear-gradient(90deg,#f95959,#ff9a8e);color:#fff;padding:18px 16px 26px}
+  .vip-hd .row{display:flex;align-items:center;gap:12px}
+  .vip-hd .av{width:48px;height:48px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px}
+  .vip-hd .lv{background:#ffd76b;color:#7a4a00;font-weight:800;border-radius:10px;padding:1px 8px;font-size:12px;margin-top:4px;display:inline-block}
+  .card{background:#fff;margin:12px;border-radius:12px;padding:14px}
+  .card h4{margin:0 0 10px;font-size:14px}
+  .welf{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#666;padding:9px 0;border-bottom:1px solid #f3f3f3}
+  .welf .amt{color:var(--red);font-weight:700}
+  .claimbtn{background:linear-gradient(180deg,#ff867a,#f95959);color:#fff;border:none;border-radius:18px;padding:7px 18px;font-size:13px;font-weight:700;cursor:pointer}
+
+  /* 统一领取成功弹窗(与 claim-unified 一致)*/
+  .mask{position:absolute;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:30}
+  .udlg{width:280px;background:#fff;border-radius:16px;text-align:center;overflow:hidden}
+  .udlg .ok{width:64px;height:64px;margin:18px auto 4px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#7ee0a3,#2e9e5b);display:flex;align-items:center;justify-content:center;font-size:34px;color:#fff}
+  .udlg h3{font-size:18px;font-weight:800;margin:10px 0 0}
+  .udlg .list{text-align:left;margin:10px 18px 4px}
+  .udlg .li{display:flex;justify-content:space-between;border-bottom:1px solid #f2f2f2;padding:8px 2px;font-size:13px}
+  .udlg .li .ok2{color:#2e9e5b} .udlg .li .a{color:var(--org);font-weight:700}
+  .udlg .sum{font-size:12px;color:#888;margin:8px 0 2px}
+  .udlg .btns{padding:12px 18px 18px}
+  .udlg .btns button{width:100%;padding:11px;border-radius:22px;border:none;font-size:14px;font-weight:700;background:var(--red);color:#fff;cursor:pointer}
+
+  /* ===== 签到 ===== */
+  .sg-hero{background:var(--red);color:#fff;text-align:center;padding:14px 16px 20px}
+  .sg-hero h1{margin:4px 0;font-size:20px}
+  .sg-hero p{margin:4px 0;font-size:12px;opacity:.95}
+  .sg-hero .days{font-size:13px;margin:8px 0}
+  .sg-hero .days span{font-size:22px;font-weight:800;margin:0 4px}
+  .sg-hero .ft{display:flex;gap:10px;justify-content:center;margin-top:10px}
+  .sg-hero .ft button{background:rgba(255,255,255,.25);color:#fff;border:none;border-radius:14px;padding:5px 14px;font-size:12px}
+  .sg-grid{background:#fff;margin:12px;border-radius:12px;padding:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .sg-cell{background:#fff7ef;border:1px solid #ffe0c2;border-radius:10px;padding:10px 4px;text-align:center;font-size:11px;color:#a06a00}
+  .sg-cell .b{color:#E8920F;font-weight:800;font-size:13px}
+  .sg-cell .coin{font-size:22px;margin:4px 0}
+  .sg-cell.signed{background:#eafaef;border-color:#bfe9cd;color:#2e9e5b}
+  .sg-cell.d7{grid-column:span 3;background:linear-gradient(135deg,#ffe9c7,#ffd39b);border-color:#E6B566}
+  .sg-foot{padding:0 12px}
+  .sg-foot button{width:100%;background:linear-gradient(180deg,#ff867a,#f95959);color:#fff;border:none;border-radius:24px;padding:12px;font-size:15px;font-weight:700;cursor:pointer}
+  /* toast */
+  .toast{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%) scale(.9);background:rgba(0,0,0,.8);color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;opacity:0;transition:.2s;z-index:30;pointer-events:none}
+  .toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+  .note{max-width:320px;background:#fff;border:1px solid var(--bd);border-radius:10px;padding:14px 16px;font-size:13px;color:#444;line-height:1.7}
+  .note h3{margin:0 0 6px;font-size:14px}
+  .note code{background:#f4f4f4;border-radius:3px;padding:0 4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- ① VIP -->
+  <div class="item">
+    <div class="name">① VIP 月奖金/升级礼包(领取成功弹窗)</div>
+    <div class="phone">
+      <div class="nav"><span class="bk">‹</span><span class="t">VIP</span></div>
+      <div class="vip-hd">
+        <div class="row"><div class="av">👤</div><div><div style="font-weight:700">member888</div><span class="lv">VIP 3</span></div></div>
+      </div>
+      <div class="card">
+        <h4>我的福利</h4>
+        <div class="welf"><span>每月奖励</span><span><span class="amt">₹50.00</span> <button class="claimbtn" onclick="vipClaim()">领取</button></span></div>
+        <div class="welf" style="border:none"><span>升级礼包</span><span><span class="amt">₹100.00</span> <button class="claimbtn" onclick="vipClaim()">领取</button></span></div>
+      </div>
+      <!-- 统一领取成功弹窗(去掉 VIP券)-->
+      <div class="mask" id="vipMask">
+        <div class="udlg">
+          <div class="ok">🎉</div>
+          <h3>领取成功</h3>
+          <div class="list">
+            <div class="li"><span><span class="ok2">✓</span> 月奖励·积分</span><span class="a">+ 8,888</span></div>
+            <div class="li"><span><span class="ok2">✓</span> 月奖励·余额</span><span class="a">+ ₹50.00</span></div>
+          </div>
+          <div class="btns"><button onclick="closeVip()">确定</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 签到 -->
+  <div class="item">
+    <div class="name">② 每日签到(showToast 轻提示)</div>
+    <div class="phone">
+      <div class="nav"><span class="bk">‹</span><span class="t">Check in</span></div>
+      <div class="sg-hero">
+        <h1>每日签到</h1>
+        <p>连续签到天数越多,奖励越高</p>
+        <div class="days">已连续签到 <span>3</span> 天</div>
+        <p>累计获得</p><h1>₹ 88.00</h1>
+        <div class="ft"><button>玩法规则</button><button>签到记录</button></div>
+      </div>
+      <div class="sg-grid">
+        <div class="sg-cell signed"><div class="b">₹2</div><div class="coin">🪙</div>连续1天</div>
+        <div class="sg-cell signed"><div class="b">₹4</div><div class="coin">🪙</div>连续2天</div>
+        <div class="sg-cell signed"><div class="b">₹6</div><div class="coin">🪙</div>连续3天</div>
+        <div class="sg-cell"><div class="b">₹10</div><div class="coin">🪙</div>连续4天</div>
+        <div class="sg-cell"><div class="b">₹15</div><div class="coin">🪙</div>连续5天</div>
+        <div class="sg-cell"><div class="b">₹20</div><div class="coin">🪙</div>连续6天</div>
+        <div class="sg-cell d7"><div class="b">₹50</div> 连续7天 大奖</div>
+      </div>
+      <div class="sg-foot"><button onclick="signToast()">签到</button></div>
+      <div class="toast" id="sgToast">✓ 签到成功,获得 ₹6.00</div>
+    </div>
+  </div>
+
+  <!-- 说明 -->
+  <div class="note">
+    <h3>已统一为标准领取成功弹窗</h3>
+    <p><b>① VIP</b>(<code>views/vip/index.vue</code>):已改为<b>统一弹窗样式</b>(✓图标 +「领取成功」+ 领取项列表 + 单一「确定」),与 claim-unified 的单项/多项弹窗一致。<b>已去掉 VIP券</b>(及「成功领取 X 积分和 Y VIP券 / VIP券可兑换成法币」文案、「去兑换VIP券」按钮)—— V1 实际只发 <b>积分 + 余额</b>。点上方「领取」演示。</p>
+    <p><b>② 签到</b>(<code>views/activity/DailySignIn/index.vue</code>):现状走 <code>showToast</code> 轻提示;按统一规范也应改用同一弹窗(此处保留 toast 仅作现状对照)。点下方「签到」演示。</p>
+    <p style="color:#a06a00">统一标准见 <code>claim-unified.html</code>。数值/图标为占位,真机以接口数据与素材为准。</p>
+  </div>
+
+</div>
+
+<script>
+  function vipClaim(){ document.getElementById('vipMask').style.display='flex'; }
+  function closeVip(){ document.getElementById('vipMask').style.display='none'; }
+  function signToast(){ var t=document.getElementById('sgToast'); t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},1500); }
+</script>
+</body>
+</html>

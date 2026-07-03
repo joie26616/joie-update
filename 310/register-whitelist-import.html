@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>309 · 注册送彩金 新增(名单导入)原型</title>
+<style>
+  :root{--bg:#eceae3;--card:#fff;--t1:#1f1e1c;--t2:#5f5e5a;--t3:#8a8980;--bd:rgba(0,0,0,.12);--bd2:rgba(0,0,0,.25);--r:8px;--p:#7752FD;
+    --ok:#1D9E75;--okbg:#E1F5EE;--okbd:#0F6E56;--err:#A32D2D;--errbg:#FCEBEB;--amber:#854F0B;--amberbg:#FAEEDA;--amberbd:#BA7517;}
+  *{box-sizing:border-box;}
+  body{margin:0;padding:24px;background:var(--bg);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);line-height:1.5;}
+  .wrap{max-width:760px;margin:0 auto;background:#f4f3ee;border-radius:12px;padding:18px 22px;}
+  .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .hd b{font-size:16px;font-weight:600;}
+  .src{font-size:12px;color:var(--t3);}
+  .card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;}
+  .sec{font-size:13px;color:var(--t2);font-weight:600;margin:2px 0 12px;}
+  .hr{border-top:1px solid var(--bd);margin:16px 0;}
+  .row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+  label.lb{width:120px;font-size:13px;color:var(--t2);text-align:right;}
+  input,select{height:34px;border:1px solid var(--bd2);border-radius:6px;padding:0 10px;font-size:13px;background:#fff;color:var(--t1);}
+  input:focus{outline:none;border-color:var(--p);}
+  .sw{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--p);}
+  .swdot{width:34px;height:18px;background:var(--p);border-radius:10px;position:relative;}
+  .swdot::after{content:"";position:absolute;right:2px;top:2px;width:14px;height:14px;background:#fff;border-radius:50%;}
+  .badge{background:var(--amberbd);color:#fff;padding:1px 7px;border-radius:6px;font-size:11px;}
+  .drop{border:2px dashed var(--bd2);border-radius:var(--r);padding:26px;text-align:center;color:var(--t2);background:#fafafa;cursor:pointer;transition:.15s;}
+  .drop.hover{border-color:var(--p);background:#f3f0ff;color:var(--p);}
+  .drop .big{font-size:14px;margin-bottom:6px;}
+  .drop .sm{font-size:12px;color:var(--t3);}
+  .toast{display:flex;align-items:center;gap:8px;font-size:13px;padding:9px 12px;border-radius:6px;margin-top:12px;}
+  .toast.ok{background:var(--okbg);color:var(--okbd);border:1px solid var(--okbd);}
+  .toast.err{background:var(--errbg);color:var(--err);border:1px solid var(--err);}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px;}
+  th{text-align:left;color:var(--t2);font-weight:600;padding:8px;border-bottom:1px solid var(--bd);}
+  td{padding:8px;border-bottom:1px solid var(--bd);}
+  .op a{color:var(--p);text-decoration:none;margin-right:12px;cursor:pointer;}
+  .op a.del{color:var(--err);}
+  .btn{height:32px;padding:0 14px;border:1px solid var(--bd2);border-radius:6px;background:#fff;font-size:13px;cursor:pointer;}
+  .btn.p{background:var(--p);color:#fff;border:none;}
+  .hint{font-size:12px;color:var(--t3);margin-top:6px;}
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;}
+  .modal{background:#fff;border-radius:10px;width:380px;max-height:70vh;overflow:auto;padding:16px 18px;}
+  .modal h3{font-size:15px;margin:0 0 10px;}
+  .modal .ph{font-family:monospace;font-size:13px;color:var(--t1);line-height:1.9;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hd"><b>渠道报表 · 名单导入</b><span class="src">报表管理/渠道报表/新增 → 名单导入 · #39</span></div>
+  <div class="card">
+
+    <div class="sec">白名单(#39)<span class="badge" style="margin-left:8px">309 新增</span></div>
+    <div class="row"><label class="lb">白名单模式</label><span class="sw"><span class="swdot"></span>已开启(仅名单内手机号注册才送)</span></div>
+
+    <div class="row" style="align-items:flex-start"><label class="lb" style="padding-top:8px">名单导入</label>
+      <div style="flex:1">
+        <div class="drop" id="drop">
+          <div class="big"><strong>拖拽文件到此</strong> 或 点击选择</div>
+          <div class="sm">支持 .txt / .csv / .xlsx,每行一个手机号;单次上限 10 万条</div>
+        </div>
+        <input type="file" id="file" style="display:none" accept=".txt,.csv,.xlsx" />
+
+        <div class="toast ok" id="toastok">✓ 导入成功:<strong>&nbsp;98,452&nbsp;</strong>条 &nbsp;|&nbsp; 失败 <strong>&nbsp;1,548&nbsp;</strong>条(格式错误已跳过)</div>
+
+        <table id="filetbl">
+          <thead><tr><th>文件名</th><th>有效条数</th><th>导入时间</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td>whitelist_0623.csv</td><td>98,452</td><td>2026-06-23 11:40</td><td class="op"><a onclick="prev()">预览</a><a onclick="ov()">覆盖</a><a class="del" onclick="del(this)">删除</a></td></tr>
+          </tbody>
+        </table>
+        <div class="hint">覆盖:上传新文件将<strong>替换</strong>当前名单(旧名单作废);删除:清空已导入名单。</div>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+    <div style="display:flex;gap:10px;align-items:center;"><button class="btn" onclick="history.back()">返回</button><span class="hint" style="margin:0">导入成功即已保存</span></div>
+  </div>
+</div>
+
+<div class="mask" id="mask"><div class="modal">
+  <h3>名单预览 · whitelist_0623.csv(前 10 条)</h3>
+  <div class="ph">91xxxx8201<br>91xxxx7745<br>91xxxx3390<br>91xxxx1182<br>91xxxx9004<br>91xxxx5567<br>91xxxx2231<br>91xxxx8890<br>91xxxx4412<br>91xxxx6678</div>
+  <div style="margin-top:14px;text-align:right"><button class="btn" onclick="document.getElementById('mask').style.display='none'">关闭</button></div>
+</div></div>
+
+<script>
+  var d=document.getElementById('drop'), f=document.getElementById('file');
+  d.addEventListener('click',function(){f.click()});
+  d.addEventListener('dragover',function(e){e.preventDefault();d.classList.add('hover')});
+  d.addEventListener('dragleave',function(){d.classList.remove('hover')});
+  d.addEventListener('drop',function(e){e.preventDefault();d.classList.remove('hover');document.getElementById('toastok').style.display='flex';});
+  function prev(){document.getElementById('mask').style.display='flex'}
+  function ov(){alert('上传新文件将覆盖当前名单(原型演示)')}
+  function del(a){if(confirm('确定删除已导入名单?')){a.closest('tr').remove();document.getElementById('toastok').style.display='none';}}
+</script>
+</body>
+</html>
