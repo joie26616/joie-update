@@ -69,9 +69,11 @@
     <div class="hd"><span class="name">全站统一领取 + 一键领取</span><span class="tag">#4 + 规范</span><span class="tag">#21</span></div>
     <ul class="need">
       <li>统一领取成功弹窗(基于 V2 VIP van-dialog 扩展):单项/多项+合计;替代散落 toast</li>
-      <li>一键领取:聚合可领项 → 结果弹窗三态(全部成功/部分成功+失败原因/全部失败,沿用 V1 msgCode)</li>
-      <li>结合活动结束领取(#4):可领取/未到领取时间(置灰跳过)/已过期;领取有效期=活动结束+N天</li>
-      <li><b>#21 整合进 Bonus collection</b>:充值会员玩彩票最后一注输/三方退出返平台,<b>余额&lt;最低下注额→自动弹出</b>本面板(聚合所有开启活动·一键领取);游戏页加 <b>🎁浮窗</b>随时唤起;无可领→<b>充值入口</b>引导。复用统一领取,仅加触发+浮窗+充值引导。</li>
+      <li>一键领取:只提交「已可领」的<b>直接领取类</b>(Check 跳转类、宝箱不提交)→ 结果弹窗三态(全部成功/部分成功/全部失败,沿用 V1 msgCode);部分成功失败原因仅竞态两种:<b>已过期 / 已领取</b></li>
+      <li>结合活动结束领取(#4):领取截止<b>实时倒计时</b>·到期卡即时隐藏;未到领取时间置灰+<b>距可领倒计时</b>,到点刷新自动转可领并计入合计;已领/已过期不显示;领取有效期=活动结束+N天(0=不限,显示「领取有效期 不限」)</li>
+      <li><b>🆕 宝箱(开宝箱领取)</b>:不计入合计、不进一键领取,须逐个开箱;进面板有待开宝箱→<b>优先自动弹</b>宝箱弹框(任务结束类有效期内每天登录仅自动弹一次);开箱到账后列表卡消失;金额只展示「最高可得」,实发以开箱 ActualAmount 为准</li>
+      <li><b>#21 整合进 Bonus collection</b>:充值会员玩彩票最后一注输/三方退出返平台,<b>余额&lt;最低下注额→自动弹出</b>本面板(聚合所有开启活动·一键领取);游戏页加 <b>🎁浮窗</b>随时唤起;底部<b>常驻充值引导条·四场景文案</b>统一后缀「想继续游戏?直接充值」(无奖无宝箱时隐藏一键领取栏)。复用统一领取,仅加触发+浮窗+充值引导。</li>
+      <li><b>🆕 #38 邀请任务卡</b>:未达标显示 <b>[去邀请] + 达标进度条</b>(被邀请人充值≥N/人);全部达标→任务结束发放,转普通待领卡走统一领取/一键领取</li>
     </ul>
     <div class="links">
       <a class="go prim" href="http://localhost:8309/claim-unified.html" target="_blank">统一领取+一键领取规范 ↗</a>
@@ -135,86 +137,36 @@
 
   <!-- ===================== 310 需求 ===================== -->
   <div id="tab310" style="display:none">
-    <div class="sub">310 = <b>签到升级(#19 月签到 + #36 七日集星)</b>。每张卡分三块:<b>📌 调整点</b> / <b>🔵 现状入口</b>(不动 V1/V2,点击看现状)/ <b>🟢 优化入口</b>(优化原型含交互)。<b>VIP月奖金已剔除(D-13)、优惠券/代理不做</b>。</div>
+    <div class="sub">310 = <b>签到升级(#19 月签到)</b>。卡片分两块:<b>📌 调整点</b> / <b>🟢 优化入口</b>(按 310 重构目录·六章)。<b>VIP月奖金已剔除(D-13)、优惠券/代理不做</b>;<b>⏸ #36 七日集星产品内部暂停 —— 不列入 310 优化范围(310 相关优化一律不含该需求),原型/文档留档备查</b>。</div>
 
-    <div class="grp">A · 签到升级(#19 月签到 + #36 七日集星)</div>
+    <div class="grp">A · 签到升级(#19 月签到)</div>
 
     <div class="act">
       <div class="hd"><span class="name">月签到升级(月签 + 补签 + 满签)</span><span class="tag">#19</span><span class="tag" style="background:#E8F3EC;color:#2E7D4F;border-color:#9AD3AE">🆕 原型</span></div>
 
       <div style="font-size:12px;font-weight:700;color:#854F0B;margin:2px 0 4px">📌 调整点</div>
       <ul class="need">
-        <li>签到 7 天单套 → <b>月签 · 分 VIP 路线</b>(每天充值条件 + 奖励)。例 VIP5:每天充值1000送30。</li>
-        <li>新增 <b>满签阶梯奖(连续签到)</b>:连续 3/7/15 天 + <b>当月最后一天大奖</b>(月份天数动态;VIP5 = 30/100/300/大奖1000)。</li>
-        <li>新增 <b>补签</b>:往前补 5 天·分段倍数(1-5天2倍…26-31天10倍)·<b>补发半额</b>·<b>无次数上限</b>;漏签超 5 天 → 连续中断、断点后阶梯不可达。</li>
-        <li>新增 <b>首日选 VIP 路线并当月锁定</b>(可选当前及以下;升级当月不可改,下月 1 号重选)。</li>
-        <li>领取分两类:<b>每日奖</b>签到页弹框领;<b>满签奖</b>纳入 <b>309 统一领取/一键领取</b>(bonus collection 待领取)。</li>
+        <li>签到 7 天单套 → <b>月签 · 分 VIP 路线</b>(每天充值金额 + 奖励,31 天全可配);后台<b>单模版制</b>:每 VIP 仅 1 套,按当月实际天数 28/29/30/31 自动截断。</li>
+        <li><b>里程碑奖励(满签阶梯)</b>:节点运营自由增删(默认 3/7/15)+ <b>满签大奖恒落当月最后一天</b>;🆕<b>判定方式</b> 连续/累计 可选(事实与判定分离,历史零回填);🆕<b>领奖有效期</b>(当月末/达成后N天/不限,发放时快照)。</li>
+        <li><b>补签</b>:往前补 N 天(默认5)· 分段倍率 · 补发比例(默认50%)· 无次数上限;<b>需充值 = 当天充值 × 倍率</b>;连续模式漏签超窗口 → 连续中断(累计模式仅不累加)。</li>
+        <li><b>首签选 VIP 路线并当月锁定</b>(≤ 当前等级;升级当月不变,下月重选)—— 前台行为,后台无需配置。</li>
+        <li>领取两类:<b>每日奖</b>签到页弹框;<b>节点/满签奖</b>按领奖有效期纳入 <b>309 统一领取/一键领取</b>。</li>
+        <li>🆕<b>数据统计</b>:会员签到记录(V1 只加字段)—— 判定方式/累计天数列、总充值口径、按判定方式分列统计。</li>
       </ul>
 
-      <div style="font-size:12px;font-weight:700;color:#5f5e5a;margin:14px 0 4px">🔵 现状入口(不动 V1/V2)</div>
-      <div class="dir"><span class="k">🖥️ V1后台</span>签到配置 <code>UserInfo/SinInSetting</code>(7天单套·现状)、连续签到记录 <code>UserInfo/ContinuousSignInlog</code></div>
-      <div class="dir"><span class="k">🎨 V2前端</span><code>views/activity/DailySignIn</code>(需登录)</div>
-      <div class="dir"><span class="k">📦 源码</span><code>tab_SignInRecharges</code> / <code>SignInController.cs</code> / <code>sp_Set_ContinuousSinIn</code>(只读参考)</div>
-      <div class="links" style="margin-top:6px">
-        <a class="go" href="http://localhost:8901/Admin_UERP/UserInfo/SinInSetting/" target="_blank">🖥️ 签到配置(现状·7天) ↗</a>
-        <a class="go" href="http://localhost:8901/Admin_UERP/UserInfo/ContinuousSignInlog/" target="_blank">🖥️ 连续签到记录 ↗</a>
-        <a class="go" href="http://localhost:5173/activity/DailySignIn" target="_blank">📱 V2签到页 ↗</a>
+      <div style="font-size:12px;font-weight:700;color:#2E7D4F;margin:14px 0 4px">🟢 优化入口(按 310 重构目录 · 六章)</div>
+      <div class="links" style="margin-top:2px">
+        <a class="go prim" href="http://localhost:8309/310-doc.html" target="_blank" style="background:#1f1d2b;border-color:#1f1d2b">📖 310 需求文档(重构目录·六章) ↗</a>
+        <a class="go prim" href="http://localhost:8309/monthly-signin-doc.html" target="_blank" style="background:#1f1d2b;border-color:#1f1d2b">📖 详细 PRD(11 节·菜单切换) ↗</a>
       </div>
-
-      <div style="font-size:12px;font-weight:700;color:#2E7D4F;margin:14px 0 4px">🟢 优化入口(优化原型 + 交互)</div>
-      <div class="dir"><span class="k">🆕 前后端</span>前台 <code>monthly-signin.html</code> · 后台 <code>monthly-signin-admin-v2.html</code>(方案2·模版制);领取 <code>bonus-collection.html</code> / <code>claim-unified-310.html</code>(310版·基于309)</div>
-      <div class="dir"><span class="k">📦 新增表</span>活动主表 / VIP路线 / 按天明细 / 满签阶梯 / 补签分段 + 会员月记录·每天状态</div>
-      <div class="dir"><span class="k">📄 文档</span><code>docs/superpowers/specs/2026-06-29-monthly-signin-310-design.md</code> + <code>310-月签到升级-详细规则与配置设计.md</code></div>
+      <div class="dir"><span class="k">一 需求规则</span><a href="http://localhost:8309/310-doc.html#s1" target="_blank">需求与规则总览 ↗</a> —— #19 + 🆕判定方式(连续/累计)+ 🆕领奖有效期;⏸ 集星不含</div>
+      <div class="dir"><span class="k">二 前台</span><a href="http://localhost:8309/monthly-signin.html" target="_blank">月签到页 ↗</a> —— 路线锁档 / 补签三场景 / 节点与月末大奖 / 当日合并领取</div>
+      <div class="dir"><span class="k">三 后台配置</span><a href="http://localhost:8309/monthly-signin-admin-v2.html" target="_blank">签到配置(单模版制) ↗</a> —— 每VIP一套31天按月截断;判定方式 / 领奖有效期 / 批量生成节点 / 跨VIP递增生成</div>
+      <div class="dir"><span class="k">四 领取</span><a href="http://localhost:8309/claim-unified-310.html" target="_blank">统一领取(310版·含满签奖) ↗</a> · <a href="http://localhost:8309/bonus-collection.html" target="_blank">奖励中心清单 ↗</a> —— 每日奖=跳签到页;节点/满签奖纳入一键</div>
+      <div class="dir"><span class="k">五 数据统计</span><a href="http://localhost:8901/Admin_UERP/UserInfo/SinIn" target="_blank">🖥️ 会员签到记录(V1只加字段) ↗</a> —— 搜索+判定方式;列+判定方式/累计天数;统计小结:签到奖励合计/总充值/占比 + 按判定方式分列</div>
+      <div class="dir"><span class="k">六 模型扩展</span><code>《310-月签到-单模版配置数据模型(定稿).md》</code> · 扩展预留 ①月度覆盖 ②月份开放(均不构成本版范围,入口层+轻量表;详见 <a href="http://localhost:8309/monthly-signin-doc.html" target="_blank">PRD「🧩 扩展能力设计」↗</a>)</div>
       <div class="links" style="margin-top:6px">
-        <a class="go prim" href="http://localhost:8309/monthly-signin-doc.html" target="_blank" style="background:#1f1d2b;border-color:#1f1d2b">📖 需求文档(10 节·菜单切换) ↗</a>
-        <a class="go prim" href="http://localhost:8309/monthly-signin.html" target="_blank">🆕 前台·月签到(路线/补签三场景/满签/合并领取) ↗</a>
-        <a class="go prim" href="http://localhost:8309/monthly-signin-admin-v2.html" target="_blank">🆕 后台·配置(方案2·模版制 VIP×3模版 31/29/30天) ↗</a>
-      </div>
-      <div class="links" style="margin-top:6px">
-        <span class="small">✅ 配置确定采用<b>方案2 模版制</b>:VIP×3模版(31/29/30天),自然月按天数自动套用对应模版,录入量 12→3。方案1(VIP×12月各月独立)已弃用,不在此展示。</span>
-      </div>
-      <div class="links" style="margin-top:6px">
-        <a class="go prim" href="http://localhost:8901/Admin_UERP/UserInfo/SinIn" target="_blank">🖥️ 数据统计·会员签到记录(V1·新增搜索项+统计小结+字段) ↗</a>
-        <span class="small">统计直接做进 V1 真实表单「活动管理›会员签到记录」(UserInfo/SinIn),不另开页·沿用<b>会员ID维度</b>:加 所属月份/VIP路线/满签进度 搜索 + 统计小结(总计派彩)+ 字段(连续天数/补签次数/满签已领)</span>
-      </div>
-      <div class="links" style="margin-top:6px">
-        <a class="go" href="http://localhost:8309/bonus-collection.html" target="_blank">🎁 满签奖→Bonus collection(待领取·纳入一键) ↗</a>
-        <a class="go" href="http://localhost:8309/claim-unified-310.html" target="_blank">🎁 统一领取/一键领取(310版·含满签奖) ↗</a>
-      </div>
-    </div>
-
-    <div class="act">
-      <div class="hd"><span class="name">七日集星</span><span class="tag">#36</span><span class="tag" style="background:#EEF;color:#5350c4;border-color:#bcb">独立活动</span><span class="tag" style="background:#E8F3EC;color:#2E7D4F;border-color:#9AD3AE">🆕 原型</span><span class="tag" style="background:#FDECEC;color:#c0392b;border-color:#e6a0a5;font-weight:700">⏸ 产品内部暂停需求</span></div>
-      <div style="background:#FDECEC;border:1px solid #e6a0a5;border-radius:6px;padding:8px 12px;margin:2px 0 8px;font-size:12px;color:#a5281f;font-weight:600">⏸ 本需求(七日集星)<b>产品内部暂停</b> —— 原型/文档留存备查,暂不推进排期与开发。</div>
-
-      <div style="font-size:12px;font-weight:700;color:#854F0B;margin:2px 0 4px">📌 调整点 / 需求说明</div>
-      <ul class="need">
-        <li>原「7 天充值签到」→ 独立活动 <b>七日集星</b>,归 <b>[活动配置]</b>,<b>与 VIP 无关</b>(月签 #19 已占原签到位)。</li>
-        <li>每天 <b>3 任务</b>(充值/投注/邀请有效下级),<b>每完成 1 个 = 1 星</b>(每天最多 3 星,7 天最多 21 星);完成 ≥1 即领当天奖;<b>当日达标当天结算派彩</b>。</li>
-        <li><b>集星里程碑</b> 7/14/21 星额外彩金(<b>按段位不同</b>)。</li>
-        <li><b>4 段位</b>(青铜/白银/黄金/钻石)各独立配置(条件+奖励随档涨);<b>首次领取锁段位</b>(只能选一档领,锁后剩余天按该档,不补差不升段)。</li>
-        <li><b>断签不清零</b>(继续、漏天0星、按7自然日不顺延);<b>终止</b>才清零重来(前端「终止本轮」按钮)。</li>
-      </ul>
-
-      <div style="font-size:12px;font-weight:700;color:#5f5e5a;margin:14px 0 4px">🔵 现状入口</div>
-      <div class="dir"><span class="k">🖥️ V1后台</span>原每日任务配置 <code>Treasure/DailyConfig</code>、连续签到记录 <code>UserInfo/ContinuousSignInlog</code></div>
-      <div class="dir"><span class="k">🎨 V2前端</span><code>views/activity/DailySignIn</code>(需登录)</div>
-      <div class="links" style="margin-top:6px">
-        <a class="go" href="http://localhost:8901/Admin_UERP/Treasure/DailyConfig/" target="_blank">🖥️ 每日任务配置 ↗</a>
-        <a class="go" href="http://localhost:5173/activity/DailySignIn" target="_blank">📱 V2签到页 ↗</a>
-      </div>
-
-      <div style="font-size:12px;font-weight:700;color:#2E7D4F;margin:14px 0 4px">🟢 优化入口(优化原型 + 交互)</div>
-      <div class="dir"><span class="k">🆕 前后端</span>前台 <code>seven-day-star.html</code> · 后台配置 <code>seven-day-star-admin.html</code> · 报表 <code>seven-day-star-report.html</code></div>
-      <div class="dir"><span class="k">📦 新增表</span>活动主表 / 段位配置(段位×7天阈值+奖) / 段位里程碑 + 会员轮次记录 / 每日完成明细</div>
-      <div class="dir"><span class="k">📄 文档</span><code>docs/superpowers/specs/2026-06-29-seven-day-star-design.md</code></div>
-      <div class="links" style="margin-top:6px">
-        <a class="go prim" href="http://localhost:8309/seven-day-star.html" target="_blank">🆕 前台·七日集星(任务/集星/选段领取/终止) ↗</a>
-        <a class="go prim" href="http://localhost:8309/seven-day-star-admin.html" target="_blank">🆕 后台·活动配置(段位×7天) ↗</a>
-      </div>
-      <div class="links" style="margin-top:6px">
-        <a class="go" href="http://localhost:8309/seven-day-star-report.html" target="_blank">📊 数据统计表(活动管理/报表·含配置入口) ↗</a>
-        <a class="go prim" href="http://localhost:8309/seven-day-star-doc.html" target="_blank" style="background:#1f1d2b;border-color:#1f1d2b">📖 需求文档(9 节·菜单切换) ↗</a>
+        <span class="small">✅ 配置定稿采用<b>单模版制</b>:每 VIP 仅 1 套 31 天配置、全月通用,按当月实际天数(28/29/30/31)自动截断,满签大奖恒落当月最后一天,录入量 12→1;跨 VIP 用「生成/复制」弹窗按递增(倍率/固定增量)预填。方案1(VIP×12月)、方案2(VIP×3模版)均已弃用。</span>
       </div>
     </div>
 
@@ -320,7 +272,7 @@
   <div id="tabSummary" style="display:none">
     <div class="sub">来源:历史需求池(40 条)。已按指令<b>剔除不做项</b>,整理其余需求。标注:<span style="color:#2E7D4F">✅已做</span> / 🔵已规划版本 / ⚪待排期;🆕 有 8309 原型。</div>
 
-    <div class="dir" style="margin-bottom:14px"><span class="k" style="color:#C23B45">✖ 已剔除</span>不做:<b>2 3 5 9 10 11 12 13 15 16 18 20 21(子2.1/2.2/3) 22 25(仅"白名单IP30天清除") 26 28 29 30 31 34 35 38</b>。<br/>注:#3(VIP计算周期改造)、#29(VIP月奖金限领) <b>取消不做</b>(原 311 版本及 310-活动三 一并撤销,8309 已移除对应 tab/卡片);#25 保留「账号30天未登录冻结」,剔除「白名单IP清除」(缺埋点)。</div>
+    <div class="dir" style="margin-bottom:14px"><span class="k" style="color:#C23B45">✖ 已剔除</span>不做:<b>2 3 5 9 10 11 12 13 15 16 18 20 21(子2.1/2.2/3) 22 25(仅"白名单IP30天清除") 26 28 29 30 31 34 35 38</b>。<br/>注:#3(VIP计算周期改造)、#29(VIP月奖金限领) <b>取消不做</b>(原 311 版本及 310-活动三 一并撤销,8309 已移除对应 tab/卡片);#25 保留「账号30天未登录冻结」,剔除「白名单IP清除」(缺埋点)。<br/>⏸ <b>#36(七日集星)产品内部暂停</b> —— 不列入 310 优化范围(310 相关优化一律不含该需求),原型/文档留档备查(<code>seven-day-star*.html</code>)。</div>
 
     <div class="grp">一 · 活动类需求(主体)</div>
 
@@ -339,12 +291,12 @@
     <div class="act">
       <div class="hd"><span class="name">签到领奖(充值领奖)升级:月31天+补签</span><span class="tag">#19</span><span class="tag">🔵310</span><span class="tag" style="background:#E8F3EC;color:#2E7D4F;border-color:#9AD3AE">🆕原型</span></div>
       <ul class="need"><li>周7天 → 月31天;分VIP配置每日条件+奖励;满签阶梯(3/7/15/31);补签(分段倍数·补发半额);首日选VIP路线锁定当月。</li></ul>
-      <div class="links"><a class="go prim" href="http://localhost:8309/monthly-signin-doc.html" target="_blank" style="background:#1f1d2b;border-color:#1f1d2b">📖 需求文档 ↗</a><a class="go prim" href="http://localhost:8309/monthly-signin.html" target="_blank">前台·月签到 ↗</a><a class="go prim" href="http://localhost:8309/monthly-signin-admin-v2.html" target="_blank">后台·签到配置(方案2·模版制) ↗</a><a class="go" href="http://localhost:8901/Admin_UERP/UserInfo/SinIn" target="_blank">📊 数据统计(V1·会员签到记录) ↗</a></div>
+      <div class="links"><a class="go prim" href="http://localhost:8309/monthly-signin-doc.html" target="_blank" style="background:#1f1d2b;border-color:#1f1d2b">📖 需求文档 ↗</a><a class="go prim" href="http://localhost:8309/monthly-signin.html" target="_blank">前台·月签到 ↗</a><a class="go prim" href="http://localhost:8309/monthly-signin-admin-v2.html" target="_blank">后台·签到配置(单模版制) ↗</a><a class="go" href="http://localhost:8901/Admin_UERP/UserInfo/SinIn" target="_blank">📊 数据统计(V1·会员签到记录) ↗</a></div>
     </div>
 
     <div class="act">
       <div class="hd"><span class="name">活动奖金领取提醒弹窗 → 整合进 Bonus collection</span><span class="tag">#21</span><span class="tag" style="background:#E8F3EC;color:#2E7D4F;border-color:#9AD3AE">🔵309·🆕原型</span></div>
-      <ul class="need"><li>充值会员玩彩票最后一注输/三方退出返平台,余额 &lt; 最低下注额时<b>自动弹出 Bonus collection</b>(聚合所有开启活动·一键领取);游戏页加 🎁 浮窗随时唤起;无可领→充值入口。**已整合进 309 bonus collection,复用统一领取**。<i style="color:#999">(子需求 2.1/2.2/3 已剔除)</i></li></ul>
+      <ul class="need"><li>充值会员玩彩票最后一注输/三方退出返平台,余额 &lt; 最低下注额时<b>自动弹出 Bonus collection</b>(聚合所有开启活动·一键领取);游戏页加 🎁 浮窗随时唤起;底部常驻充值引导条·四场景文案统一后缀「想继续游戏?直接充值」。**已整合进 309 bonus collection,复用统一领取**。<i style="color:#999">(子需求 2.1/2.2/3 已剔除)</i></li></ul>
       <div class="links"><a class="go prim" href="http://localhost:8309/claim-unified.html" target="_blank">统一领取+一键领取 ↗</a></div>
     </div>
 
@@ -352,12 +304,6 @@
       <div class="hd"><span class="name">充值赠送详情记录(前端存款页)</span><span class="tag">#27</span><span class="tag" style="background:#f0f0f0;color:#999;border-color:#ddd">⏸ 移出309 · 记入工作日报</span><span class="tag" style="background:#E8F3EC;color:#2E7D4F;border-color:#9AD3AE">🆕原型(留存)</span></div>
       <ul class="need"><li>存款页 You Get = 存款额 + 赠送额可视化(前端,非后台记录页)。<b>deposit 优化已移出 309 范围</b>,原型页留存备查,决议记入 2026-07-01 工作日报。</li></ul>
       <div class="links"><a class="go prim" href="http://localhost:8309/recharge-page.html" target="_blank">充值主页 ↗</a><a class="go" href="http://localhost:8309/deposit-page-frontend.html" target="_blank">存款页(You Get) ↗</a></div>
-    </div>
-
-    <div class="act">
-      <div class="hd"><span class="name">七日集星(原7天三星)</span><span class="tag">#36</span><span class="tag">🔵310</span><span class="tag" style="background:#E8F3EC;color:#2E7D4F;border-color:#9AD3AE">🆕原型</span></div>
-      <ul class="need"><li>独立活动·归活动配置·与VIP无关:7自然日,每天3任务(充值/投注/邀请有效下级),每完成1个=1星(最多21星),集星7/14/21额外彩金;4段位(青铜/白银/黄金/钻石)首次领取锁档;断签不清零、终止才清零。</li></ul>
-      <div class="links"><a class="go prim" href="http://localhost:8309/seven-day-star-doc.html" target="_blank" style="background:#1f1d2b;border-color:#1f1d2b">📖 需求文档 ↗</a><a class="go prim" href="http://localhost:8309/seven-day-star.html" target="_blank">前台 ↗</a><a class="go" href="http://localhost:8309/seven-day-star-admin.html" target="_blank">后台配置 ↗</a><a class="go" href="http://localhost:8309/seven-day-star-report.html" target="_blank">数据统计 ↗</a></div>
     </div>
 
     <div class="act">
@@ -391,7 +337,7 @@
       </ul>
     </div>
 
-    <div class="sub" style="margin-top:18px">归属:<b>309</b> #1 #4 #21 #27 #32 #37 · <b>310</b> #19 #36 · <b>311</b> #6 #7 #8 #14 #17 #23 #24 #25(后台优化·原313+314) · <s>312 取消</s>。<b>#21/#32 已并入 309</b>;313+314 合并为 311。配套文档:《需求汇总-活动相关(剔除不做项).md》。</div>
+    <div class="sub" style="margin-top:18px">归属:<b>309</b> #1 #4 #21 #27 #32 #37 · <b>310</b> #19 · <b>311</b> #6 #7 #8 #14 #17 #23 #24 #25(后台优化·原313+314) · <s>312 取消</s>。<b>#21/#32 已并入 309</b>;313+314 合并为 311。配套文档:《需求汇总-活动相关(剔除不做项).md》。</div>
   </div><!-- /tabSummary -->
 
   <script>

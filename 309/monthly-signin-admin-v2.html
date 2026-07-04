@@ -3,162 +3,547 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>签到配置 · 优化方案2(模版制 31/29/30 天)</title>
+<title>签到配置 · 单模版制(每VIP一套 · 31天 · 全月通用)</title>
 <style>
   :root{--blue:#1456d8;--prim:#6f42c1;--grn:#2E9C5B;--grnbd:#4FB477;--red:#E8505B;--amber:#854F0B;--amberbg:#FBF1DE;--bd:#e6e8ee;--th:#f5f6fa;--t1:#333;--t2:#888;}
   *{box-sizing:border-box;}
   body{margin:0;background:#eef0f4;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);font-size:13px;}
-  .wrap{max-width:1180px;margin:0 auto;padding:16px;}
+  .wrap{max-width:1180px;margin:0 auto;padding:16px 16px 90px;}
   .ptitle{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
   .ptitle h3{color:var(--blue);font-size:18px;margin:0;font-weight:600;}
   .crumb{color:var(--t2);font-size:12px;}
   .card{background:#fff;border:1px solid var(--bd);border-radius:5px;margin-bottom:14px;}
-  .cb{padding:14px 16px;}
+  .cb{padding:12px 16px;}
   .planhd{background:#eaf7ef;border:1px solid #b8e2c8;border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#226c42;line-height:1.7;}
   .planhd b{color:#1a5c36;}
-  .vtabs{display:flex;gap:0;border-bottom:1px solid var(--bd);padding:0 16px;flex-wrap:wrap;}
-  .vtab{padding:11px 16px;cursor:pointer;color:#666;font-size:13px;border-bottom:2px solid transparent;margin-bottom:-1px;}
+  .lockinfo{font-size:12px;color:var(--t2);padding:8px 16px;border-top:1px dashed var(--bd);}
+  /* 顶部吸顶操作区 */
+  .topbar{position:sticky;top:0;z-index:30;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+  .toprow{display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:wrap;}
+  .vtabs{display:flex;gap:0;flex-wrap:wrap;flex:1;}
+  .vtab{padding:8px 14px;cursor:pointer;color:#666;font-size:13px;border-bottom:2px solid transparent;}
   .vtab.on{color:var(--blue);font-weight:700;border-bottom-color:var(--blue);}
-  .ttabs{display:flex;gap:2px;padding:10px 16px 0;background:#fafbfd;border-bottom:1px solid var(--bd);}
-  .ttab{padding:8px 16px;cursor:pointer;color:#666;font-size:13px;border:1px solid transparent;border-radius:6px 6px 0 0;}
-  .ttab.on{color:var(--prim);font-weight:700;background:#fff;border-color:var(--bd);border-bottom-color:#fff;margin-bottom:-1px;}
-  .ttab small{color:var(--t2);font-weight:400;}
-  .viewbar{font-size:12px;color:#555;margin-bottom:10px;}
-  .viewbar .map{background:#f3f0fb;color:var(--prim);border-radius:4px;padding:1px 8px;margin-left:8px;font-size:11px;}
-  .baserow{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:#faf9fc;border:1px solid #eee;border-radius:6px;padding:10px 14px;margin-bottom:12px;}
-  .field{display:flex;align-items:center;gap:8px;} .field>label{color:#555;}
-  .inp{border:1px solid var(--bd);border-radius:5px;padding:6px 10px;font-size:13px;width:90px;} .inp.sm{width:64px;}
+  .secttl{font-weight:700;font-size:14px;color:var(--prim);margin:0 0 10px;}
+  .secttl small{font-weight:400;color:var(--t2);font-size:11px;margin-left:8px;}
+  .field{display:inline-flex;align-items:center;gap:6px;margin-right:14px;}
+  .field>label{color:#555;}
+  .inp{border:1px solid var(--bd);border-radius:5px;padding:6px 10px;font-size:13px;width:90px;}
+  .inp.sm{width:56px;}
   .btn{border:none;border-radius:4px;padding:6px 14px;font-size:12px;cursor:pointer;}
   .btn.fill{background:#fff;border:1px solid var(--prim);color:var(--prim);}
   .btn.prim{background:var(--prim);color:#fff;padding:9px 26px;font-size:14px;}
   .btn.ghost{background:#3a3f4b;color:#fff;padding:9px 22px;font-size:14px;}
-  .btn.add{background:#fff;border:1px dashed var(--grnbd);color:var(--grn);width:100%;padding:8px;margin-top:8px;}
-  .btn.del{background:#fff;border:1px solid #e6a0a5;color:var(--red);padding:3px 10px;}
-  table{width:100%;border-collapse:collapse;} th,td{border:1px solid var(--bd);padding:7px 10px;text-align:center;} th{background:var(--th);color:#555;font-weight:600;}
+  .btn.add{background:#fff;border:1px dashed var(--grnbd);color:var(--grn);padding:6px 14px;}
+  .btn.lnk{background:none;color:var(--t2);text-decoration:underline;padding:6px 4px;}
+  table{width:100%;border-collapse:collapse;}
+  th,td{border:1px solid var(--bd);padding:6px 10px;text-align:center;}
+  th{background:var(--th);color:#555;font-weight:600;}
   td .inp{width:84px;}
-  .scrollbox{max-height:300px;overflow:auto;border:1px solid var(--bd);border-radius:5px;}
+  .scrollbox{max-height:420px;overflow:auto;border:1px solid var(--bd);border-radius:5px;}
+  .scrollbox table{border:none;}
   .scrollbox table th{position:sticky;top:0;z-index:1;}
-  .colttl{font-weight:600;font-size:13px;margin:0 0 8px;}
-  .pkgbox{border:2px dashed var(--prim);background:#faf8ff;border-radius:10px;padding:12px 14px;margin-top:6px;}
-  .pkghd{font-size:13px;font-weight:700;color:var(--prim);margin-bottom:10px;}
+  tr.exc{background:#FFF7E6;}
+  .proj{color:#8a5a12;font-size:11px;text-align:left;min-width:170px;}
+  .dnote{font-size:11px;color:var(--t2);margin-left:4px;}
   .delx{cursor:pointer;color:var(--red);font-size:15px;}
-  .save{display:flex;gap:12px;justify-content:center;padding:6px 0 4px;}
-  .toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;font-size:13px;padding:10px 18px;border-radius:20px;z-index:60;opacity:0;transition:.3s;pointer-events:none;}
+  /* 节点行(chip 流式排布) */
+  .ndrow{display:inline-flex;align-items:center;gap:6px;background:#faf9fc;border:1px solid var(--bd);border-radius:6px;padding:6px 10px;margin:0 10px 8px 0;}
+  .grandrow{background:var(--amberbg);border:1px solid #E6C77A;border-radius:6px;padding:10px 12px;margin-top:6px;display:flex;align-items:center;gap:8px;font-weight:600;color:var(--amber);}
+  /* 补签覆盖度条 */
+  .covwrap{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:#555;}
+  .covbar{display:flex;gap:1px;flex:1;max-width:420px;}
+  .covbar i{flex:1;height:9px;background:#e3e6ea;border-radius:1px;}
+  .covbar i.ok{background:var(--grnbd);}
+  .covbar i.bad{background:var(--red);}
+  .covbar i.lap{background:#ED8B0F;}
+  /* 底部吸底保存栏 */
+  .botbar{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:1180px;background:#fff;border:1px solid var(--bd);border-radius:6px 6px 0 0;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px;z-index:30;box-shadow:0 -2px 10px rgba(0,0,0,.08);}
+  .tipbar{font-size:12px;color:#a5680b;flex:1;line-height:1.6;}
+  .tipbar.okc{color:var(--grn);}
+  /* 跨VIP生成弹窗 */
+  .cmask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:50;}
+  .cmask.on{display:flex;}
+  .cdlg{background:#fff;border-radius:8px;max-width:960px;width:95%;max-height:85vh;overflow:auto;padding:16px 18px;}
+  .cdlg h4{margin:0 0 8px;color:var(--prim);font-size:15px;}
+  .cdlg .hint{font-size:12px;color:#666;background:#faf8ff;border:1px dashed var(--prim);border-radius:6px;padding:8px 10px;margin-bottom:10px;line-height:1.7;}
+  .cdlg td .inp{width:74px;}
+  .cdlg .inp.sug{background:#FFF3CD;}
+  .cdlg .inp.err{border-color:var(--red);background:#FDECEC;}
+  .toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;font-size:13px;padding:10px 18px;border-radius:20px;z-index:60;opacity:0;transition:.3s;pointer-events:none;max-width:80%;}
   .toast.on{opacity:1;}
-  @media(max-width:820px){.baserow{flex-direction:column;align-items:flex-start;}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="ptitle">
-    <h3>签到配置 · 优化方案2(模版制)</h3>
-    <div class="crumb">活动管理 › 签到领奖 › <b>优化方案2</b></div>
+    <h3>签到配置 · 单模版制</h3>
+    <div class="crumb">活动管理 › 签到领奖 › <b>签到配置</b></div>
   </div>
 
   <div class="planhd">
-    <b>方案2 思路</b>:自然月天数只有 31 / 30 / 29(2月) 三种,故把「VIP × 12 个月」简化为「<b>VIP × 3 个模版</b>」——
-    <b>模版1 = 31 天</b>、<b>模版2 = 29 天</b>、<b>模版3 = 30 天</b>。配好后,每个自然月<b>按其天数自动套用</b>对应模版(如 1/3/5/7/8/10/12 月→模版1;2 月→模版2;4/6/9/11 月→模版3),录入量从 12 套降到 3 套。
+    <b>单模版制</b>:每 VIP 仅一套 <b>31 天配置,全月通用</b>;自然月按实际天数 <b>28/29/30/31 自动截断</b>(第 29/30/31 天短月自动不生效),<b>满签大奖恒落当月最后一天</b>。
+    基础值仅用于批量填充、<b>不落库</b>;补签需充值 = <b>当天充值金额 × 倍率</b>(自动计算)。数据模型:《310-月签到-单模版配置数据模型(定稿).md》。
   </div>
 
-  <div class="card">
-    <div class="vtabs" id="vtabs"></div>
-    <div class="ttabs" id="ttabs"></div>
-    <div class="cb">
-      <div class="viewbar" id="viewbar"></div>
-      <div class="baserow">
-        <div class="field"><label>基础每日充值</label><input class="inp" id="bReq" oninput="recalcNeed()"></div>
-        <div class="field"><label>基础每日奖励</label><input class="inp" id="bRwd"></div>
-        <div class="field"><label>补签天数</label><input class="inp sm" id="rsDays" value="5"> 天</div>
-        <button class="btn fill" onclick="fillAll()">↧ 批量填充本模版</button>
-        <button class="btn fill" onclick="copyToTiers()">📋 复制本模版 → 本VIP其他模版</button>
-      </div>
-
-      <div class="pkgbox">
-        <div class="pkghd">📦 本模版配置包 =「每日签到+满签阶梯奖」+「补签分段」</div>
-        <div class="colttl">📅 每日签到 + 满签阶梯奖(本模版 <span id="tDays">31</span> 天)
-          <span style="font-weight:400;color:var(--t2);font-size:11px;margin-left:6px">满签阶梯奖每天可填,填写即满签节点;大奖落模版最后一天</span>
-        </div>
-        <div class="scrollbox">
-          <table><thead><tr><th>天数</th><th>充值金额</th><th>可领取奖金</th><th>满签阶梯奖</th></tr></thead><tbody id="dayBody"></tbody></table>
-        </div>
-        <div style="margin-top:14px">
-          <div class="colttl">📝 补签分段条件</div>
-          <table><thead><tr><th style="width:40px"></th><th>漏签日区间</th><th>充值倍数</th><th>需充值</th><th>补发比例</th></tr></thead><tbody id="rsBody"></tbody></table>
-          <button class="btn add" onclick="addRs()">+ 新增补签分段</button>
-        </div>
-      </div>
-
-      <div class="save">
-        <button class="btn prim" onclick="toast('配置已保存(原型)')">保 存 配 置</button>
-        <button class="btn ghost" onclick="history.back()">↩ 返 回</button>
-      </div>
+  <!-- 顶部吸顶:VIP 切换 + 全局操作 -->
+  <div class="card topbar">
+    <div class="toprow">
+      <div class="vtabs" id="vtabs"></div>
+      <button class="btn fill" onclick="openCopy()">📋 生成/复制到其他 VIP</button>
+      <button class="btn prim" onclick="saveCfg(false)">保 存 配 置</button>
     </div>
+    <div class="lockinfo">ⓘ 会员每月<b>首次签到</b>时自选 ≤ 当前等级的 VIP 路线并<b>锁定当月</b>(中途升级不影响)—— 前台行为,<b>后台无需配置</b>。</div>
   </div>
+
+  <!-- ① 快速配置 -->
+  <div class="card"><div class="cb">
+    <div class="secttl">① 快速配置 <small>基础值仅用于填充,不保存</small></div>
+    <div class="field"><label>基础充值</label><input class="inp" id="qBase"></div>
+    <div class="field"><label>基础奖励</label><input class="inp" id="qRwd"></div>
+    <button class="btn fill" onclick="fillAll()">↧ 一键填充 31 天</button>
+    <span style="margin:0 10px;color:#ddd">|</span>
+    <span class="field"><label>批量修改</label> 第 <input class="inp sm" id="bmA"> – <input class="inp sm" id="bmB"> 天
+      <select class="inp" id="bmF" style="width:96px"><option value="req">充值金额</option><option value="rwd">奖励金额</option></select>
+      改为 <input class="inp" id="bmV"> <button class="btn fill" onclick="bulkMod()">应用</button></span>
+  </div></div>
+
+  <!-- ② 每日签到 -->
+  <div class="card"><div class="cb">
+    <div class="secttl">② 每日签到(31 天) <small>与多数天不同的日子已高亮;🚩 列为奖励节点投影(在 ③ 区配置)</small></div>
+    <div class="scrollbox">
+      <table><thead><tr><th style="width:150px">天数</th><th>充值金额</th><th>奖励金额</th><th style="width:200px">奖励节点(只读投影)</th></tr></thead><tbody id="dayBody"></tbody></table>
+    </div>
+  </div></div>
+
+  <!-- ③ 连续签到奖励 -->
+  <div class="card"><div class="cb">
+    <div class="secttl">③ 签到奖励节点(Milestone) <small>节点可自由增删;达成口径由「奖励判定方式」决定(均含补签)</small></div>
+    <div style="margin-bottom:8px;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+      <span class="field"><label><b>奖励判定方式</b></label>
+        <label style="cursor:pointer;color:#333"><input type="radio" name="msMode" value="streak" onchange="onMsMode(this)"> 连续签到奖励</label>
+        <label style="cursor:pointer;color:#333"><input type="radio" name="msMode" value="total" onchange="onMsMode(this)"> 累计签到奖励</label>
+      </span>
+      <span class="dnote" id="msModeNote"></span>
+    </div>
+    <div style="margin-bottom:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <span class="field"><label><b>领奖有效期</b></label>
+        <select class="inp" id="cwType" style="width:220px" onchange="onCw()">
+          <option value="1">当月最后一天 23:59 前领取</option>
+          <option value="2">达成后 N 天内领取</option>
+          <option value="0">不限期</option>
+        </select>
+        <span id="cwDaysWrap" style="display:none">N = <input class="inp sm" id="cwDays" oninput="onCw()"> 天</span>
+      </span>
+      <span class="dnote">作用于全部节点与满签大奖;达成即发放,逾期未领自动失效、不冲账(同 309 统一领取口径)</span>
+    </div>
+    <div id="ndBody" style="margin-bottom:4px"></div>
+    <button class="btn add" onclick="addNode()">+ 新增节点</button>
+    <button class="btn add" onclick="quickNodes()">+ 常用节点 3/7/15</button>
+    <button class="btn lnk" onclick="clearNodes()">清空节点</button>
+    <div style="border:1px dashed var(--prim);background:#faf8ff;border-radius:6px;padding:8px 12px;margin:10px 0 6px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <b style="color:var(--prim);font-size:12px">⚡ 批量生成节点(辅助工具·参数不保存)</b>
+      <span class="field"><label>每</label><input class="inp sm" id="gnStep" value="5"><label>天一节点</label></span>
+      <span class="field"><label>首节点奖</label><input class="inp sm" id="gnFirst" value="50"></span>
+      <span class="field"><label>递增</label><select class="inp" id="gnMode" style="width:110px" onchange="swapPh(this,'gnVal')"><option value="inc">固定增量 +</option><option value="ratio">倍率 ×</option></select><input class="inp sm" id="gnVal" value="50"></span>
+      <span class="field"><label>最高上限(=满签大奖)</label><input class="inp sm" id="gnCap" value="300"></span>
+      <button class="btn fill" onclick="genNodes()">生成节点</button>
+    </div>
+    <div class="grandrow">🏆 满签大奖(<span id="grandQual">连续</span>签满整月):<input class="inp" id="grand" oninput="onGrand(this)"> <span class="dnote">固定项不可删 · 自动落当月最后一天(28/29/30/31)</span></div>
+  </div></div>
+
+  <!-- ④ 补签规则 -->
+  <div class="card"><div class="cb">
+    <div class="secttl">④ 补签规则 <small>补签需充值自动计算,无需录入;补发奖励 = 当天奖励 × 补发比例</small></div>
+    <div class="field" style="margin-bottom:10px"><label>可补签最近</label><input class="inp sm" id="resign" oninput="onResign(this)"> 天</div>
+    <table><thead><tr><th style="width:40px"></th><th>漏签日区间</th><th>倍率</th><th>补发比例</th><th>补签需充值(自动)</th></tr></thead><tbody id="segBody"></tbody></table>
+    <div style="margin-top:8px">
+      <button class="btn add" onclick="addSeg()">+ 新增分段</button>
+      <button class="btn fill" onclick="resetSegs()">恢复默认分段</button>
+    </div>
+    <div class="covwrap"><span>覆盖度</span><div class="covbar" id="covbar"></div><span id="covtxt"></span></div>
+  </div></div>
 </div>
+
+<!-- 底部吸底:软提示 + 保存 -->
+<div class="botbar">
+  <div class="tipbar" id="tipbar"></div>
+  <button class="btn prim" onclick="saveCfg(false)">保 存 配 置</button>
+  <button class="btn ghost" onclick="saveCfg(true)">保存并配置下一 VIP →</button>
+</div>
+
+<!-- 跨VIP生成弹窗 -->
+<div class="cmask" id="cmask"><div class="cdlg">
+  <h4>📋 生成/复制到其他 VIP(源:<span id="cpSrc"></span>)</h4>
+  <div class="hint">结构照源复制:节点分布、奖励判定方式、领奖有效期、补签分段/倍率/补发比例、补签天数;<b>每格需明确填写数字</b> —— <b>灰色数字 = 源 VIP 当前值,仅供参考,不是已填值</b>。推荐操作:设置下方<b>递增方式</b>(充值与奖励可分别选「倍率」或「固定增量」)→ <b>[按递增生成建议值]</b> 从源 VIP 起逐级自动算出全部建议值(<span style="background:#FFF3CD;padding:0 4px">黄底=建议值</span>,改过变白,可逐格手调)。源模版逐日手改值不带入,目标 31 天按基础值生成。</div>
+  <div style="margin-bottom:8px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+    <span class="field"><label>充值递增</label><select class="inp" id="gwBaseM" style="width:110px" onchange="swapPh(this,'gwBaseV')"><option value="ratio">倍率 ×</option><option value="inc">固定增量 +</option></select><input class="inp sm" id="gwBaseV" placeholder="如 1.1"></span>
+    <span class="field"><label>奖励递增(含节点/大奖)</label><select class="inp" id="gwRwdM" style="width:110px" onchange="swapPh(this,'gwRwdV')"><option value="ratio">倍率 ×</option><option value="inc">固定增量 +</option></select><input class="inp sm" id="gwRwdV" placeholder="如 1.1"></span>
+    <button class="btn fill" onclick="fillByGrowth()">⚡ 按递增生成建议值</button>
+  </div>
+  <div style="max-height:46vh;overflow:auto"><table id="cpTbl"></table></div>
+  <div style="display:flex;gap:12px;justify-content:center;margin-top:14px">
+    <button class="btn prim" onclick="doGenerate()">生 成</button>
+    <button class="btn ghost" onclick="closeCopy()">取 消</button>
+  </div>
+</div></div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-  // 模版:T1=31天 T2=29天 T3=30天;每 VIP 各 3 套
-  const TPL=[{k:'T1',name:'模版1',days:31,map:'1/3/5/7/8/10/12 月'},{k:'T2',name:'模版2',days:29,map:'2 月'},{k:'T3',name:'模版3',days:30,map:'4/6/9/11 月'}];
-  const SEG=[{s:1,e:5,m:0},{s:6,e:10,m:0},{s:11,e:15,m:0},{s:16,e:20,m:0},{s:21,e:25,m:0},{s:26,e:31,m:0}];
-  function mkT(base,reward,ms){ return {base:base,reward:reward,ms:Object.assign({},ms)}; }
-  function mkVip(base,reward,ms){ const o={}; TPL.forEach(t=>o[t.k]=mkT(base,reward,ms)); return o; }
-  const VIPS={};
-  [[1,100,2,{31:100}],[2,200,5,{31:200}],[3,500,12,{31:500}],[4,800,20,{31:800}],[5,1000,30,{3:30,7:100,15:300,31:1000}],
-   [6,2000,70,{31:2000}],[7,3000,120,{31:3000}],[8,5000,200,{31:6000}],[9,7000,320,{31:9000}],[10,10000,500,{31:15000}]]
-   .forEach(a=>VIPS[a[0]]=mkVip(a[1],a[2],a[3]));
-  let cur=1, curT='T1';
-  function tplOf(k){ return TPL.find(t=>t.k===k); }
+  // 单模版制:每 VIP 一套 = 每日31天(days) + 连续奖励节点(nodes) + 满签大奖(grand) + 补签天数(resign) + 补签分段(segs)
+  // 数据模型见《310-月签到-单模版配置数据模型(定稿).md》;基础值为瞬时填充辅助,不落库
+  var DEF_SEG=[{s:1,e:5,m:2,r:50},{s:6,e:10,m:3,r:50},{s:11,e:15,m:4,r:50},{s:16,e:20,m:6,r:50},{s:21,e:25,m:8,r:50},{s:26,e:31,m:10,r:50}];
+  function mkDays(req,rwd){ var a=[]; for(var i=0;i<31;i++)a.push({req:String(req),rwd:String(rwd)}); return a; }
+  function cpSegs(sg){ return sg.map(function(x){return {s:x.s,e:x.e,m:x.m,r:x.r};}); }
+  var VIPS={};
+  [[1,100,2,{},100],[2,200,5,{},200],[3,500,12,{},500],[4,800,20,{},800],
+   [5,1000,30,{3:30,7:100,15:300},1000],[6,2000,70,{},2000],[7,3000,120,{},3000],
+   [8,5000,200,{},6000],[9,7000,320,{},9000],[10,10000,500,{},15000]]
+   .forEach(function(a){
+     var nodes=Object.keys(a[3]).map(function(k){return {n:+k,amt:String(a[3][k])};});
+     VIPS[a[0]]={days:mkDays(a[1],a[2]),nodes:nodes,grand:String(a[4]),resign:'5',segs:cpSegs(DEF_SEG),base:String(a[1]),brwd:String(a[2]),msMode:'streak',cwType:'1',cwDays:'7',dirty:false};
+   });
+  var cur=1;
+  function V(){ return VIPS[cur]; }
+  function num(x){ var n=parseFloat(x); return isNaN(n)?null:n; }
+  function markDirty(){ V().dirty=true; renderVip(); }
 
+  /* ===== 顶部 VIP tabs ===== */
   function renderVip(){
-    const t=document.getElementById('vtabs'); t.innerHTML='';
-    Object.keys(VIPS).map(Number).sort((a,b)=>a-b).forEach(v=>{
-      const d=document.createElement('div'); d.className='vtab'+(v===cur?' on':''); d.textContent='VIP'+v; d.onclick=()=>{cur=v;render();}; t.appendChild(d);
+    var t=document.getElementById('vtabs'); t.innerHTML='';
+    Object.keys(VIPS).map(Number).sort(function(a,b){return a-b;}).forEach(function(v){
+      var d=document.createElement('div'); d.className='vtab'+(v===cur?' on':'');
+      d.textContent='VIP'+v+(VIPS[v].dirty?' •':'');
+      d.onclick=function(){ cur=v; renderAll(); };
+      t.appendChild(d);
     });
   }
-  function renderTpl(){
-    const t=document.getElementById('ttabs'); t.innerHTML='';
-    TPL.forEach(tp=>{ const d=document.createElement('div'); d.className='ttab'+(tp.k===curT?' on':'');
-      d.innerHTML=tp.name+' <small>('+tp.days+'天)</small>'; d.onclick=()=>{curT=tp.k;render();}; t.appendChild(d); });
-  }
-  function render(){
-    renderVip(); renderTpl();
-    const r=VIPS[cur][curT], tp=tplOf(curT), N=tp.days;
-    document.getElementById('viewbar').innerHTML='当前:<b>VIP'+cur+' · '+tp.name+'('+N+' 天)</b><span class="map">自动套用月份:'+tp.map+'</span>';
-    document.getElementById('bReq').value=r.base; document.getElementById('bRwd').value=r.reward; document.getElementById('tDays').textContent=N;
-    let rows='';
-    for(let d=1;d<=N;d++){
-      let msv=''; if(r.ms){ if(d===N&&r.ms[31]!=null) msv=r.ms[31]; else if(r.ms[d]!=null) msv=r.ms[d]; }
-      rows+='<tr><td>'+d+' 天'+(d===N?'(月末)':'')+'</td>'+
-        '<td><input class="inp" value="'+r.base+'"></td><td><input class="inp" value="'+r.reward+'"></td>'+
-        '<td><input class="inp sm" value="'+msv+'" placeholder="无奖"></td></tr>';
+
+  /* ===== ② 每日签到 ===== */
+  function renderDays(){
+    var r=V(), rows='';
+    for(var d=1;d<=31;d++){
+      var dd=r.days[d-1], note='';
+      if(d===29)note='<span class="dnote">仅≥29天月生效</span>';
+      if(d===30)note='<span class="dnote">仅≥30天月生效</span>';
+      if(d===31)note='<span class="dnote">每日配置仅31天月生效</span>';
+      rows+='<tr id="dr'+d+'"><td style="white-space:nowrap;text-align:left">'+d+' 天'+(d===31?'(月末)':'')+' '+note+'</td>'
+        +'<td><input class="inp" value="'+dd.req+'" oninput="onDay('+d+',\'req\',this)"></td>'
+        +'<td><input class="inp" value="'+dd.rwd+'" oninput="onDay('+d+',\'rwd\',this)"></td>'
+        +'<td class="proj" id="pj'+d+'"></td></tr>';
     }
     document.getElementById('dayBody').innerHTML=rows;
-    document.getElementById('rsBody').innerHTML=SEG.map(x=>rsRow(x.s,x.e,x.m,r.base)).join('');
-    recalcNeed();
+    paintDays(); paintProj();
   }
-  function rsRow(s,e,m,base){
-    return '<tr><td><span class="delx" onclick="delRs(this)" title="删除">🗑</span></td>'+
-      '<td>第 <input class="inp" style="width:48px" value="'+s+'"> – <input class="inp" style="width:48px" value="'+e+'"> 天</td>'+
-      '<td><input class="inp sm seg-mult" value="'+m+'" oninput="recalcNeed()"> 倍</td><td class="seg-need">'+(base*m).toLocaleString()+'</td><td><input class="inp sm" value="50"> %</td></tr>';
+  function mode(list){ var c={},best=null,bn=0; list.forEach(function(x){ c[x]=(c[x]||0)+1; if(c[x]>bn){bn=c[x];best=x;} }); return best; }
+  function paintDays(){ // 例外日高亮 = 与多数天不同
+    var r=V(), mReq=mode(r.days.map(function(x){return x.req;})), mRwd=mode(r.days.map(function(x){return x.rwd;}));
+    for(var d=1;d<=31;d++){ var tr=document.getElementById('dr'+d); if(!tr)continue;
+      var dd=r.days[d-1]; tr.className=(dd.req!==mReq||dd.rwd!==mRwd)?'exc':''; }
   }
-  function addRs(){ const tr=document.createElement('tr'); tr.innerHTML='<td><span class="delx" onclick="delRs(this)">🗑</span></td><td>第 <input class="inp" style="width:48px"> – <input class="inp" style="width:48px"> 天</td><td><input class="inp sm seg-mult" oninput="recalcNeed()"> 倍</td><td class="seg-need">—</td><td><input class="inp sm" value="50"> %</td>'; document.getElementById('rsBody').appendChild(tr); recalcNeed(); }
-  // 需充值 = 基础每日充值 × 本行倍数(随两者联动)
-  function recalcNeed(){
-    const base=parseFloat(document.getElementById('bReq').value)||0;
-    document.querySelectorAll('#rsBody tr').forEach(tr=>{
-      const mi=tr.querySelector('.seg-mult'), nc=tr.querySelector('.seg-need');
-      if(!mi||!nc) return;
-      const m=parseFloat(mi.value);
-      nc.textContent=(mi.value===''||isNaN(m))?'—':(base*m).toLocaleString();
+  function paintProj(){ // 连续奖励投影(只读)
+    var r=V();
+    for(var d=1;d<=31;d++){ var td=document.getElementById('pj'+d); if(!td)continue;
+      var arr=[];
+      r.nodes.forEach(function(nd){ if(+nd.n===d) arr.push('🚩 '+mw()+' '+d+' 天 · 奖 '+(nd.amt||'未填')); });
+      if(d===31) arr.push('🏆 满签大奖 '+(r.grand||'未填')+' · 自动落当月最后一天');
+      td.innerHTML=arr.join('<br>');
+    }
+  }
+  function onDay(d,f,el){ V().days[d-1][f]=el.value.trim(); markDirty(); paintDays(); refreshSegDerive(); refreshTips(); }
+  function fillAll(){
+    var b=document.getElementById('qBase').value.trim(), w=document.getElementById('qRwd').value.trim();
+    if(b===''&&w===''){ toast('请先填写基础充值 / 基础奖励'); return; }
+    var r=V(); r.base=b; r.brwd=w;
+    r.days.forEach(function(dd){ if(b!=='')dd.req=b; if(w!=='')dd.rwd=w; });
+    renderDays(); refreshSegDerive(); refreshTips(); markDirty();
+    toast('已填充 31 天(基础值仅用于填充,不保存)');
+  }
+  function bulkMod(){
+    var a=parseInt(document.getElementById('bmA').value), b=parseInt(document.getElementById('bmB').value),
+        f=document.getElementById('bmF').value, v=document.getElementById('bmV').value.trim();
+    if(isNaN(a)||isNaN(b)||v===''){ toast('请填写完整:起止天数与数值'); return; }
+    if(a>b){ var t0=a;a=b;b=t0; }
+    a=Math.max(1,a); b=Math.min(31,b);
+    var r=V(); for(var d=a;d<=b;d++) r.days[d-1][f]=v;
+    renderDays(); refreshSegDerive(); refreshTips(); markDirty();
+    toast('已修改第 '+a+'–'+b+' 天的'+(f==='req'?'充值金额':'奖励金额'));
+  }
+
+  /* ===== ③ 连续签到奖励 ===== */
+  function renderNodes(){
+    var r=V(), h='';
+    r.nodes.sort(function(a,b){ return (+a.n||99)-(+b.n||99); });
+    var w=mw();
+    r.nodes.forEach(function(nd,i){
+      h+='<span class="ndrow">'+w+' <input class="inp sm" id="ndn'+i+'" value="'+nd.n+'" onchange="onNodeN('+i+',this)"> 天 → 奖 '
+        +'<input class="inp" id="nda'+i+'" value="'+nd.amt+'" oninput="onNodeA('+i+',this)"> '
+        +'<span class="delx" onclick="delNode('+i+')" title="删除节点">🗑</span></span>';
+    });
+    document.getElementById('ndBody').innerHTML=h||'<span class="dnote">暂无节点 —— 可点下方「常用节点 3/7/15」快速添加</span>';
+    document.getElementById('grand').value=r.grand;
+    var q=document.getElementById('grandQual'); if(q)q.textContent=w;
+    paintProj();
+  }
+  function onNodeN(i,el){
+    var r=V(), val=parseInt(el.value);
+    if(isNaN(val)||val<2||val>31){ toast('节点天数需在 2–31 之间'); el.value=r.nodes[i].n; return; }
+    var dup=-1; r.nodes.forEach(function(nd,j){ if(j!==i&&+nd.n===val) dup=j; });
+    if(dup>=0){ // 设计掉重复:定位既有节点
+      el.value=r.nodes[i].n;
+      toast('「'+mw()+' '+val+' 天」已存在,已为你定位到该节点');
+      var ex=document.getElementById('nda'+dup); if(ex){ ex.focus(); ex.select&&ex.select(); }
+      return;
+    }
+    r.nodes[i].n=val; markDirty(); renderNodes(); refreshTips();
+  }
+  function onNodeA(i,el){ V().nodes[i].amt=el.value.trim(); markDirty(); paintProj(); refreshTips(); }
+  function delNode(i){ V().nodes.splice(i,1); markDirty(); renderNodes(); refreshTips(); }
+  function addNode(){ V().nodes.push({n:'',amt:''}); renderNodes(); var last=V().nodes.length-1; var el=document.getElementById('ndn'+last); if(el)el.focus(); }
+  function quickNodes(){
+    var r=V(), added=0;
+    [3,7,15].forEach(function(t){ if(!r.nodes.some(function(nd){return +nd.n===t;})){ r.nodes.push({n:t,amt:''}); added++; } });
+    renderNodes(); refreshTips(); if(added)markDirty();
+    toast(added?('已添加 '+added+' 个常用节点,请填写奖励'):'常用节点 3/7/15 已存在');
+  }
+  function clearNodes(){
+    if(!V().nodes.length){ toast('当前没有节点'); return; }
+    if(!confirm('清空全部连续签到节点?(满签大奖保留)')) return;
+    V().nodes=[]; markDirty(); renderNodes(); refreshTips();
+  }
+  function genNodes(){ // 批量生成节点:中间节点生成到 ≤28 天(保证 2 月也可达);满签大奖 = 最高上限,自动落当月最后一天
+    var step=parseInt(document.getElementById('gnStep').value), first=num(document.getElementById('gnFirst').value),
+        mode=document.getElementById('gnMode').value, p=num(document.getElementById('gnVal').value),
+        cap=num(document.getElementById('gnCap').value);
+    if(!step||step<2||first===null||p===null||cap===null){ toast('请填完整:间隔天数(≥2)/首节点奖/递增参数/最高上限'); return; }
+    var r=V();
+    if(r.nodes.length&&!confirm('将清空现有 '+r.nodes.length+' 个节点并按规则重新生成,继续?'))return;
+    var nodes=[], clamp=0;
+    for(var k=1;k*step<=28;k++){
+      var val=Math.round(mode==='ratio' ? first*Math.pow(p,k-1) : first+p*(k-1));
+      if(val>cap){ val=cap; clamp++; }
+      nodes.push({n:k*step,amt:String(val)});
+    }
+    r.nodes=nodes; r.grand=String(cap);
+    markDirty(); renderNodes(); refreshTips();
+    toast('已生成 '+nodes.length+' 个节点(每 '+step+' 天),满签大奖 = 上限 '+cap+(clamp?';'+clamp+' 个中间节点超上限已截为上限':'')+';可逐个手调');
+  }
+  function mw(){ return V().msMode==='total'?'累计':'连续'; } // 判定方式用词:连续 / 累计
+  function onMsMode(el){ V().msMode=el.value; markDirty(); renderNodes(); refreshTips(); msNote(); }
+  function msNote(){ var n=document.getElementById('msModeNote'); if(!n)return;
+    n.textContent = V().msMode==='total'
+      ? '当月累计签到天数达标即可领取,允许中间间断,补签计入累计;仅影响本区奖励判定,不涉每日奖励与补签规则'
+      : '必须连续签到达标才能领取,中途断签(未补签)连续天数重新计算,补签可续上连续;仅影响本区奖励判定,不涉每日奖励与补签规则'; }
+  function onCw(){ var r=V(); r.cwType=document.getElementById('cwType').value; r.cwDays=document.getElementById('cwDays').value.trim();
+    document.getElementById('cwDaysWrap').style.display = r.cwType==='2'?'':'none';
+    markDirty(); refreshTips(); }
+  function onGrand(el){ V().grand=el.value.trim(); markDirty(); paintProj(); refreshTips(); }
+  function onResign(el){ V().resign=el.value.trim(); markDirty(); refreshTips(); }
+
+  /* ===== ④ 补签分段 ===== */
+  function renderSegs(){
+    var r=V(), h='';
+    r.segs.forEach(function(sg,i){
+      h+='<tr><td><span class="delx" onclick="delSeg('+i+')" title="删除">🗑</span></td>'
+        +'<td>第 <input class="inp sm" value="'+sg.s+'" onchange="onSeg('+i+',\'s\',this)"> – <input class="inp sm" value="'+sg.e+'" onchange="onSeg('+i+',\'e\',this)"> 天</td>'
+        +'<td><input class="inp sm" value="'+sg.m+'" oninput="onSeg('+i+',\'m\',this)"> 倍</td>'
+        +'<td><input class="inp sm" value="'+sg.r+'" oninput="onSeg('+i+',\'r\',this)"> %</td>'
+        +'<td class="dnote" style="font-size:12px" id="sd'+i+'">—</td></tr>';
+    });
+    document.getElementById('segBody').innerHTML=h;
+    document.getElementById('resign').value=r.resign;
+    refreshSegDerive(); refreshCov();
+  }
+  function onSeg(i,f,el){
+    var v=el.value.trim(); V().segs[i][f]=(f==='s'||f==='e')?(parseInt(v)||''):v;
+    markDirty(); refreshSegDerive(); refreshCov(); refreshTips();
+  }
+  function delSeg(i){ V().segs.splice(i,1); markDirty(); renderSegs(); refreshTips(); }
+  function addSeg(){ V().segs.push({s:'',e:'',m:'',r:50}); renderSegs(); }
+  function resetSegs(){ V().segs=cpSegs(DEF_SEG); markDirty(); renderSegs(); refreshTips(); toast('已恢复默认分段(1-5×2 / 6-10×3 / 11-15×4 / 16-20×6 / 21-25×8 / 26-31×10,比例50%)'); }
+  function refreshSegDerive(){ // 补签需充值 = 当天充值 × 倍率(区间内取值展示)
+    var r=V();
+    r.segs.forEach(function(sg,i){
+      var td=document.getElementById('sd'+i); if(!td)return;
+      var s=parseInt(sg.s), e=parseInt(sg.e), m=parseFloat(sg.m);
+      if(isNaN(s)||isNaN(e)||isNaN(m)){ td.textContent='—'; return; }
+      var lo=null,hi=null;
+      for(var d=Math.max(1,s);d<=Math.min(31,e);d++){ var q=num(r.days[d-1].req); if(q===null)continue; var x=q*m; if(lo===null||x<lo)lo=x; if(hi===null||x>hi)hi=x; }
+      td.textContent = lo===null ? '—' : ('=当天充值×'+m+'('+(lo===hi?lo.toLocaleString():(lo.toLocaleString()+'–'+hi.toLocaleString()))+')');
     });
   }
-  function delRs(el){ el.closest('tr').remove(); }
-  function fillAll(){ const req=document.getElementById('bReq').value, rwd=document.getElementById('bRwd').value;
-    document.querySelectorAll('#dayBody tr').forEach(tr=>{ const i=tr.querySelectorAll('input'); i[0].value=req; i[1].value=rwd; }); toast('已填充本模版全部天数'); }
-  function copyToTiers(){ const src=VIPS[cur][curT]; TPL.forEach(t=>{ if(t.k!==curT) VIPS[cur][t.k]=mkT(src.base,src.reward,src.ms); }); render(); toast('已复制本模版到本 VIP 其他模版'); }
-  let tmr=null; function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tmr); tmr=setTimeout(()=>t.classList.remove('on'),3000); }
-  render();
+  function segCover(){ // 覆盖统计:0=缺 1=正常 >1=重叠
+    var cov=[]; for(var i=0;i<31;i++)cov.push(0);
+    V().segs.forEach(function(sg){ var s=parseInt(sg.s), e=parseInt(sg.e); if(isNaN(s)||isNaN(e))return;
+      for(var d=Math.max(1,s);d<=Math.min(31,e);d++)cov[d-1]++; });
+    return cov;
+  }
+  function rangesOf(cov,pred){ // 把满足条件的天合并成区间文本
+    var out=[],st=null;
+    for(var d=1;d<=31;d++){ var hit=pred(cov[d-1]);
+      if(hit&&st===null)st=d;
+      if((!hit||d===31)&&st!==null){ var en=hit?d:d-1; out.push(st===en?String(st):(st+'–'+en)); st=null; } }
+    return out;
+  }
+  function refreshCov(){
+    var cov=segCover(), bar=document.getElementById('covbar'), tx=document.getElementById('covtxt'), h='';
+    for(var i=0;i<31;i++) h+='<i class="'+(cov[i]===0?'bad':(cov[i]>1?'lap':'ok'))+'" title="第'+(i+1)+'天"></i>';
+    bar.innerHTML=h;
+    var gaps=rangesOf(cov,function(c){return c===0;}), laps=rangesOf(cov,function(c){return c>1;});
+    var msg=[];
+    if(!gaps.length&&!laps.length)msg.push('1–31 ✓');
+    if(gaps.length)msg.push('缺 '+gaps.join('、'));
+    if(laps.length)msg.push('重叠 '+laps.join('、'));
+    tx.textContent=msg.join(' · ');
+    tx.style.color=(gaps.length||laps.length)?'#c0392b':'#2E9C5B';
+  }
+
+  /* ===== 软提示(不阻断) ===== */
+  function calcTips(){
+    var t=[], r=V();
+    var er=0, zero=[];
+    r.days.forEach(function(dd,i){ if(dd.req===''||dd.rwd==='')er++; if(num(dd.req)===0)zero.push(i+1); });
+    if(er)t.push(er+' 天的充值/奖励未填');
+    if(zero.length)t.push('第 '+zero.slice(0,5).join('/')+(zero.length>5?'…':'')+' 天充值为 0:该天免费签到,补签也免费');
+    var nEmpty=false;
+    r.nodes.forEach(function(nd){
+      if(nd.n===''||nd.amt==='')nEmpty=true;
+      else{ if(+nd.n>28)t.push('「'+mw()+' '+nd.n+' 天」在 2 月(28天)不可达');
+            if(+nd.n===31)t.push('「'+mw()+' 31 天」与满签大奖重合,以满签大奖为准'); }
+    });
+    if(nEmpty)t.push('有连续签到节点未填完整');
+    if(r.grand==='')t.push('满签大奖未填');
+    if(r.resign===''||num(r.resign)===null)t.push('补签天数未填');
+    if(r.cwType==='2'&&(num(r.cwDays)===null||num(r.cwDays)<1))t.push('领奖有效期「达成后 N 天」的天数未填');
+    var cov=segCover(), gaps=rangesOf(cov,function(c){return c===0;}), laps=rangesOf(cov,function(c){return c>1;});
+    if(gaps.length)t.push('补签分段未覆盖:缺 '+gaps.join('、'));
+    if(laps.length)t.push('补签分段重叠:'+laps.join('、'));
+    for(var v=2;v<=10;v++){ var a=VIPS[v-1],b=VIPS[v];
+      if(num(b.grand)!==null&&num(a.grand)!==null&&num(b.grand)<num(a.grand))t.push('VIP'+v+' 满签大奖('+b.grand+')低于 VIP'+(v-1)+'('+a.grand+')'); }
+    return t.filter(function(x,i){ return t.indexOf(x)===i; });
+  }
+  function refreshTips(){
+    var t=calcTips(), el=document.getElementById('tipbar');
+    if(!t.length){ el.className='tipbar okc'; el.textContent='✓ 暂无提示'; }
+    else{ el.className='tipbar'; el.innerHTML='⚠ '+t.slice(0,3).join(' · ')+(t.length>3?' · 等 '+t.length+' 项':''); }
+  }
+
+  /* ===== 保存 ===== */
+  function saveCfg(next){
+    var t=calcTips(); refreshTips();
+    V().dirty=false; renderVip();
+    toast('VIP'+cur+' 配置已保存(原型)'+(t.length?' · '+t.length+' 条软提示见底部,不阻断':''));
+    if(next){ if(cur>=10){ toast('已是最后一个 VIP(VIP10)'); return; } cur++; renderAll(); }
+  }
+
+  /* ===== 跨VIP生成弹窗 ===== */
+  function srcVals(){
+    var r=V(), ths=r.nodes.filter(function(nd){return nd.n!=='';}).map(function(nd){return +nd.n;}).sort(function(a,b){return a-b;});
+    var mReq=mode(r.days.map(function(x){return x.req;})), mRwd=mode(r.days.map(function(x){return x.rwd;}));
+    var nv={}; r.nodes.forEach(function(nd){ if(nd.n!=='')nv[+nd.n]=nd.amt; });
+    return {ths:ths, base:mReq, rwd:mRwd, nodes:nv, grand:r.grand};
+  }
+  function openCopy(){
+    var sv=srcVals();
+    document.getElementById('cpSrc').textContent='VIP'+cur;
+    var h='<thead><tr><th>选</th><th>VIP</th><th>基础充值</th><th>基础奖励</th>';
+    sv.ths.forEach(function(t){ h+='<th>连续'+t+'天</th>'; });
+    h+='<th>满签大奖</th><th style="min-width:120px">说明</th></tr></thead><tbody>';
+    for(var v=1;v<=10;v++){ if(v===cur)continue;
+      h+='<tr data-v="'+v+'"><td><input type="checkbox" class="cpk"></td><td>VIP'+v+'</td>'
+        +'<td><input class="inp cpv" data-k="base" data-s="'+sv.base+'" placeholder="'+sv.base+'" oninput="unsug(this)"></td>'
+        +'<td><input class="inp cpv" data-k="rwd" data-s="'+sv.rwd+'" placeholder="'+sv.rwd+'" oninput="unsug(this)"></td>';
+      sv.ths.forEach(function(t){ h+='<td><input class="inp cpv" data-k="n'+t+'" data-s="'+sv.nodes[t]+'" placeholder="'+sv.nodes[t]+'" oninput="unsug(this)"></td>'; });
+      h+='<td><input class="inp cpv" data-k="grand" data-s="'+sv.grand+'" placeholder="'+sv.grand+'" oninput="unsug(this)"></td>'
+        +'<td class="dnote">已有配置,生成将覆盖</td></tr>';
+    }
+    h+='</tbody>';
+    document.getElementById('cpTbl').innerHTML=h;
+    document.getElementById('cmask').classList.add('on');
+  }
+  function closeCopy(){ document.getElementById('cmask').classList.remove('on'); }
+  function unsug(el){ el.classList.remove('sug'); el.classList.remove('err'); }
+  function swapPh(sel,inpId){ var el=document.getElementById(inpId); if(el)el.placeholder = sel.value==='ratio' ? '如 1.1' : '如 100'; } // 切换模式时示例提示跟随
+  function parseNum(v){ var m=String(v).replace(/,/g,'.').match(/-?\d+(\.\d+)?/); return m?parseFloat(m[0]):NaN; } // 容错:×1.1 / +100 / 1.1倍 都识别
+  function fillByGrowth(){ // VIP 递增生成:从源 VIP 起,按等级差逐级递推(倍率=幂次,增量=线性;向低档为除/减)
+    var bm=document.getElementById('gwBaseM').value, bv=parseNum(document.getElementById('gwBaseV').value);
+    var rm=document.getElementById('gwRwdM').value, rv=parseNum(document.getElementById('gwRwdV').value);
+    if(isNaN(bv)||isNaN(rv)){ toast('请先填写「充值递增」与「奖励递增」参数(如 倍率 1.1 / 增量 100)'); return; }
+    if((bm==='ratio'&&bv<=0)||(rm==='ratio'&&rv<=0)){ toast('倍率必须大于 0(如 1.1)'); return; }
+    var manual=0;
+    document.querySelectorAll('#cpTbl .cpv').forEach(function(el){ if(el.value!==''&&!el.classList.contains('sug'))manual++; });
+    var overwrite=false;
+    if(manual)overwrite=confirm('检测到 '+manual+' 个已手填值:「确定」= 一并覆盖重算;「取消」= 保留手填,仅生成其余格子');
+    var grow=function(s,mode,p,steps){ return mode==='ratio' ? s*Math.pow(p,steps) : s+p*steps; };
+    var n=0, clamp=0, noSrc=false;
+    document.querySelectorAll('#cpTbl tbody tr').forEach(function(tr){
+      var v=+tr.getAttribute('data-v'), steps=v-cur;
+      tr.querySelectorAll('.cpv').forEach(function(el){
+        if(el.value!==''&&!el.classList.contains('sug')&&!overwrite)return;
+        var s=num(el.getAttribute('data-s')); if(s===null){ noSrc=true; return; }
+        var isBase=el.getAttribute('data-k')==='base';
+        var val=Math.round(grow(s,isBase?bm:rm,isBase?bv:rv,steps));
+        if(val<0){ val=0; clamp++; }
+        el.value=val; el.classList.add('sug'); el.classList.remove('err'); n++;
+      });
+      var ck=tr.querySelector('.cpk'); if(ck)ck.checked=true;
+    });
+    var msg=[];
+    if(n)msg.push('已按递增生成 '+n+' 个建议值(黄底),可逐格手调');
+    if(clamp)msg.push(clamp+' 个负值已按 0 处理(固定增量向低档递减时注意)');
+    if(noSrc)msg.push('部分列源 VIP 未填值(如节点奖励),无法推算,请手动填写');
+    if(!msg.length)msg.push('无可生成的格子');
+    toast(msg.join(';'));
+  }
+  var K_LABEL={base:'基础充值',rwd:'基础奖励',grand:'满签大奖'};
+  function kLabel(k){ return K_LABEL[k]||('连续'+k.slice(1)+'天'); }
+  function doGenerate(){
+    var rows=[], sug=0, probs=[];
+    document.querySelectorAll('#cpTbl .cpv.err').forEach(function(el){ el.classList.remove('err'); });
+    document.querySelectorAll('#cpTbl tbody tr').forEach(function(tr){
+      if(!tr.querySelector('.cpk').checked)return;
+      var v=+tr.getAttribute('data-v'), vals={}, miss=[];
+      tr.querySelectorAll('.cpv').forEach(function(el){
+        var k=el.getAttribute('data-k');
+        if(el.value.trim()===''){ miss.push(kLabel(k)+'未填'); el.classList.add('err'); }
+        else if(num(el.value)===null){ miss.push(kLabel(k)+'「'+el.value+'」不是数字'); el.classList.add('err'); }
+        if(el.classList.contains('sug'))sug++;
+        vals[k]=el.value.trim();
+      });
+      if(miss.length)probs.push('VIP'+v+':'+miss.join('、'));
+      rows.push({v:v,vals:vals});
+    });
+    if(!rows.length){ toast('请勾选要生成的目标 VIP'); return; }
+    if(probs.length){ toast('⚠ '+probs.slice(0,2).join(' ; ')+(probs.length>2?' ; 等 '+probs.length+' 个 VIP':'')+' —— 红框格需填数字;灰色数字是源 VIP 参考值,不是已填值'); return; }
+    var names=rows.map(function(o){return 'VIP'+o.v;}).join('、');
+    if(!confirm('将覆盖 '+names+' 的现有配置'+(sug?'(其中 '+sug+' 个建议值未手动核改)':'')+',确定生成?'))return;
+    var src=V(), sv=srcVals();
+    rows.forEach(function(o){
+      var nodes=sv.ths.map(function(t){ return {n:t,amt:o.vals['n'+t]}; });
+      VIPS[o.v]={days:mkDays(o.vals.base,o.vals.rwd),nodes:nodes,grand:o.vals.grand,resign:src.resign,segs:cpSegs(src.segs),base:o.vals.base,brwd:o.vals.rwd,msMode:src.msMode,cwType:src.cwType,cwDays:src.cwDays,dirty:true};
+    });
+    closeCopy(); renderVip(); refreshTips();
+    toast('已生成 '+rows.length+' 个 VIP 配置(结构照源 · 分段/补签天数已带入);软校验见底部');
+  }
+
+  /* ===== 通用 ===== */
+  var tmr=null;
+  function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tmr); tmr=setTimeout(function(){t.classList.remove('on');},3200); }
+  function renderAll(){
+    renderVip();
+    var r=V();
+    document.getElementById('qBase').value=r.base; document.getElementById('qRwd').value=r.brwd;
+    var mr=document.querySelector('input[name="msMode"][value="'+r.msMode+'"]'); if(mr)mr.checked=true;
+    document.getElementById('cwType').value=r.cwType; document.getElementById('cwDays').value=r.cwDays;
+    document.getElementById('cwDaysWrap').style.display=r.cwType==='2'?'':'none';
+    msNote();
+    renderDays(); renderNodes(); renderSegs(); refreshTips();
+  }
+  window.addEventListener('beforeunload',function(e){
+    var d=false; Object.keys(VIPS).forEach(function(v){ if(VIPS[v].dirty)d=true; });
+    if(d){ e.preventDefault(); e.returnValue='有未保存的配置改动'; }
+  });
+  renderAll();
 </script>
 </body>
 </html>

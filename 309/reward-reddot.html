@@ -85,7 +85,6 @@
       <div class="ic"><div class="sq c3">🎟️</div>Betting rebate</div>
       <div class="ic"><div class="sq c4">🏆</div>Super Jackpot</div>
       <div class="ic"><div class="sq c5">🎁</div><span class="dotn">2</span>First gift</div>
-      <div class="ic"><div class="sq c6">🎡</div><span class="dotn">3</span>Invite Wheel</div>
     </div>
 
     <!-- 两个 banner -->
@@ -111,7 +110,7 @@
     <div class="tabbar">
       <div class="tab"><span class="em">🏠</span>Home</div>
       <div class="tab on"><span class="em">🎁</span>Activity<span class="dot"></span></div>
-      <div class="spin-wrap"><div class="deposit">🎡</div><div class="g">Promotion</div></div>
+      <div class="spin-wrap"><div class="deposit">🎡<span class="gift">3</span></div><div class="g">Promotion</div></div>
       <div class="tab"><span class="em">👛</span>Wallet</div>
       <div class="tab"><span class="em">👤</span>Main</div>
     </div>
@@ -131,8 +130,8 @@
     <div class="legend"><i></i> 红点 = 有奖励待领取 <b>或</b> 满足参与条件</div>
     <ul style="padding-left:18px;margin:8px 0">
       <li><b>底部导航 Activity</b>:其下任一活动「有奖励待领取」或「满足参与条件」→ 显示红点(聚合提醒)。</li>
-      <li><b>二级导航 icon</b>(Activity Award / Invitation bonus / Betting rebate / Super Jackpot / First gift / <b>Invite Wheel</b>):每个入口独立判断,有奖励待领 / 可参与 → 显红点;可领多项或可抽次数显数字角标(First gift「2」、<b>Invite Wheel 显可抽次数「3」</b>)。</li>
-      <li><b>底部导航中间改为「存款 Deposit」入口</b>(替代原邀请转盘位置):存款有奖励时用<b>礼物图标 🎁 标识</b>引导充值领奖;<b>邀请转盘移入 Activity 二级 icon</b>,达条件用红点 / 数字表示。</li>
+      <li><b>二级导航 icon</b>(Activity Award / Invitation bonus / Betting rebate / Super Jackpot / First gift):每个入口独立判断,有奖励待领 / 可参与 → 显红点;可领多项显数字角标(如 First gift「2」)。</li>
+      <li><b>底部导航中间 promotion(邀请转盘 Get ₹100)位置不变</b>(沿用 V2 现状,不改为 Deposit):有可抽次数或可领奖励时,在该入口叠加<b>红点 / 数字角标</b>(如可抽次数「3」)引导领取。</li>
       <li><b>banner</b>(Gifts / Attendance bonus)同样适用:如签到 Attendance bonus 今日可领 → 显红点。</li>
       <li><b>红点消除</b>:对应奖励领完 / 不再满足条件后红点消失;底部 Activity 红点在其下所有入口红点都消失后消失。</li>
     </ul>
@@ -150,7 +149,7 @@
   var on=true;
   function toggleDots(){
     on=!on;
-    document.querySelectorAll('.dot,.dotn').forEach(function(e){ e.style.display = on?'':'none'; });
+    document.querySelectorAll('.dot,.dotn,.deposit .gift').forEach(function(e){ e.style.display = on?'':'none'; });
     event.target.textContent = on ? '▸ 切换:全部领取后(红点消失)' : '▸ 切换:有可领/可参与(显示红点)';
   }
 </script>
