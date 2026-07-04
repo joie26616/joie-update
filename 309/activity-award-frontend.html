@@ -47,6 +47,22 @@
   .cap{font-size:11px;color:#aaa;margin-top:2px;background:#f7f7f9;border-radius:4px;padding:6px 8px;}
   .inv .kv .v{color:var(--org);}
   .info{display:inline-block;width:15px;height:15px;line-height:15px;text-align:center;border-radius:50%;background:#ccc;color:#fff;font-size:11px;font-style:normal;cursor:pointer;margin-left:4px;}
+  /* 领取方式分组标题(宝箱领取 / 直接领取) */
+  .grouphd{margin:16px 12px 2px;font-size:13px;font-weight:700;color:#8a5a12;display:flex;align-items:center;gap:6px;}
+  .grouphd .gc{font-size:11px;font-weight:400;color:#b3a48e;}
+  /* 宝箱瓦片(参考图):最高可得额度(最大)> 任务 > 领取有效期倒计时 */
+  .chgrid{display:flex;flex-wrap:wrap;gap:8px 4px;padding:8px 10px 2px;}
+  .chtile{width:112px;text-align:center;cursor:pointer;padding:2px;}
+  .chestimg{position:relative;width:92px;height:78px;margin:0 auto;}
+  .chsvg{width:92px;height:78px;display:block;filter:drop-shadow(0 3px 5px rgba(180,110,0,.35));}
+  .chamt{position:absolute;top:46%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,#FF5A52,#E5302B);color:#fff;font-weight:800;font-size:17px;line-height:1;padding:3px 9px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,.28);white-space:nowrap;border:1.5px solid rgba(255,255,255,.55);}
+  .chname{font-size:13px;color:#333;font-weight:600;margin-top:5px;line-height:1.25;}
+  .chcd{font-size:10px;color:#E8730F;margin-top:2px;font-variant-numeric:tabular-nums;}
+  .chcd.perm{color:#a79a8e;}
+  .chemoji{font-size:44px;line-height:1;transform-origin:50% 80%;animation:wobble .7s ease-in-out infinite;}
+  .chamt2{font-size:18px;font-weight:800;color:#E5302B;margin-top:1px;line-height:1.1;}
+  .chmax{font-size:10px;color:#a79a8e;}
+  @keyframes wobble{0%,100%{transform:rotate(0)}20%{transform:rotate(-9deg)}60%{transform:rotate(9deg)}}
 </style>
 </head>
 <body>
@@ -60,7 +76,7 @@
   <div class="filter">
     <div class="frow2">
       <div class="fsel" id="selPeriod" onclick="toggleMenu(event,'selPeriod')">
-        <span class="flab">周期</span><span class="fval" id="valPeriod">全部</span><span class="dot"></span>
+        <span class="flab">类型</span><span class="fval" id="valPeriod">全部</span><span class="dot"></span>
         <div class="fmenu">
           <div class="fopt sel" data-v="all" onclick="pickOpt(event,'period','全部',this)">全部</div>
           <div class="fopt" data-v="week" onclick="pickOpt(event,'period','周任务',this)">周任务<span class="odot"></span></div>
@@ -68,7 +84,7 @@
         </div>
       </div>
       <div class="fsel" id="selType" onclick="toggleMenu(event,'selType')">
-        <span class="flab">类型</span><span class="fval" id="valType">全部</span><span class="dot"></span>
+        <span class="flab">任务</span><span class="fval" id="valType">全部</span><span class="dot"></span>
         <div class="fmenu">
           <div class="fopt sel" data-v="all" onclick="pickOpt(event,'type','全部',this)">全部</div>
           <div class="fopt" data-v="recharge" onclick="pickOpt(event,'type','充值任务',this)">充值任务<span class="odot"></span></div>
@@ -79,10 +95,31 @@
     </div>
   </div>
 
-  <!-- ▼ 优化:页面顶部「待领取」聚合提醒(置顶,行动优先)▼ -->
+  <!-- ▼ 优化:页面顶部「待领取」聚合提醒(置顶,行动优先;宝箱不计入,单独开箱)▼ -->
   <div style="margin:10px;background:linear-gradient(135deg,#FFE9C7,#FFD39B);border:1px solid #E6B566;border-radius:12px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between">
-    <div style="font-size:14px;color:#8a5a12;font-weight:700">🎁 你有 <b style="color:#E8302B">2</b> 项奖励待领取</div>
+    <div>
+      <div style="font-size:14px;color:#8a5a12;font-weight:700">🎁 你有 <b style="color:#E8302B">2</b> 项奖励待领取</div>
+      <div style="font-size:11px;color:#b5852f;margin-top:2px">不包含宝箱奖励</div>
+    </div>
     <button onclick="claimAll()" style="background:#E8302B;color:#fff;border:none;border-radius:18px;padding:8px 18px;font-size:14px;font-weight:700">一键领取</button>
+  </div>
+
+  <!-- 宝箱领取(🎁 图标 + 左右晃动;点一个开一个,领取后不再显示)-->
+  <div class="chgrid">
+    <div class="chtile" data-claim="chest" data-period="week" data-type="recharge" data-name="周存款宝箱任务" data-max="₹500.00" onclick="openChest(this)">
+      <div class="chemoji">🎁</div>
+      <div class="chamt2">₹500</div>
+      <div class="chmax">最多可得</div>
+      <div class="chname">周存款宝箱任务</div>
+      <div class="chcd" data-dl="2026-07-31 23:59:59"></div>
+    </div>
+    <div class="chtile" data-claim="chest" data-period="day" data-type="bet" data-name="每日投注宝箱任务" data-max="₹300.00" onclick="openChest(this)">
+      <div class="chemoji">🎁</div>
+      <div class="chamt2">₹300</div>
+      <div class="chmax">最多可得</div>
+      <div class="chname">每日投注宝箱任务</div>
+      <div class="chcd perm">领取有效期 不限</div>
+    </div>
   </div>
 
   <!-- ▼ 优化:同一任务「上期可领未领 + 本期进行中」双态卡 ▼ -->
@@ -162,6 +199,15 @@
   <div style="height:20px"></div>
 </div>
 
+<!-- 宝箱弹窗(点一个开一个;开箱 → 揭晓实发 → 收下 → 卡片消失)-->
+<div id="chestPop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:70;align-items:center;justify-content:center;flex-direction:column;text-align:center">
+  <div id="chestTitle" style="font-size:15px;color:#ffd76a;margin-bottom:6px"></div>
+  <div id="chestBox" style="font-size:96px;cursor:pointer;line-height:1.1" onclick="doOpenChest()">🎁</div>
+  <div id="chestAmt" style="display:none;font-size:32px;color:#ffd76a;font-weight:800;margin-top:6px"></div>
+  <div id="chestMeta" style="font-size:12px;color:#cbd2da;margin-top:8px"></div>
+  <button id="chestBtn" onclick="doOpenChest()" style="margin-top:14px;background:#E8302B;color:#fff;border:none;border-radius:22px;padding:12px 44px;font-size:16px;font-weight:700;cursor:pointer">开宝箱</button>
+</div>
+
 <!-- ▼ 一键领取 · 结果反馈弹窗(沿用 V1 领取返回 code/msg 规则)▼ -->
 <div id="rmask" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:center;justify-content:center">
   <div style="width:300px;background:#fff;border-radius:16px;overflow:hidden;text-align:center;font-family:inherit">
@@ -206,13 +252,55 @@
     if(cap && cap.classList.contains('cap')){ cap.style.display = (cap.style.display==='none')?'block':'none'; }
   }
   function apply(){
-    document.querySelectorAll('.card').forEach(function(c){
-      var p=c.dataset.period, t=(c.dataset.type||'');
+    var vis={chest:0,direct:0};
+    document.querySelectorAll('.card, .chtile').forEach(function(c){
+      var p=c.dataset.period, t=(c.dataset.type||''), cl=c.dataset.claim||'direct';
       var okP = sel.period==='all' || p===sel.period;
       var okT = sel.type==='all' || t.split(' ').indexOf(sel.type)>=0;
-      c.style.display = (okP&&okT)?'block':'none';
+      var show=okP&&okT; c.style.display = show?'':'none';
+      if(show) vis[cl]++;
+    });
+    // 分组标题:该组无可见项则隐藏(宝箱全部领完 / 被筛选过滤掉)
+    document.querySelectorAll('.grouphd').forEach(function(h){ h.style.display = vis[h.dataset.group]>0?'':'none'; });
+  }
+
+  // ===== 宝箱领取:点一个瓦片开一个,领取后不再显示(本页交互)=====
+  var curChestCard=null, chestOpened=false;
+  function openChest(el){
+    curChestCard=el; chestOpened=false;   // el = 宝箱瓦片(.chtile)
+    document.getElementById('chestTitle').textContent=el.dataset.name||'';
+    document.getElementById('chestBox').textContent='🎁';
+    var a=document.getElementById('chestAmt'); a.style.display='none'; a.textContent='';
+    document.getElementById('chestMeta').textContent='最高可得 '+(el.dataset.max||'')+' · 实发金额以开箱为准';
+    document.getElementById('chestBtn').textContent='开宝箱';
+    document.getElementById('chestPop').style.display='flex';
+  }
+  function doOpenChest(){
+    var btn=document.getElementById('chestBtn');
+    if(!chestOpened){
+      chestOpened=true;
+      var amt=(Math.random()*490+10).toFixed(2);   // 实发:后端按实际区间随机,此处纯前端演示
+      document.getElementById('chestBox').textContent='🎉';
+      var a=document.getElementById('chestAmt'); a.style.display='block'; a.textContent='₹'+amt;
+      btn.textContent='收下奖励';
+    }else{
+      document.getElementById('chestPop').style.display='none';
+      if(curChestCard){ curChestCard.remove(); curChestCard=null; }   // 领取后该宝箱瓦片不再显示
+      apply();   // 刷新分组标题(宝箱组空了则隐藏)
+    }
+  }
+  // 领取有效期倒计时(仅设置了具体有效期的宝箱显示;不限期的用静态文案)
+  function pad2c(n){return n<10?'0'+n:n;}
+  function tickChest(){
+    document.querySelectorAll('.chcd[data-dl]').forEach(function(el){
+      var ms=new Date(el.getAttribute('data-dl').replace(/-/g,'/'))-new Date();
+      if(ms<=0){ el.textContent='已过期'; return; }
+      var d=Math.floor(ms/86400000),h=Math.floor(ms%86400000/3600000),m=Math.floor(ms%3600000/60000),s=Math.floor(ms%60000/1000);
+      el.textContent='剩 '+(d>0?d+'天 ':'')+pad2c(h)+':'+pad2c(m)+':'+pad2c(s);
     });
   }
+  tickChest(); setInterval(tickChest,1000);
+  apply();
 
   // ===== 一键领取结果(沿用 V1 领取返回 code/msg/msgCode 规则)=====
   function claimAll(){

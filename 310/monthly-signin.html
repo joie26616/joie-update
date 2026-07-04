@@ -3,69 +3,107 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>月签到升级 · 前端原型(连续签到 + 补签 + 满签 + VIP路线)</title>
+<title>月签到 · 前端原型(配置驱动:判定方式 / 动态节点 / 领奖有效期)</title>
+<!--
+  ★ 2026-07-04 按 07-03 定稿口径校准(D-24 单模版制 / D-25 数据模型 / D-27 判定方式 / D-28 领奖有效期)
+  ★ 2026-07-04 交互调整(产品确认):补签单日制(点日历哪天补哪天)/ 去断签提醒条 /
+    里程碑「待领取」单点领取(不做一键领取)/ 节点奖金默认不显示,点击节点气泡查看
+  · 页面零写死业务规则:节点、判定方式、有效期、补签倍率/比例/窗口 全部来自「后台配置投影」(见 script ① 区)
+  · 线上数据链:GetSignInConfig(SelectedVip, 当月) + MemberSignInMonth(StreakDays/TotalDays/JudgeModeSnap) + 发放记录(ClaimDeadline 快照)
+  · 顶部「演示控制」= 模拟后台不同配置/会员情景,线上由后台返回、前端只读
+-->
 <style>
-  :root{--org:#ED6B2E;--gold:#C8941A;--goldbg:#FFF7E6;--red:#E8505B;--grn:#56B870;--t1:#222;--t2:#888;--t3:#aaa;--bd:#eee;--amber:#854F0B;--amberbg:#FAEEDA;--amberbd:#BA7517;--gray:#9aa0a6;}
+  :root{--org:#ED6B2E;--gold:#C8941A;--goldbg:#FFF7E6;--red:#E8505B;--grn:#56B870;--pur:#6f42c1;--t1:#222;--t2:#888;--t3:#aaa;--bd:#eee;--amber:#854F0B;--amberbg:#FAEEDA;--gray:#9aa0a6;}
   *{box-sizing:border-box;}
   body{margin:0;background:#9a9a9a;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);}
   .phone{max-width:400px;margin:0 auto;background:#f4f5f7;min-height:100vh;position:relative;padding-bottom:24px;}
   .top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#fff;}
   .top .rec{display:flex;align-items:center;gap:6px;color:#444;font-size:14px;}
-  .hero{background:linear-gradient(135deg,#F3A057,#ED6B2E);color:#fff;padding:18px 16px 20px;border-radius:0 0 12px 12px;}
-  .hero h1{font-size:22px;margin:0 0 6px;font-weight:700;}
-  .hero p{font-size:12px;line-height:1.5;margin:0;opacity:.95;}
-  .lock{font-size:11px;opacity:.9;margin-top:12px;display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);border-radius:18px;padding:5px 12px;}
+  .hero{background:linear-gradient(135deg,#F3A057,#ED6B2E);color:#fff;padding:22px 18px 20px;border-radius:0 0 16px 16px;}
+  .hero h1{font-size:22px;margin:0;font-weight:700;}
+  .hero h1 small{font-size:12px;font-weight:400;opacity:.92;margin-left:6px;}
+  .ihelp{font-size:13px;font-weight:400;margin-left:5px;cursor:pointer;opacity:.92;vertical-align:1px;}
 
-  /* 演示情景切换 */
-  .demobar{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--t2);margin:10px 10px 0;}
-  .dp{font-size:11px;border:1px solid #ddd;background:#fff;border-radius:14px;padding:4px 12px;cursor:pointer;color:#555;}
-  .dp.on{background:var(--org);color:#fff;border-color:var(--org);}
+  /* 演示控制(模拟后台配置,线上不存在) */
+  .demobar{margin:10px 10px 0;background:#fbfaff;border:1px dashed #d6c9f2;border-radius:10px;padding:8px 10px;font-size:11px;color:var(--t2);}
+  .demobar .row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:3px 0;}
+  .demobar .cap{color:var(--pur);font-weight:700;}
+  .dp{font-size:11px;border:1px solid #ddd;background:#fff;border-radius:14px;padding:3px 10px;cursor:pointer;color:#555;}
+  .dp.on{background:var(--pur);color:#fff;border-color:var(--pur);}
 
-  .card{background:#fff;margin:10px;border-radius:12px;padding:14px 14px 16px;}
-  .ttl{font-size:14px;font-weight:700;color:#333;margin:0 0 12px;display:flex;align-items:center;gap:6px;}
+  .card{background:#fff;margin:12px;border-radius:16px;padding:18px 16px;}
+  .ttl{font-size:14px;font-weight:700;color:#333;margin:0 0 10px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
   .ttl .hint{font-size:11px;font-weight:400;color:var(--t3);}
 
-  /* 满签进度 */
-  .ms{position:relative;display:flex;justify-content:space-between;margin:8px 6px 4px;}
-  .ms::before{content:"";position:absolute;top:13px;left:14px;right:14px;height:3px;background:#eee;border-radius:2px;}
-  .msbar{position:absolute;top:13px;left:14px;height:3px;background:var(--gold);border-radius:2px;z-index:1;transition:.3s;}
-  .msn{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:62px;}
-  .msdot{width:28px;height:28px;border-radius:50%;background:#eee;color:#999;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid #fff;}
-  .msn.done .msdot{background:var(--gold);color:#fff;}
-  .msn.prog .msdot{background:#fff;color:var(--gold);border:2px solid var(--gold);}
-  .msn.claimable .msdot{background:var(--red);color:#fff;animation:pulse 1.2s infinite;}
-  .msn.fail .msdot{background:#e6e6e6;color:#b8b8b8;}
+  /* ===== 签到主卡(图1 版式:居中进度标题 + 里程碑进度条 + 31 天迷你卡) ===== */
+  .bigmetric{text-align:center;font-size:22px;font-weight:800;color:#333;margin:0 0 5px;letter-spacing:.01em;}
+  .subline{text-align:center;font-size:11px;color:var(--t3);margin-bottom:18px;}
+  /* 里程碑模块(独立分区块,与每日签到清晰区隔) */
+  .msblock{background:#FFF8F0;border-radius:14px;padding:14px 12px 12px;margin:0 0 20px;}
+  /* 区块标签:统一结构(尺寸/字重/间距一致);颜色保留各自原值 */
+  .modcap{font-size:12px;color:#7a6a55;font-weight:700;letter-spacing:.02em;margin:0 0 10px;}
+  .modcap .mchint{font-size:10px;color:#b3a48e;font-weight:400;margin-left:8px;letter-spacing:0;}
+  .modcap.day{color:var(--t2);margin:0 0 12px;}
+  .msbar{position:relative;margin:0 4px;padding:48px 2px;}   /* 上下各留标签空间(容纳放大的宝箱);奇上偶下 */
+  .track{position:relative;height:8px;background:#f3e7d8;border-radius:5px;}
+  .track i{display:block;height:100%;background:linear-gradient(90deg,#FF7A5A,#F53F3F);border-radius:5px;transition:.3s;}
+  .mdot{position:absolute;top:2px;width:4px;height:4px;border-radius:50%;background:#F5A6A6;transform:translateX(-50%);z-index:1;}
+  .mdot.hit{background:#fff;}
+  /* 里程碑标签:无背景色;用「天数」的字号+颜色区分三态;奇数位在上、偶数位在下 */
+  .mtag{position:absolute;left:0;transform:translateX(-50%);white-space:nowrap;cursor:pointer;text-align:center;line-height:1.25;z-index:2;}
+  .mtag.above{bottom:calc(50% + 8px);}
+  .mtag.below{top:calc(50% + 8px);}
+  .mtag .md{font-size:11px;font-weight:700;color:#9a9a9a;}          /* 默认 = 待完成:灰、常规字号 */
+  .mtag:not(.claim) .md{border-bottom:1px dotted rgba(120,110,95,.4);padding-bottom:1px;}   /* 可点击提示(链接式虚线)*/
+  .mtag .chestbig{position:relative;width:34px;height:29px;margin:0 auto 1px;transform-origin:50% 80%;}
+  .mtag.claim .chestbig{animation:wobble .7s ease-in-out infinite;}
+  .mtag .chsvgbig{width:34px;height:29px;display:block;filter:drop-shadow(0 2px 3px rgba(180,110,0,.3));}
+  .mtag .chd{position:absolute;top:52%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,#FF5A52,#E5302B);color:#fff;font-size:9.5px;font-weight:800;line-height:1;padding:1px 4px;border-radius:4px;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.25);}
+  @keyframes wobble{0%,100%{transform:rotate(0)}20%{transform:rotate(-9deg)}60%{transform:rotate(9deg)}}
+  .mtag .tsub{display:block;font-size:9px;font-weight:400;color:#b3b3b3;margin-top:1px;}
+  .mtag.claim .md{font-size:13px;font-weight:800;color:#F53F3F;}    /* 待领取:红、最大字号(可领) */
+  .mtag.claim .tsub{color:#F5533F;font-weight:600;}
+  .mtag.done .md{color:#C8941A;}                                    /* 已领取:金色 */
+  .mtag.next .md{color:#E8730F;}                                    /* 待完成·下一目标:略强调 */
+  .mtag.exp .md,.mtag.lock .md{color:#c2c2c6;}                      /* 已截止 / 不可达:浅灰 */
+  .mtag.exp .tsub,.mtag.lock .tsub{color:#c2c2c6;}
+  .mtag.edge{transform:translateX(-78%);}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,80,91,.5);}50%{box-shadow:0 0 0 6px rgba(232,80,91,0);}}
-  .mslbl{font-size:11px;color:var(--t2);margin-top:5px;text-align:center;line-height:1.3;}
-  .mslbl b{color:var(--gold);display:block;font-size:12px;}
-  .msn.claimable .mslbl b{color:var(--red);}
-  .msn.fail .mslbl,.msn.fail .mslbl b{color:#bcbcbc;}
+  .msnote{font-size:11px;color:var(--t2);background:#fff;border-radius:6px;padding:6px 9px;margin:8px 0 0;}
+  /* 节点奖金气泡(默认不显示奖金,点击节点查看) */
+  .bubble{position:fixed;z-index:70;background:rgba(0,0,0,.85);color:#fff;font-size:12px;line-height:1.5;padding:7px 12px;border-radius:8px;pointer-events:none;transform:translateX(-50%);white-space:nowrap;}
+  /* 开宝箱动效弹层(点里程碑宝箱) */
+  #chestMask{background:rgba(0,0,0,.85);}
+  .chestwrap{text-align:center;}
+  .chestGif{width:230px;max-width:72vw;display:block;margin:0 auto;}
+  .chestFb{font-size:112px;line-height:1;animation:chestWobble .5s ease-in-out infinite;}
+  @keyframes chestWobble{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-7px) rotate(-7deg)}75%{transform:translateX(7px) rotate(7deg)}}
+  .chestReward{margin-top:8px;color:#fff;}
+  .chestReward .amt{font-size:30px;font-weight:800;color:#FFD98A;}
+  .chestReward .msub{font-size:13px;color:#eee;margin:4px 0 12px;}
+  .chestReward .btn{max-width:220px;margin:0 auto;}
 
-  /* 日历 */
-  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
-  .cell{position:relative;aspect-ratio:1/1.18;border-radius:9px;background:#f6f6f8;border:1px solid #f0f0f2;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;cursor:default;padding:2px;}
-  .cell .d{font-size:10px;color:var(--t3);position:absolute;top:3px;left:5px;}
-  .cell .ic{font-size:16px;line-height:1;}
-  .cell .rw{font-size:9px;color:var(--t2);margin-top:1px;}
-  .cell.signed{background:var(--goldbg);border-color:#F2DFB0;}
-  .cell.signed .ic{color:var(--gold);}
-  .cell.resign{background:#EAF6EE;border-color:#CDEBD6;}
-  .cell.resign .ic{color:var(--grn);}
-  .cell.miss{background:#FDECEC;border-color:#F8D4D4;cursor:pointer;}
-  .cell.miss .ic{color:var(--red);}
-  .cell.expired{background:#f0f0f0;border-color:#e2e2e2;}
-  .cell.expired .ic,.cell.expired .rw,.cell.expired .d{color:#bcbcbc;}
-  .cell.today{background:#fff;border:2px solid var(--org);cursor:pointer;}
-  .cell.today .ic{color:var(--org);}
-  .cell.future{opacity:.65;}
-  .cell .corner{position:absolute;top:2px;right:3px;font-size:8px;background:var(--grn);color:#fff;border-radius:6px;padding:0 4px;}
-  .cell.expired .corner{background:#c4c4c4;}
-  .cell .ms-flag{position:absolute;bottom:2px;right:3px;font-size:9px;}
-  .cell .ms-flag.dim{opacity:.35;filter:grayscale(1);}
-
-  .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;font-size:11px;color:var(--t2);}
-  .lg{display:inline-flex;align-items:center;gap:4px;}
-  .sw{width:12px;height:12px;border-radius:3px;display:inline-block;}
+  /* 31 天迷你签到卡:无背景色,彩色边框 + ✅/❌ 图标区分状态(7 列省空间) */
+  .cal7{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:0;}
+  .dc{position:relative;border-radius:12px;aspect-ratio:1/1.5;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:5px 1px;background:#fff;border:1.5px solid #EFD9C7;color:#B26A32;cursor:default;}
+  .dc .dh{font-size:8.5px;color:#a79a8e;}
+  .dc .rq{font-size:8px;color:#c69a72;line-height:1;}
+  .dc .rw{font-size:8.5px;font-weight:700;color:#E8730F;}
+  /* CSS 金币(替代 emoji,避免渲染成灰球) */
+  .coinc{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFEDB0,#F5B940 62%,#D8921C);box-shadow:inset 0 -1.5px 2px rgba(150,90,0,.45),0 1px 2px rgba(0,0,0,.18);color:#8a5a12;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+  /* 状态图标:✅ 已签 / ❌ 漏签(可补=红,超期=灰) */
+  .dc .okic{width:18px;height:18px;border-radius:50%;background:#3DBE5B;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .dc .misic{width:18px;height:18px;border-radius:50%;background:#F5605F;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .dc .exic{width:18px;height:18px;border-radius:50%;background:#c9c9cf;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;}
+  .dc .signgo{font-size:11px;font-weight:800;color:#F5533F;}
+  /* 状态边框 */
+  .dc.signed{border-color:#8FD6A6;}
+  .dc.signed .dh{color:#7BB98E;}
+  .dc.fill{border-color:#F6A9A9;cursor:pointer;}
+  .dc.fill .rw{color:#F5533F;}
+  .dc.exp{border-color:#DEDEE2;}
+  .dc.exp .dh,.dc.exp .rw{color:#b6b6bb;}
+  .dc.today{border:2px solid #F5533F;box-shadow:0 0 0 3px rgba(245,83,63,.12);}
 
   /* 规则 */
   .rules{font-size:12px;color:#666;line-height:1.7;}
@@ -75,353 +113,574 @@
   .rtable th{background:#faf9f7;color:var(--amber);font-weight:700;}
   .note{font-size:11px;color:var(--t3);background:#f7f7f9;border-radius:6px;padding:8px 10px;margin-top:8px;}
 
-
   /* 弹窗 */
   .mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
   .mask.on{display:flex;}
   .modal{background:#fff;border-radius:16px;width:100%;max-width:340px;padding:20px 18px;max-height:86vh;overflow:auto;position:relative;}
   .xclose{position:absolute;top:10px;right:14px;font-size:22px;line-height:1;color:#bbb;cursor:pointer;}
   .xclose:hover{color:#888;}
-  #rsBody .red{color:var(--red);font-weight:700;}
-  #rsBody .gold{color:var(--gold);font-weight:700;}
-  .rsform{width:100%;border-collapse:collapse;margin:4px 0 8px;font-size:12.5px;}
-  .rsform th{text-align:left;color:var(--t2);font-weight:600;font-size:12px;padding:4px 0;border:none;}
-  .rsform td{padding:6px 0;border:none;color:#666;}
-  .rsform b{color:#333;font-weight:700;}
-  .rsms{margin:6px 0 2px;font-size:14px;font-weight:700;color:var(--gold);text-align:center;background:var(--goldbg);border-radius:8px;padding:9px;}
   .modal h3{margin:0 0 4px;font-size:17px;text-align:center;}
   .modal .msub{font-size:12px;color:var(--t2);text-align:center;margin-bottom:14px;}
+  .rsform{width:100%;border-collapse:collapse;margin:4px 0 8px;font-size:12.5px;}
+  .rsform th{text-align:left;color:var(--t2);font-weight:600;font-size:12px;padding:4px 0;border:none;}
+  .rsform td{padding:5px 0;border:none;color:#666;}
+  .rsform b{color:#333;font-weight:700;}
+  .rsform tr.sum td{border-top:1px solid #eee;color:#333;font-weight:700;padding-top:8px;}
+  .rsms{margin:6px 0 2px;font-size:13px;font-weight:700;color:var(--gold);text-align:center;background:var(--goldbg);border-radius:8px;padding:9px;line-height:1.6;}
   .rt{border:1.5px solid #eee;border-radius:12px;padding:12px;margin-bottom:10px;cursor:pointer;transition:.15s;}
   .rt.on{border-color:var(--org);background:#FFF6F0;}
-  .rt.dis{opacity:.5;cursor:not-allowed;background:#f7f7f7;}
   .rt .rh{display:flex;align-items:center;justify-content:space-between;}
   .rt .rv{font-size:15px;font-weight:700;color:#333;}
-  .rt .rtag{font-size:10px;color:#fff;background:var(--gold);border-radius:8px;padding:1px 8px;}
-  .rt.dis .rtag{background:#bbb;}
   .rt .rd{font-size:12px;color:var(--t2);margin-top:6px;line-height:1.6;}
   .rt .rd b{color:var(--org);}
   .btn{display:block;width:100%;text-align:center;padding:12px;border-radius:24px;font-size:15px;font-weight:700;border:none;cursor:pointer;margin-top:6px;}
   .btn.prim{background:var(--org);color:#fff;}
-  .btn.ghost{background:#fff;color:var(--t2);border:1px solid #ddd;margin-top:8px;}
   .okwrap{text-align:center;}
   .okwrap .em{font-size:42px;}
   .okwrap .amt{font-size:26px;font-weight:800;color:var(--gold);margin:6px 0;}
-  .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;font-size:13px;padding:10px 18px;border-radius:20px;z-index:60;opacity:0;transition:.3s;pointer-events:none;}
+  .oklist{text-align:left;max-height:170px;overflow:auto;margin:8px 0;}
+  .oklist .li{display:flex;justify-content:space-between;border-bottom:1px solid #f2f2f2;padding:7px 2px;font-size:13px;}
+  .oklist .li .a{color:var(--gold);font-weight:700;}
+  .oklist .li .sub{display:block;font-size:10.5px;color:var(--t3);}
+  .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;font-size:13px;padding:10px 18px;border-radius:20px;z-index:60;opacity:0;transition:.3s;pointer-events:none;max-width:86%;}
   .toast.on{opacity:1;}
-  .claimall{display:block;width:100%;margin-top:14px;padding:11px;border:none;border-radius:22px;background:linear-gradient(135deg,#F3A057,#ED6B2E);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(237,107,46,.3);}
-  .claimall.off{background:#e6e6e6;color:#a8acb4;box-shadow:none;cursor:not-allowed;}
-  .cell.future .rw{color:#c4c4c8;}
 </style>
 </head>
 <body>
 <div class="phone">
+  <!-- 宝箱图标(里程碑待领取用;定义一次,标签 use 引用) -->
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
+    <linearGradient id="msChGd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE07A"/><stop offset="1" stop-color="#E9A21F"/></linearGradient>
+    <linearGradient id="msChGl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFEA9A"/><stop offset="1" stop-color="#F3BC3E"/></linearGradient>
+    <symbol id="msChest" viewBox="0 0 100 84">
+      <rect x="6" y="36" width="88" height="46" rx="7" fill="url(#msChGd)" stroke="#C8860F" stroke-width="3"/>
+      <path d="M6 45 Q6 18 50 18 Q94 18 94 45 Z" fill="url(#msChGl)" stroke="#C8860F" stroke-width="3"/>
+      <rect x="6" y="43" width="88" height="8" rx="2" fill="#D9971A"/>
+      <rect x="42" y="40" width="16" height="18" rx="3" fill="#E5302B"/>
+    </symbol>
+  </defs></svg>
   <div class="top"><span style="font-size:20px">‹</span><span class="rec">🕐 签到记录</span></div>
-  <div class="hero">
-    <h1>每日签到</h1>
-    <p>连续签到得每日彩金,连签解锁满签阶梯大奖。漏签可补签(补发一半),补签打钩计入连续。</p>
-    <div class="lock" id="lockTip" style="display:none">🔒 本月已锁定 <b id="lockRoute">VIP5</b> 路线 · 周期 2026-06</div>
-  </div>
 
-  <!-- 演示情景切换(展示「1号起签」与「月中首签」两种打卡显示) -->
+  <!-- 演示控制:模拟后台配置与会员情景(线上由 GetSignInConfig / 会员记录返回,前端只读) -->
   <div class="demobar" id="demoBar" style="display:none">
-    演示情景:
-    <span class="dp on" data-s="normal" onclick="setScenario('normal')">1 号起签</span>
-    <span class="dp" data-s="miss1" onclick="setScenario('miss1')">漏 1 天(场景a)</span>
-    <span class="dp" data-s="mid" onclick="setScenario('mid')">月中首签(场景b)</span>
-  </div>
-
-  <!-- 满签进度 -->
-  <div class="card" id="mainCard" style="display:none">
-    <div class="ttl">🏆 满签阶梯奖 <span class="hint">连续签到天数(含补签)解锁</span></div>
-    <div class="ms" id="msRow"></div>
-    <button class="claimall" id="claimAll" onclick="claimAllMs()">一键领取满签奖(<span id="caN">0</span>项 · 合计 <span id="caSum">0</span>)</button>
-  </div>
-
-  <!-- 日历 -->
-  <div class="card" id="calCard" style="display:none">
-    <div class="ttl">📅 6 月签到 <span class="hint" id="calSub">今天第 10 天 · 每日充值1000送30</span></div>
-    <div class="cal" id="cal"></div>
-    <div class="legend">
-      <span class="lg"><i class="sw" style="background:#FFF7E6;border:1px solid #F2DFB0"></i>已签</span>
-      <span class="lg"><i class="sw" style="background:#EAF6EE;border:1px solid #CDEBD6"></i>补签</span>
-      <span class="lg"><i class="sw" style="background:#FDECEC;border:1px solid #F8D4D4"></i>漏签(可补)</span>
-      <span class="lg"><i class="sw" style="background:#f0f0f0;border:1px solid #e2e2e2"></i>漏签(超期·不可补)</span>
-      <span class="lg"><i class="sw" style="background:#fff;border:2px solid var(--org)"></i>今日</span>
+    <div class="row"><span class="cap">演示 · 会员情景</span>
+      <span class="dp on" data-k="scen" data-v="normal" onclick="setDemo('scen','normal')">1号起签</span>
+      <span class="dp" data-k="scen" data-v="miss1" onclick="setDemo('scen','miss1')">漏1天·可补</span>
+      <span class="dp" data-k="scen" data-v="mid" onclick="setDemo('scen','mid')">月中首签</span>
+      <span class="dp" data-k="scen" data-v="feb" onclick="setDemo('scen','feb')">平年2月·28天</span>
+      <span class="dp" onclick="reRoute()">重选路线(仅演示)</span>
     </div>
+    <div class="row"><span class="cap">演示 · 后台配置</span>
+      判定
+      <span class="dp on" data-k="mode" data-v="1" onclick="setDemo('mode','1')">连续签到</span>
+      <span class="dp" data-k="mode" data-v="2" onclick="setDemo('mode','2')">累计签到</span>
+      · 领奖有效期
+      <span class="dp on" data-k="cw" data-v="1" onclick="setDemo('cw','1')">当月末23:59</span>
+      <span class="dp" data-k="cw" data-v="2" onclick="setDemo('cw','2')">达成后3天</span>
+      <span class="dp" data-k="cw" data-v="0" onclick="setDemo('cw','0')">不限期</span>
+    </div>
+    <div class="row" style="color:#b7a8d9">以上模拟 SignInTpl.MilestoneMode / ClaimWindowType 等后台配置;线上前端只读、不可切换。</div>
   </div>
 
-  <!-- 规则 -->
+  <!-- 签到主卡(图1 版式):进度标题 + 里程碑进度条(标签双排交错)+ 31 天迷你卡 -->
+  <div class="card" id="mainCard" style="display:none">
+    <div class="bigmetric" id="metricLine"></div>
+    <div class="subline" id="calSub"></div>
+    <div class="msblock">
+      <div class="modcap">里程碑奖励</div>
+      <div class="msbar" id="msbar"><div class="track" id="track"><i id="pbar"></i></div></div>
+    </div>
+    <div class="modcap day">每日签到</div>
+    <div class="cal7" id="cal"></div>
+  </div>
+
+  <!-- 规则(按配置动态渲染) -->
   <div class="card rules" id="ruleCard" style="display:none">
-    <h4>📖 补签规则</h4>
+    <h4>📖 活动规则</h4>
+    <div id="ruleBody"></div>
+    <h4 style="margin-top:12px">↩️ 补签价目(按当天条件计价)</h4>
     <table class="rtable">
-      <tr><th>漏签日</th><th>充值倍数</th><th id="rtBaseHead">需充值</th><th>补发</th></tr>
+      <tr><th>漏签日</th><th>倍率</th><th>需充值(=当天充值×倍率)</th><th>补发比例</th><th>补发额</th></tr>
       <tbody id="rtBody"></tbody>
     </table>
-    <div class="note">
-      · 满签口径:节点 3/7/15/当月最后一天 = <b>当下连续签到天数(含补签打钩)</b>达到节点。<br/>
-      · 补签:只能往前补 <b>5 天</b>,无次数上限;漏签超 5 天 → <b>连续中断,该天及之后阶梯不可达</b>。<br/>
-      · 首日选路线:可选「当前 VIP 等级及以下」,选定<b>当月锁定不可改</b>;下月 1 号重选。<br/>
-      · 领取:每日奖在签到页弹框领取;满签奖走 309「统一领取 / 一键领取」,bonus collection 显示待领取。<br/>
-      · 数据为原型占位,落地以 V1 SignIn 接口 + 后台 VIP×31天配置为准。
-    </div>
+    <div class="note" id="ruleNote"></div>
   </div>
 
 </div>
 
-<!-- 首日选路线弹窗 -->
+<!-- 首签选 VIP 等级弹窗(月锁档:MemberSignInMonth.SelectedVip;只显示可选等级) -->
 <div class="mask on" id="routeMask">
   <div class="modal">
-    <h3>选择本月签到路线</h3>
-    <div class="msub">你当前为 <b style="color:#ED6B2E">VIP5</b>,可选「当前等级及以下」路线。<br/>选定后<b>本月锁定不可更改</b>。</div>
+    <h3>选择本月签到VIP等级</h3>
+    <div class="msub">限选当前等级及以下,本月锁定,下月重选</div>
+    <div class="demobar" style="margin:0 0 10px;padding:6px 10px">
+      <span class="cap" style="color:var(--pur);font-weight:700">演示 · 会员当前等级</span>
+      <span class="dp" data-cv="1" onclick="setCurVip(1)">VIP1</span>
+      <span class="dp on" data-cv="5" onclick="setCurVip(5)">VIP5</span>
+    </div>
     <div id="routeList"></div>
-    <button class="btn prim" id="routeConfirm" onclick="confirmRoute()" disabled style="opacity:.5">请选择路线</button>
+    <button class="btn prim" id="routeConfirm" onclick="confirmRoute()" disabled style="opacity:.5">请选择 VIP 等级</button>
   </div>
 </div>
 
-<!-- 补签弹窗(分场景:a 单日 / b 多日累计 / c 单日+触发阶段奖) -->
+<!-- 补签弹窗(逐日明细 + 合计 + 触发节点提示) -->
 <div class="mask" id="resignMask" onclick="if(event.target===this)closeMask('resignMask')">
   <div class="modal">
     <span class="xclose" onclick="closeMask('resignMask')">×</span>
-    <h3 id="rsTtl">补签</h3>
-    <div class="msub">补签后该日打钩,计入连续;单日奖励补发一半。</div>
+    <h3>补签</h3>
+    <div class="msub" id="rsSub"></div>
     <div id="rsBody"></div>
     <button class="btn prim" onclick="goDeposit()">确认补签 · 前往存款页</button>
   </div>
 </div>
 
-<!-- 通用成功弹窗(统一领取) -->
+<!-- 通用反馈弹窗(签到成功 / 领取成功;节点奖领取走 309 统一领取规范) -->
 <div class="mask" id="okMask">
-  <div class="modal okwrap">
-    <div class="em" id="okEm">🎉</div>
-    <h3 id="okTtl">签到成功</h3>
-    <div class="amt" id="okAmt">+30</div>
-    <div class="msub" id="okSub">已到账,继续连签解锁满签大奖</div>
-    <button class="btn prim" id="okBtn" onclick="okConfirm()">知道了</button>
+  <div class="modal okwrap" id="okBody"></div>
+</div>
+
+<!-- 开宝箱动效(点里程碑宝箱):播放 GIF(闭合→晃动→打开)→ 揭晓奖金 → 收下 -->
+<div class="mask" id="chestMask">
+  <div class="chestwrap">
+    <img id="chestGif" class="chestGif" alt="开宝箱" onerror="chestFallback()">
+    <div id="chestFb" class="chestFb" style="display:none">🎁</div>
+    <div id="chestReward" class="chestReward" style="display:none">
+      <div class="amt" id="chestRewardAmt"></div>
+      <div class="msub" id="chestRewardName"></div>
+      <button class="btn prim" onclick="chestClaim()">收下奖励</button>
+    </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-  // ===== 路线配置(VIP × 月签到);ms 节点 3/7/15 + last(当月最后一天大奖) =====
-  const ROUTES = {
-    1:  {vip:1,  base:100,   reward:2,   ms:{3:5,   7:15,  15:40,  last:100}},
-    5:  {vip:5,  base:1000,  reward:30,  ms:{3:30,  7:100, 15:300, last:1000}},
-    8:  {vip:8,  base:5000,  reward:200, ms:{3:300, 7:900, 15:2500,last:6000}},
-    10: {vip:10, base:10000, reward:500, ms:{3:800, 7:2000,15:5000,last:15000}},
+  /* =====================================================================
+     ① 后台配置投影(mock)—— 线上唯一取数入口 GetSignInConfig(SelectedVip, 当月)
+        《310-月签到-单模版配置数据模型(定稿).md》§三;前端不写死任何业务数值。
+        · 每 VIP 一套 31 天模版(D-24 单模版制),按当月实际天数 28/29/30/31 截断
+        · nodes = SignInMilestone(Normal),数量/阈值运营自由增删(演示含 5/28 两个非常规节点)
+        · grand = Completion 满签大奖(运行时阈值 = 当月天数,恒落月末)
+        · 演示为整月同值;线上 SignInDay 逐日可不同,页面一律按「当天值」计算
+  ===================================================================== */
+  var VIP_TPL = {
+    // VIP1 配了第 6/16 天例外值,演示「SignInDay 逐日不同」场景(选档弹窗/日历/补签价目自动切区间口径)
+    1:  {recharge:100,   reward:2,   nodes:[[3,5],[5,8],[7,15],[15,40],[28,60]],      grand:100,
+         exc:{6:{recharge:200,reward:5},16:{recharge:300,reward:8}}},
+    5:  {recharge:1000,  reward:30,  nodes:[[3,30],[5,50],[7,100],[15,300],[28,500]], grand:1000},
+    8:  {recharge:5000,  reward:200, nodes:[[3,300],[5,500],[7,900],[15,2500],[28,4000]], grand:6000},
+    10: {recharge:10000, reward:500, nodes:[[3,800],[5,1200],[7,2000],[15,5000],[28,9000]], grand:15000},
   };
-  const CUR_VIP = 5;          // 会员当前 VIP 等级(上限)
-  const TODAY = 10;           // 今天 = 当月第 10 天(日历日)
-  const LAST_DAY = 30;        // 当月最后一天(6 月=30);大奖节点
-  const WINDOW = 5;           // 补签窗口:只能往前补 5 天
-  const HALF = 0.5;
-  const RESIGN_SEG = [        // 补签分段:漏签日区间 → 充值倍数
-    {s:1,e:5,m:2},{s:6,e:10,m:3},{s:11,e:15,m:4},
-    {s:16,e:20,m:5},{s:21,e:25,m:7},{s:26,e:31,m:10},
-  ];
-  // 演示情景:normal=1号起签(含1个补签+1个可补漏签);mid=月中10号首签(1-4超期/5-9可补)
-  const SCENARIOS = {
-    normal:{first:1,  days:{1:1,2:1,3:3,4:1,5:1,6:1,7:1,8:1,9:1}}, // 1-9连续(day3为补签已完成),连续=9
-    miss1: {first:1,  days:{1:1,2:1,3:1,4:1,5:2,6:1,7:1,8:1,9:1}}, // 仅day5可补 → 补签场景a/c
-    mid:   {first:10, days:{1:2,2:2,3:2,4:2,5:2,6:2,7:2,8:2,9:2}}, // 10号首签:1-4超期,5-9可补 → 补签场景b
+  // SignInResignSeg:漏签日区间 → 倍率 m + 补发比例 r(%);每段独立可配(演示统一 50%)
+  var RESIGN_SEGS=[{s:1,e:5,m:2,r:50},{s:6,e:10,m:3,r:50},{s:11,e:15,m:4,r:50},{s:16,e:20,m:5,r:50},{s:21,e:25,m:7,r:50},{s:26,e:31,m:10,r:50}];
+  var RESIGN_DAYS=5;      // SignInTpl.ResignDays(可补最近 N 天)
+  var CW_DAYS=3;          // SignInTpl.ClaimWindowDays(演示值;ClaimWindowType=2 时生效)
+  var CUR_VIP=5;          // 会员当前 VIP 等级(选路线上限)
+
+  // 会员情景(模拟 MemberSignInMonth + 逐日运行记录):sign 1=已签 3=补签;claimed=进场前已领节点
+  var SCEN = {
+    normal:{ym:'2026-07', monthDays:31, today:10, first:1,  sign:{1:1,2:1,3:3,4:1,5:1,6:1,7:1,8:1,9:1}, claimed:[3]},
+    miss1: {ym:'2026-07', monthDays:31, today:10, first:1,  sign:{1:1,2:1,3:1,4:1,6:1,7:1,8:1,9:1},     claimed:[3]},
+    mid:   {ym:'2026-07', monthDays:31, today:10, first:10, sign:{},                                     claimed:[]},
+    feb:   {ym:'2027-02', monthDays:28, today:10, first:1,  sign:{1:1,2:1,3:3,4:1,5:1,6:1,7:1,8:1,9:1}, claimed:[3]},
   };
 
-  let route=null, chosen=null;
-  let days={}, claimedMs={}, firstDay=1, curScenario='normal';
-  let okCb=null;             // 成功弹窗确认回调(用于合并领取)
+  // 演示态(模拟后台配置开关;线上前端只读)
+  var demo={scen:'normal', mode:1, cw:'1', vip:null};
+  var sign={}, grants=[], routeCfg=null, S=null;
 
-  // ===== 首日选路线 =====
+  /* ===== 时间基线:演示锚定 serverTime(线上以接口 serverTime 校准,倒计时不吃客户端时钟) ===== */
+  var BASE=0, LOADED=0;
+  function anchorClock(){ BASE=mkD(S.ym+'-'+pad2(S.today)+' 12:00:00').getTime(); LOADED=Date.now(); }
+  function now(){ return new Date(BASE+(Date.now()-LOADED)); }
+  function pad2(n){ return n<10?'0'+n:n; }
+  function mkD(s){ return new Date(String(s).replace(/-/g,'/')); }
+  function dstr(d){ return S.ym+'-'+pad2(d); }
+  function addDays(dt,n){ return new Date(dt.getTime()+n*86400000); }
+  function fmtDT(dt){ return dt.getFullYear()+'-'+pad2(dt.getMonth()+1)+'-'+pad2(dt.getDate())+' '+pad2(dt.getHours())+':'+pad2(dt.getMinutes()); }
+  function fmtCd(ms){ var d=Math.floor(ms/86400000),h=Math.floor(ms%86400000/3600000),m=Math.floor(ms%3600000/60000),s2=Math.floor(ms%60000/1000); return (d>0?d+'天 ':'')+pad2(h)+':'+pad2(m)+':'+pad2(s2); }
+  // 弹窗内的领奖截止(静态时点):>72h 给日期,≤72h 倒计时
+  function fmtDL(dl){
+    if(!dl) return {txt:'不限期',urgent:false};
+    var ms=dl.getTime()-now().getTime();
+    if(ms<=0) return {txt:'已截止',urgent:false,expired:true};
+    if(ms>72*3600000) return {txt:fmtDT(dl).slice(5)+' 前领取',urgent:false};
+    return {txt:(ms<24*3600000?'⚠ 剩 ':'剩 ')+fmtCd(ms),urgent:ms<24*3600000};
+  }
+  // 节点上的领取有效期:一律显示剩余时间倒计时(不限期除外)
+  function cdChip(dl){
+    if(!dl) return {txt:'不限期'};
+    var ms=dl.getTime()-now().getTime();
+    if(ms<=0) return {txt:'已截止',expired:true};
+    var d=Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000), mi=Math.floor(ms%3600000/60000), s2=Math.floor(ms%60000/1000);
+    return {txt:(ms<86400000?'⚠ ':'')+'剩 '+(d>0? d+'天'+pad2(h)+':'+pad2(mi) : pad2(h)+':'+pad2(mi)+':'+pad2(s2))};
+  }
+
+  /* ===== ② 配置组装:GetSignInConfig 运行期投影(截断 / 大奖重锚 / 碰撞合并 / 阈值>N 不取用)===== */
+  function cfg(){
+    var t=VIP_TPL[demo.vip], list=[], merged=[], hidden=[];
+    t.nodes.forEach(function(n){
+      if(n[0]===S.monthDays) merged.push(n);            // Normal 阈值 = 当月天数 → 与大奖碰撞,以大奖为准(D-24)
+      else if(n[0]>S.monthDays) hidden.push(n);         // 阈值 > 当月天数 → 本月不取用(自然不可达,不展示)
+      else list.push({type:1, th:n[0], reward:n[1]});
+    });
+    list.push({type:2, th:S.monthDays, reward:t.grand}); // Completion:运行时阈值 = 当月天数,恒落月末
+    var segs=RESIGN_SEGS.filter(function(x){return x.s<=S.monthDays;})
+      .map(function(x){return {s:x.s,e:Math.min(x.e,S.monthDays),m:x.m,r:x.r};});
+    return {recharge:t.recharge, reward:t.reward, ms:list, merged:merged, hidden:hidden, segs:segs};
+  }
+  function segOf(d){ var c=cfg(); return c.segs.filter(function(x){return d>=x.s&&d<=x.e;})[0]; }
+  function tplDay(t,d){ var e=t.exc&&t.exc[d]; return {recharge:e?e.recharge:t.recharge, reward:e?e.reward:t.reward}; }
+  function dayCfg(d){ return tplDay(VIP_TPL[demo.vip],d); }   // 线上 = SignInDay[d](逐日可不同)
+  function isUniform(t,N){ if(!t.exc) return true; for(var d=1;d<=N;d++){ if(t.exc[d]) return false; } return true; }
+  function mw(){ return demo.mode===2?'累计':'连续'; }
+
+  /* ===== ③ 会员事实(模拟 MemberSignInMonth:StreakDays / TotalDays 双天数并存,D-27)===== */
+  function signed(d){ return sign[d]===1||sign[d]===3; }
+  function streakDays(){ var d=S.today; if(!signed(d))d--; var s=0; while(d>=1&&signed(d)){s++;d--;} return s; }
+  function totalDays(){ var c=0; for(var d=1;d<=S.today;d++) if(signed(d)) c++; return c; }
+  function metric(){ return demo.mode===2?totalDays():streakDays(); }
+  function isFillable(d){ return !signed(d)&&d<S.today&&d>=S.today-RESIGN_DAYS; }
+  function isExpiredMiss(d){ return !signed(d)&&d<S.today-RESIGN_DAYS; }
+  function fillableDays(){ var a=[]; for(var d=1;d<S.today;d++) if(isFillable(d)) a.push(d); return a; }
+  function latestExpiredMiss(){ var m=0; for(var d=1;d<S.today;d++) if(isExpiredMiss(d)) m=d; return m; }
+  // 本月还可达到的最大天数(不可达判定按模式分别计算)
+  function maxMetric(){
+    if(demo.mode===1) return S.monthDays-latestExpiredMiss();                       // 连续:硬中断点之后可全连
+    var remain=S.monthDays-S.today+(signed(S.today)?0:1);                            // 累计:已累计+可补+今起可签
+    return totalDays()+fillableDays().length+remain;
+  }
+  // 历史达成日(判定按 JudgeModeSnap;事实双天数互不覆盖)
+  function hitDay(th){
+    var run=0,tot=0;
+    for(var d=1;d<=S.today;d++){
+      if(signed(d)){run++;tot++;}else run=0;
+      if((demo.mode===1?run:tot)>=th) return d;
+    }
+    return 0;
+  }
+
+  /* ===== ④ 发放记录(模拟后端发放引擎:达成即发放,ClaimDeadline 发放时快照 · D-28)
+         前端只读 grants[].deadline 渲染倒计时,不自行推算规则;领取 = 单点节点 ===== */
+  function snapDeadline(grantAt){
+    if(demo.cw==='1') return mkD(S.ym+'-'+pad2(S.monthDays)+' 23:59:59');  // 当月最后一天 23:59
+    if(demo.cw==='2') return addDays(grantAt,CW_DAYS);                      // 达成时点 + N 天(可跨月)
+    return null;                                                            // 不限期
+  }
+  function rebuildGrants(){
+    grants=[]; var claimed=S.claimed||[];
+    cfg().ms.forEach(function(m){
+      var hd=hitDay(m.th); if(!hd) return;
+      var at=mkD(dstr(hd)+' 20:00:00'); if(hd===S.today) at=now();
+      grants.push({th:m.th,type:m.type,reward:m.reward,at:at,deadline:snapDeadline(at),
+                   status:claimed.indexOf(m.th)>=0?'claimed':'pending'});
+    });
+  }
+  function syncGrants(){ // 签到/补签后:新达成的节点即时发放(快照当下配置)
+    var added=[];
+    cfg().ms.forEach(function(m){
+      if(grants.some(function(g){return g.th===m.th;})) return;
+      if(hitDay(m.th)){ var g={th:m.th,type:m.type,reward:m.reward,at:now(),deadline:snapDeadline(now()),status:'pending'}; grants.push(g); added.push(g); }
+    });
+    return added;
+  }
+  function gState(g){ if(g.status==='claimed')return 'claimed'; if(g.deadline&&now()>g.deadline)return 'expired'; return 'pending'; }
+  function nodeName(g){ return g.type===2?'满签大奖':(g.th+'天节点奖'); }
+
+  /* ===== 首签选 VIP 等级(月锁档):只显示可选等级;最多奖励按当月配置计算 ===== */
+  // 最多奖励 = 正常满签 + 所有里程碑奖励总额:Σ每日奖(逐日,按当月天数)+ Σ节点奖(阈值<当月天数)+ 满签大奖
+  function routeMax(t){
+    var sc=S||SCEN[demo.scen], N=sc.monthDays, sum=0;
+    for(var d=1;d<=N;d++) sum+=tplDay(t,d).reward;
+    t.nodes.forEach(function(n){ if(n[0]<N) sum+=n[1]; });   // 阈值=当月天数与大奖重合以大奖为准;>当月天数不生效
+    return sum+t.grand;
+  }
+  function setCurVip(v){  // 仅演示:模拟会员当前等级(VIP1 时只剩一个可选项 → 直接可点「开始签到」)
+    CUR_VIP=v;
+    document.querySelectorAll('.dp[data-cv]').forEach(function(p){ p.classList.toggle('on',+p.dataset.cv===v); });
+    openRoute();
+  }
+  function pickRoute(v,div){
+    var list=document.getElementById('routeList');
+    [].forEach.call(list.children,function(c){c.classList.remove('on');});
+    if(div) div.classList.add('on');
+    var b=document.getElementById('routeConfirm');
+    b.disabled=false; b.style.opacity=1; b.textContent='开始签到'; b.dataset.v=v;
+  }
   function openRoute(){
     document.getElementById('routeMask').classList.add('on');
-    const list=document.getElementById('routeList'); list.innerHTML='';
-    Object.values(ROUTES).forEach(r=>{
-      const dis=r.vip>CUR_VIP;
-      const div=document.createElement('div');
-      div.className='rt'+(dis?' dis':'');
-      div.innerHTML=`<div class="rh"><span class="rv">VIP${r.vip} 路线</span>
-        <span class="rtag">${dis?'高于当前等级':'满月大奖 '+r.ms.last}</span></div>
-        <div class="rd">每日:充值 <b>${r.base}</b> 送 <b>${r.reward}</b>${dis?' · 不可选':''}</div>`;
-      if(!dis) div.onclick=()=>{chosen=r.vip;[...list.children].forEach(c=>c.classList.remove('on'));div.classList.add('on');
-        const b=document.getElementById('routeConfirm');b.disabled=false;b.style.opacity=1;b.textContent=`确认选择 VIP${r.vip} 路线`;};
+    var sc=S||SCEN[demo.scen], N=sc.monthDays;
+    var list=document.getElementById('routeList'); list.innerHTML='';
+    var vips=Object.keys(VIP_TPL).map(Number).sort(function(a,b){return a-b;}).filter(function(v){return v<=CUR_VIP;});
+    vips.forEach(function(v){
+      var t=VIP_TPL[v], div=document.createElement('div'); div.className='rt';
+      var daily;
+      if(isUniform(t,N)){ daily='每日:充值 <b>'+t.recharge+'</b> 送 <b>'+t.reward+'</b>'; }
+      else{  // 逐日不同值:主行给「今日」条件(永远准确),副注给区间 + 指引日历
+        var td=tplDay(t,sc.today), lo=null, hi=null;
+        for(var d=1;d<=N;d++){ var q=tplDay(t,d).recharge; if(lo===null||q<lo)lo=q; if(hi===null||q>hi)hi=q; }
+        daily='今日:充值 <b>'+td.recharge+'</b> 送 <b>'+td.reward+'</b><br>'
+          +'<span style="font-size:11px;color:var(--t3)">各日充值 '+lo+'–'+hi+' 不等,详见签到日历</span>';
+      }
+      div.innerHTML='<div class="rh"><span class="rv">VIP'+v+' 最多奖励 <b style="color:var(--gold)">₹'+routeMax(t).toLocaleString()+'</b></span></div>'
+        +'<div class="rd">'+daily+'</div>';
+      div.onclick=function(){ pickRoute(v,div); };
       list.appendChild(div);
     });
-    const b=document.getElementById('routeConfirm');b.disabled=true;b.style.opacity=.5;b.textContent='请选择路线';chosen=null;
+    var b=document.getElementById('routeConfirm');
+    if(vips.length===1){ pickRoute(vips[0], list.children[0]); }   // 仅一个可选等级 → 默认选中,按键直接「开始签到」
+    else { b.disabled=true; b.style.opacity=.5; b.textContent='请选择 VIP 等级'; b.dataset.v=''; }
   }
   function confirmRoute(){
-    if(!chosen) return;
-    route=ROUTES[chosen];
+    var v=+document.getElementById('routeConfirm').dataset.v; if(!v) return;
+    demo.vip=v;
     document.getElementById('routeMask').classList.remove('on');
-    document.getElementById('lockTip').style.display='inline-block';
-    document.getElementById('lockRoute').textContent='VIP'+route.vip;
-    document.getElementById('demoBar').style.display='flex';
-    ['mainCard','calCard','ruleCard'].forEach(id=>document.getElementById(id).style.display='block');
-    renderRuleTable();
-    setScenario('normal');
-    toast(`已锁定 VIP${route.vip} 路线`);
+    document.getElementById('demoBar').style.display='block';
+    ['mainCard','ruleCard'].forEach(function(id){document.getElementById(id).style.display='block';});
+    applyScenario();
+    toast('已锁定 VIP'+v+'(本月锁定,下月重选)');
+  }
+  function reRoute(){ openRoute(); } // 仅演示对比用;线上当月锁定无此入口
+
+  /* ===== 演示切换 ===== */
+  function setDemo(k,v){
+    demo[k]=(k==='mode')?+v:v;
+    document.querySelectorAll('.dp[data-k="'+k+'"]').forEach(function(p){p.classList.toggle('on',p.dataset.v===String(v));});
+    if(k==='scen'){ applyScenario(); return; }
+    rebuildGrants(); renderAll();   // 判定方式 / 有效期切换 = 换一套后台配置重新进场(重新快照)
+  }
+  function applyScenario(){
+    S=SCEN[demo.scen];
+    sign={}; Object.keys(S.sign).forEach(function(k){sign[+k]=S.sign[k];});
+    anchorClock(); rebuildGrants(); renderAll();
   }
 
-  // ===== 演示情景 =====
-  function setScenario(s){
-    curScenario=s; firstDay=SCENARIOS[s].first;
-    days=Object.assign({},SCENARIOS[s].days);
-    claimedMs={};
-    document.querySelectorAll('.dp').forEach(p=>p.classList.toggle('on',p.dataset.s===s));
-    document.getElementById('calSub').textContent=`今天第 ${TODAY} 天`+(s==='mid'?'(本月首签)':'')+` · 每日充值${route.base}送${route.reward}`;
-    renderCal(); renderMs();
+  /* ===== 渲染 ===== */
+  function renderAll(){ renderMs(); renderCal(); renderRules(); }
+
+  function modeHelp(){
+    toast(demo.mode===2
+      ? '累计签到:当月累计签到天数(含补签)达到节点即可领奖,允许中间漏签。'
+      : '连续签到:需连续签到(含补签)达到节点;断签且超补签期未补,连续天数重新计算,已领奖励不受影响。');
   }
 
-  // ===== 补签分段表 =====
-  function segOf(day){ return RESIGN_SEG.find(x=>day>=x.s&&day<=x.e); }
-  function renderRuleTable(){
-    document.getElementById('rtBaseHead').textContent='需充值(基础'+route.base+')';
-    document.getElementById('rtBody').innerHTML=RESIGN_SEG.filter(x=>x.s<=LAST_DAY).map(x=>
-      `<tr><td>第${x.s}–${Math.min(x.e,LAST_DAY)}天</td><td>${x.m}倍</td><td>${route.base*x.m}</td><td>${Math.round(route.reward*HALF)}</td></tr>`).join('');
+  function renderMs(){
+    var c=cfg(), m=metric(), mx=maxMetric();
+    document.getElementById('metricLine').innerHTML='本月'+mw()+'签到 <b style="color:var(--org)">'+m+'</b>/'+S.monthDays+' 天';
+    document.getElementById('calSub').innerHTML='本月签到 VIP'+demo.vip+' <span class="ihelp" onclick="event.stopPropagation();vipHelp(this)">ⓘ</span>';   // 点 ⓘ 在其下方弹气泡
+    document.getElementById('pbar').style.width=Math.min(m/S.monthDays*100,100)+'%';
+
+    // 下一目标(白描边标签高亮)
+    var next=null;
+    c.ms.forEach(function(x){ if(next)return; var got=grants.some(function(g){return g.th===x.th;}); if(!got&&x.th<=mx&&x.th>m) next=x; });
+
+    // 里程碑标签+轨道圆点(图1 版式,标签双排交错防重叠):奖金默认不显示;待领取点击即领,其余点击气泡看奖金
+    var bar=document.getElementById('msbar'), track=document.getElementById('track');
+    bar.querySelectorAll('.mtag,.mdot').forEach(function(t){ t.remove(); });
+    c.ms.forEach(function(x,i){
+      var g=grants.filter(function(gg){return gg.th===x.th;})[0];
+      var st = g?gState(g):(x.th<=mx?(next&&next.th===x.th?'next':'todo'):'fail');
+      var pct=+(x.th/S.monthDays*100).toFixed(2);
+      var dot=document.createElement('i');
+      dot.className='mdot'+(x.th<=m?' hit':''); dot.style.left=pct+'%';
+      track.appendChild(dot);
+      var tag=document.createElement('div');
+      tag.className='mtag '+(i%2===0?'above':'below')+' '+({pending:'claim',claimed:'done',expired:'exp',fail:'lock',next:'next'}[st]||'')+(pct>91?' edge':'');
+      var sub='';
+      if(st==='pending') sub='<span class="tsub" data-gth="'+x.th+'">'+cdChip(g.deadline).txt+'</span>';
+      else if(st==='claimed') sub='';   // 已领取仅用颜色 + ✓ 表示,不再显示「已领取」文案
+      else if(st==='expired') sub='<span class="tsub">已截止</span>';
+      else if(st==='fail') sub='<span class="tsub">不可达</span>';
+      else if(st==='next') sub='<span class="tsub">还差 '+(x.th-m)+' 天</span>';
+      var label=(x.type===2?'满签':x.th+'天');
+      if(st==='pending')   // 待领取:放大宝箱(2×)+ 天数叠加在宝箱上 + 左右晃动
+        tag.innerHTML='<div class="chestbig"><svg class="chsvgbig" viewBox="0 0 100 84"><use href="#msChest"/></svg><span class="chd">'+label+'</span></div>'+sub;
+      else
+        tag.innerHTML='<span class="md">'+(st==='claimed'?'✓ ':'')+(st==='fail'?'🔒 ':'')+label+'</span>'+sub;
+      tag.style.left=pct+'%';
+      tag.onclick=(st==='pending')
+        ? function(){ openMsChest(x.th); }
+        : function(ev){ ev.stopPropagation(); showBubble(tag,x,st,m); };
+      bar.appendChild(tag);
+    });
+
   }
 
-  // ===== 日历 =====
-  function isFillable(d){ return days[d]===2 && d<TODAY && d>=TODAY-WINDOW; }
-  function isExpired(d){ return days[d]===2 && d<TODAY-WINDOW; }
+  // 单点领取:点哪个里程碑领哪个(不做一键领取;走 309 统一领取,幂等去重)
+  function claimNode(th){
+    var g=grants.filter(function(gg){return gg.th===th&&gState(gg)==='pending';})[0];
+    if(!g) return;
+    g.status='claimed'; renderMs();
+    showDlg('<div class="em">🎉</div><h3>领取成功</h3><div class="amt">+₹'+g.reward+'</div>'
+      +'<div class="msub">'+nodeName(g)+' · 已到账(走 309 统一领取,幂等去重)</div>'
+      +'<button class="btn prim" onclick="closeMask(\'okMask\')">完成</button>');
+  }
+
+  // 开宝箱动效:点里程碑宝箱 → 全屏开箱 → 播放 GIF(闭合→晃动→打开)→ 揭晓奖金 → 收下领取
+  var pendingChestTh=null, chestTmr=null;
+  function openMsChest(th){
+    var g=grants.filter(function(gg){return gg.th===th&&gState(gg)==='pending';})[0]; if(!g) return;
+    pendingChestTh=th;
+    document.getElementById('chestReward').style.display='none';
+    var img=document.getElementById('chestGif'), fb=document.getElementById('chestFb');
+    fb.style.display='none'; img.style.display='block';
+    img.src='chest-open.gif?t='+Date.now();   // 强制重播;文件缺失 → onerror 降级为 🎁 占位
+    document.getElementById('chestMask').classList.add('on');
+    clearTimeout(chestTmr);
+    chestTmr=setTimeout(function(){   // 动画时长后揭晓(按实际 GIF 时长可调,默认 1.8s)
+      document.getElementById('chestRewardAmt').textContent='+₹'+g.reward;
+      document.getElementById('chestRewardName').textContent=nodeName(g)+' 已到账';
+      document.getElementById('chestReward').style.display='block';
+    },1800);
+  }
+  function chestFallback(){ document.getElementById('chestGif').style.display='none'; document.getElementById('chestFb').style.display='block'; }
+  function chestClaim(){
+    var g=grants.filter(function(gg){return gg.th===pendingChestTh;})[0];
+    if(g&&gState(g)==='pending'){ g.status='claimed'; renderMs(); }
+    document.getElementById('chestMask').classList.remove('on');
+    pendingChestTh=null;
+  }
+
+  // 奖金气泡:不可领状态下点击节点查看该档奖金
+  var bubEl=null, bubTmr=null;
+  function showBubble(chip,x,st,m){
+    hideBubble();
+    var hint={claimed:'已领取',expired:'已截止未领',fail:'本月不可达'}[st]
+      || ((demo.mode===1?'再连续签 ':'再签 ')+(x.th-m)+' 天可达');
+    var b=document.createElement('div'); b.className='bubble';
+    b.innerHTML='「'+(x.type===2?'满签大奖':x.th+'天节点奖')+'」奖金 <b style="color:#FFD98A">₹'+x.reward+'</b> · '+hint;
+    document.body.appendChild(b);
+    var r=chip.getBoundingClientRect();
+    b.style.left=Math.max(110,Math.min(window.innerWidth-110,r.left+r.width/2))+'px';
+    b.style.top=Math.max(6,r.top-36)+'px';
+    bubEl=b; clearTimeout(bubTmr); bubTmr=setTimeout(hideBubble,2200);
+  }
+  function hideBubble(){ if(bubEl){ bubEl.remove(); bubEl=null; } }
+  // ⓘ 说明气泡:显示在 ⓘ 下面
+  function vipHelp(el){
+    hideBubble();
+    var b=document.createElement('div'); b.className='bubble';
+    b.textContent='每月 1 日可选择签到的 VIP 等级';
+    document.body.appendChild(b);
+    var r=el.getBoundingClientRect();
+    b.style.left=Math.max(110,Math.min(window.innerWidth-110,r.left+r.width/2))+'px';
+    b.style.top=(r.bottom+8)+'px';
+    bubEl=b; clearTimeout(bubTmr); bubTmr=setTimeout(hideBubble,2600);
+  }
+  document.addEventListener('click',hideBubble);
+
   function renderCal(){
-    const cal=document.getElementById('cal'); cal.innerHTML='';
-    for(let d=1; d<=LAST_DAY; d++){
-      const st=days[d]||0;
-      const cell=document.createElement('div');
-      let cls='cell', ic='', rw='充'+route.base, corner='', flag='', flagDim='';
-      const todayOpen = d===TODAY && st!==1 && st!==3;
-      if(todayOpen){ cls+=' today'; ic='签到'; rw='送'+route.reward; }
-      else if(st===1){ cls+=' signed'; ic='✓'; rw='+'+route.reward; }
-      else if(st===3){ cls+=' resign'; ic='✓'; rw='+'+Math.round(route.reward*HALF); corner='补'; }
-      else if(isFillable(d)){ cls+=' miss'; ic='✗'; rw='补签'; }
-      else if(isExpired(d)){ cls+=' expired'; ic='✕'; rw='超期不可补'; }
-      else { cls+=' future'; ic='·'; rw='充'+route.base; }
-      if([3,7,15,LAST_DAY].includes(d)){ flag='🏆'; if(isExpired(d)||(d<TODAY&&st!==1&&st!==3&&!isFillable(d))) flagDim=' dim'; }
+    var cal=document.getElementById('cal'); cal.innerHTML=''; var mo=+S.ym.split('-')[1];
+    for(var d=1;d<=S.monthDays;d++){
+      var st=sign[d]||0, dc=dayCfg(d);
+      var cell=document.createElement('div');
+      // 每日卡:无背景、边框区分状态;✅/❌ 图标表状态;日期用「M月D日」
+      var cls='dc', mid='<span class="coinc">₹</span>', rq='充'+dc.recharge, bot='+'+dc.reward;
+      var todayOpen=(d===S.today&&!signed(d));
+      if(todayOpen){ cls+=' today'; mid='<span class="signgo">签到</span>'; }
+      else if(st===1){ cls+=' signed'; mid='<span class="okic">✓</span>'; rq=''; }
+      else if(st===3){ cls+=' signed'; mid='<span class="okic">✓</span>'; var sg=segOf(d); rq=''; bot='补 +'+Math.round(dc.reward*(sg?sg.r:50)/100); }
+      else if(isFillable(d)){ cls+=' fill'; mid='<span class="misic">✕</span>'; rq=''; bot='补签'; }
+      else if(isExpiredMiss(d)){ cls+=' exp'; mid='<span class="exic">✕</span>'; rq=''; bot='超期'; }
       cell.className=cls;
-      cell.innerHTML=`<span class="d">${d}</span><span class="ic">${ic}</span><span class="rw">${rw}</span>`+
-        (corner?`<span class="corner">${corner}</span>`:'')+(flag?`<span class="ms-flag${flagDim}">${flag}</span>`:'');
-      if(isFillable(d)) cell.onclick=()=>openResign(d);
-      else if(todayOpen) cell.onclick=()=>signToday();
+      cell.innerHTML='<span class="dh">'+mo+'月'+d+'日</span>'+mid+(rq?'<span class="rq">'+rq+'</span>':'')+'<span class="rw">'+bot+'</span>';
+      (function(dd,fill,open){
+        if(fill) cell.onclick=function(){openResign(dd);};
+        else if(open) cell.onclick=function(){signToday();};
+      })(d,isFillable(d),todayOpen);
       cal.appendChild(cell);
     }
   }
 
-  // ===== 连续天数 / 满签 =====
-  // 当下连续签到天数:从今天往前数连续的 已签/补签(今日未签则从昨天起)
-  function curStreak(){
-    let d=TODAY;
-    if(days[d]!==1&&days[d]!==3) d--;
-    let s=0;
-    while(d>=1&&(days[d]===1||days[d]===3)){ s++; d--; }
-    return s;
-  }
-  // 最近一个「超期不可补」漏签日(连续硬中断点)
-  function latestExpired(){ let m=0; for(let d=1;d<TODAY;d++){ if(isExpired(d)) m=d; } return m; }
-  // 理论可达的最大连续(中断点之后到月末都可签/补)
-  function maxStreak(){ return LAST_DAY - latestExpired(); }
-  function nodeList(){
-    return [
-      {day:3,  reward:route.ms[3]},
-      {day:7,  reward:route.ms[7]},
-      {day:15, reward:route.ms[15]},
-      {day:LAST_DAY, reward:route.ms.last, big:true},
-    ];
-  }
-  function hasReward(n){ return n.reward!=='—'&&n.reward!=null; }
-  function claimableNodes(){ const cs=curStreak(); return nodeList().filter(n=>cs>=n.day&&!claimedMs[n.day]&&hasReward(n)); }
-
-  function renderMs(){
-    const row=document.getElementById('msRow'); row.innerHTML='';
-    const cs=curStreak(), ms=maxStreak();
-    nodeList().forEach(n=>{
-      const reached=cs>=n.day, claimed=!!claimedMs[n.day], reachable=n.day<=ms;
-      let cls='msn';
-      const canClaim = reached && !claimed && hasReward(n);   // 只判断「是否能领取」
-      if(canClaim) cls+=' claimable'; else if(claimed) cls+=' done'; else if(reachable) cls+=' prog'; else cls+=' fail';
-      const div=document.createElement('div'); div.className=cls;   // 状态只用圆点动效表达(可领取=红色脉冲)
-      const lbl=(n.big?'满月':n.day+'天');
-      div.innerHTML=`<div class="msdot">${claimed?'✓':n.day}</div><div class="mslbl">${lbl}<b>${n.reward}</b></div>`;
-      row.appendChild(div);
-    });
-    const bar=document.createElement('div'); bar.className='msbar';
-    bar.style.width=`calc((100% - 28px) * ${Math.min(cs/LAST_DAY,1)})`;
-    row.appendChild(bar);
-    // 能否领取统一由「一键领取」按键状态表示(有可领→启用,无可领→禁用)
-    const cl=claimableNodes(), btn=document.getElementById('claimAll');
-    if(cl.length>=1){ btn.disabled=false; btn.classList.remove('off');
-      btn.innerHTML=`一键领取满签奖(${cl.length}项 · 合计 ${cl.reduce((s,n)=>s+n.reward,0)})`;
-    } else { btn.disabled=true; btn.classList.add('off');
-      btn.innerHTML='暂无可领取的满签奖'; }
+  function renderRules(){
+    var c=cfg(), lines=[];
+    lines.push('· <b>节点判定</b>:'+(demo.mode===2
+      ?'当月<b>累计签到天数</b>(含补签)达到节点即可领奖,允许中间漏签。'
+      :'<b>连续签到天数</b>(含补签)达到节点;断签且超 '+RESIGN_DAYS+' 天补签期未补 → 连续天数重新计算,<b>已领取奖励不受影响</b>。'));
+    lines.push('· <b>满签大奖</b>:'+(demo.mode===2?'当月累计签满 '+S.monthDays+' 天':'连续签满整月('+S.monthDays+' 天)')+',大奖恒落当月最后一天。');
+    lines.push('· <b>发放与领取</b>:节点奖达成<b>即发放</b>,'+(
+      demo.cw==='1'?'当月最后一天 23:59 前领取有效':
+      demo.cw==='2'?'达成后 '+CW_DAYS+' 天内领取有效(可跨月)':'领取不限期')+';逾期未领自动失效;<b>点击待领取节点即可领取</b>(奖金点节点查看)。每日签到奖当场到账。');
+    lines.push('· <b>限领</b>:节点奖每月每档限领 1 次'+(demo.mode===1?';连续中断后重新累计,同档不重复发放':'')+'。');
+    lines.push('· <b>补签</b>:只能往前补最近 <b>'+RESIGN_DAYS+'</b> 天,无次数上限;确认补签跳存款页,先充值达门槛。');
+    lines.push('· <b>路线</b>:每月首签时选「当前 VIP 及以下」路线并锁定当月;中途升级不影响,下月 1 号重选。');
+    document.getElementById('ruleBody').innerHTML=lines.join('<br>');
+    document.getElementById('rtBody').innerHTML=c.segs.map(function(x){
+      // 逐日取值:同值显示单一金额,不同值显示区间(需充值=当天充值×倍率 / 补发=当天奖励×比例)
+      var lo=null,hi=null,rlo=null,rhi=null;
+      for(var d=x.s;d<=x.e;d++){
+        var dc=dayCfg(d), q=dc.recharge*x.m, w=Math.round(dc.reward*x.r/100);
+        if(lo===null||q<lo)lo=q; if(hi===null||q>hi)hi=q;
+        if(rlo===null||w<rlo)rlo=w; if(rhi===null||w>rhi)rhi=w;
+      }
+      var req=(lo===hi)?lo.toLocaleString():(lo.toLocaleString()+'–'+hi.toLocaleString());
+      var re=(rlo===rhi)?('+'+rlo):('+'+rlo+'–'+rhi);
+      return '<tr><td>第'+x.s+'–'+x.e+'天</td><td>×'+x.m+'</td><td>'+req+'</td><td>'+x.r+'%</td><td>'+re+'</td></tr>';
+    }).join('');
+    document.getElementById('ruleNote').innerHTML='本页节点、判定方式、领奖有效期、补签倍率/比例/窗口均来自后台配置(GetSignInConfig 唯一入口),前端无写死规则;'
+      +'需充值/补发按<b>被补当天</b>的充值与奖励计价(VIP1 演示逐日不同值,其余等级演示整月同值);领奖截止读取发放时快照的 ClaimDeadline,倒计时以接口 serverTime 为基准。数据为原型演示值。';
   }
 
-  // ===== 交互 =====
+  /* ===== 交互:签到 / 补签 / 领取 ===== */
   function signToday(){
-    days[TODAY]=1; renderCal();
-    const nc=claimableNodes();
-    if(nc.length){           // 当日签到同时达成阶梯奖 → 合并领取
-      const sum=route.reward+nc.reduce((s,n)=>s+n.reward,0);
-      const detail=`今日签到 +${route.reward}`+nc.map(n=>` · ${n.day===LAST_DAY?'满月大奖':n.day+'天阶梯奖'} +${n.reward}`).join('')+'<br>点击一并到账(走 309 统一领取)';
-      showOk('🎉','签到成功 · 阶梯奖一并领取','+'+sum,detail,()=>{ nc.forEach(n=>claimedMs[n.day]=1); renderMs(); });
+    if(signed(S.today)) return;
+    sign[S.today]=1;
+    var added=syncGrants(), c=cfg();
+    renderAll();
+    if(added.length){
+      var names=added.map(function(g){return '「'+nodeName(g)+'」';}).join('、');
+      var f=fmtDL(added[0].deadline);
+      showDlg('<div class="em">🎉</div><h3>签到成功</h3>'
+        +'<div class="amt">+'+c.reward+'</div><div class="msub">今日签到奖已到账</div>'
+        +'<div class="rsms">'+names+' 已达成,奖励已发放<br><span style="font-size:11px;font-weight:400;color:var(--t2)">请在有效期内点击节点领取('+(f.expired?'已截止':f.txt)+')</span></div>'
+        +'<button class="btn prim" onclick="closeMask(\'okMask\')">知道了</button>');
     } else {
-      showOk('🎉','签到成功','+'+route.reward,'今日已签 · 继续连签解锁满签大奖',null);
+      showDlg('<div class="em">🎉</div><h3>签到成功</h3><div class="amt">+'+c.reward+'</div>'
+        +'<div class="msub">'+(demo.mode===2?'已到账 · 继续累计解锁节点奖':'已到账 · 继续连签解锁节点奖')+'</div>'
+        +'<button class="btn prim" onclick="closeMask(\'okMask\')">知道了</button>');
     }
-    renderMs();
   }
-  function fillableDays(){ const a=[]; for(let d=1;d<TODAY;d++){ if(isFillable(d)) a.push(d); } return a; }
-  function nodeReward(day){ const n=nodeList().find(x=>x.day===day); return n?n.reward:0; }
-  // 假设补签 day 后是否「新」达成某阶段奖,返回节点天数(否则 0)
-  function completesNode(day){
-    const before=curStreak(); const sv=days[day]; days[day]=3; const after=curStreak(); days[day]=sv;
-    const n=nodeList().find(nn=>after>=nn.day&&before<nn.day&&!claimedMs[nn.day]&&hasReward(nn));
-    return n?n.day:0;
-  }
-  function msName(day){ return day===LAST_DAY?'满月阶段奖':day+'天阶段奖'; }
-  // 补签弹框:场景 a(单日)/ b(多日)统一为无边框表单(充值 / 奖励 累计)+ 表外阶段奖
-  function openResign(clickedDay){
-    let fds=fillableDays(); if(!fds.length) fds=[clickedDay];
-    const half=Math.round(route.reward*HALF);
-    let cumReq=0, rows='';
-    fds.forEach((d,i)=>{
-      cumReq+=route.base*segOf(d).m;
-      rows+=`<tr><td><b>${cumReq}</b></td><td><b>${half*(i+1)}</b></td></tr>`;
-    });
-    let html=`<table class="rsform"><tr><th>充值</th><th>奖励</th></tr>${rows}</table>`;
-    // 阶段奖:单日仅在补后达成时显示(场景c);多日显示补满后可达成的最高阶段奖
-    let mday=0, mr=0;
-    if(fds.length===1){ const node=completesNode(fds[0]); if(node){ mday=node; mr=nodeReward(node); } }
-    else { const node=completesNodeMulti(fds); mday=node||((route.ms[3]&&route.ms[3]!=='—')?3:0); mr=(mday===3?route.ms[3]:nodeReward(mday)); }
-    if(mday) html+=`<div class="rsms">${msName(mday)} <b>+${mr}</b></div>`;
-    document.getElementById('rsTtl').textContent='补签';
+
+  // 补签:单日制 —— 点日历哪天就补哪天(需充值=当天充值×段倍率 / 补发=当天奖励×段比例)
+  function openResign(day){
+    if(!isFillable(day)) return;
+    var sg=segOf(day)||{m:1,r:50}, dc=dayCfg(day);
+    var req=dc.recharge*sg.m, re=Math.round(dc.reward*sg.r/100);
+    var html='<table class="rsform"><tr><th>漏签日</th><th>倍率</th><th>需充值</th><th>补发</th></tr>'
+      +'<tr><td>第 '+day+' 天</td><td>×'+sg.m+'</td><td><b>'+req.toLocaleString()+'</b></td><td><b>+'+re+'</b></td></tr></table>';
+    // 补签该日后新达成的节点(按当前判定方式模拟;只提示名称,奖金点节点气泡查看)
+    var sv=sign[day]; sign[day]=3;
+    var gains=[]; cfg().ms.forEach(function(m){ if(!grants.some(function(g){return g.th===m.th;})&&hitDay(m.th)) gains.push(m); });
+    if(sv===undefined) delete sign[day]; else sign[day]=sv;
+    if(gains.length) html+='<div class="rsms">补签后可达成:'+gains.map(function(m){return m.type===2?'满签大奖':m.th+'天节点奖';}).join('、')
+      +'<br><span style="font-size:11px;font-weight:400;color:var(--t2)">达成即发放,'+(demo.cw==='1'?'当月末前领取':demo.cw==='2'?'达成后 '+CW_DAYS+' 天内领取':'不限期领取')+';点击节点可查看奖金</span></div>';
+    document.getElementById('rsSub').innerHTML='补签第 '+day+' 天:该日打钩、计入'+mw()+'天数;补发比例按分段配置。';
     document.getElementById('rsBody').innerHTML=html;
     document.getElementById('resignMask').classList.add('on');
   }
-  // 补满全部可补日后新达成的最高阶段奖
-  function completesNodeMulti(fds){
-    const before=curStreak(); const sv={}; fds.forEach(d=>{sv[d]=days[d];days[d]=3;});
-    const after=curStreak(); fds.forEach(d=>days[d]=sv[d]);
-    let top=0; nodeList().forEach(nn=>{ if(after>=nn.day&&before<nn.day&&!claimedMs[nn.day]&&hasReward(nn)) top=nn.day; });
-    return top;
-  }
-  function goDeposit(){ window.location.href='recharge-page.html'; }   // 确认补签 → 存款页
-  function claimAllMs(){
-    const cl=claimableNodes(); if(!cl.length) return;
-    const sum=cl.reduce((s,n)=>s+n.reward,0);
-    cl.forEach(n=>claimedMs[n.day]=1); renderMs();
-    showOk('🎉','领取成功','+'+sum,'继续连签解锁满签大奖',null);
-  }
-  function showOk(em,ttl,amt,sub,cb){
-    document.getElementById('okEm').textContent=em;
-    document.getElementById('okTtl').textContent=ttl;
-    document.getElementById('okAmt').textContent=amt;
-    document.getElementById('okSub').innerHTML=sub;
-    document.getElementById('okBtn').textContent=cb?'一并领取':'知道了';
-    okCb=cb||null;
-    document.getElementById('okMask').classList.add('on');
-  }
-  function okConfirm(){ if(okCb){ const f=okCb; okCb=null; f(); } closeMask('okMask'); }
-  function closeMask(id){ document.getElementById(id).classList.remove('on'); }
-  let tmr=null;
-  function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tmr); tmr=setTimeout(()=>t.classList.remove('on'),1600); }
+  function goDeposit(){ window.location.href='recharge-page.html'; }  // 确认补签 → 存款页(先充值达门槛)
 
-  openRoute();   // 首屏:演示首日选路线
+  /* ===== 通用 ===== */
+  function showDlg(html){ document.getElementById('okBody').innerHTML=html; document.getElementById('okMask').classList.add('on'); }
+  function closeMask(id){ document.getElementById(id).classList.remove('on'); }
+  var tmr=null;
+  function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tmr); tmr=setTimeout(function(){t.classList.remove('on');},2400); }
+
+  // 可领节点倒计时刷新(读 ClaimDeadline 快照;到期节点转「已截止」)
+  setInterval(function(){
+    if(!S) return;
+    var dirty=false;
+    document.querySelectorAll('[data-gth]').forEach(function(el){
+      var g=grants.filter(function(gg){return gg.th===+el.getAttribute('data-gth');})[0];
+      if(!g) return;
+      var f=cdChip(g.deadline);
+      if(f.expired){ dirty=true; return; }
+      el.textContent=f.txt;
+    });
+    if(dirty) renderMs();
+  },1000);
+
+  openRoute();  // 首屏:当月首签 → 选路线(月锁档)
 </script>
 </body>
 </html>
