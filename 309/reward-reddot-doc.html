@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>前端领奖提示(红点) · 需求说明</title>
+<style>
+  :root{--bg:#eceae3;--card:#fff;--t1:#1f1e1c;--t2:#5f5e5a;--t3:#8a8980;--bd:rgba(0,0,0,.12);--r:10px;--p:#7752FD;--amber:#854F0B;--amberbg:#FAEEDA;--amberbd:#BA7517;--green:#2E7D4F;}
+  *{box-sizing:border-box;}
+  body{margin:0;padding:26px 18px;background:var(--bg);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);line-height:1.65;}
+  .wrap{max-width:860px;margin:0 auto;}
+  h1{font-size:22px;font-weight:700;margin:0 0 4px;}
+  .sub{font-size:13px;color:var(--t3);margin-bottom:20px;}
+  h2{font-size:17px;font-weight:700;color:var(--p);border-left:4px solid var(--p);padding-left:10px;margin:28px 0 10px;}
+  .act{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;margin-bottom:14px;}
+  .tag{background:var(--amberbg);color:var(--amber);border:1px solid var(--amberbd);border-radius:8px;font-size:11px;padding:1px 8px;margin-right:4px;}
+  ul{font-size:13px;color:var(--t2);margin:4px 0 10px;padding-left:20px;}
+  li{margin:3px 0;}
+  .links{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 4px;}
+  a.go{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-size:13px;padding:7px 13px;border-radius:8px;border:1px solid var(--bd);color:var(--p);background:#fff;}
+  a.go.prim{background:var(--p);color:#fff;border-color:var(--p);}
+  code{background:#f4f2fb;border:1px solid var(--bd);border-radius:3px;padding:0 4px;font-size:11.5px;}
+  .back{font-size:13px;color:var(--t3);text-decoration:none;}
+  .back:hover{color:var(--p);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="309-doc.html#s2">← 返回 309 需求文档(重构目录)</a>
+  <h1 style="margin-top:10px">二 · 前端领奖提示(红点)<span class="tag" style="margin-left:8px">#40</span></h1>
+  <div class="sub">摘自《309 需求文档(重构目录)》第二节,独立成页便于单独分享;字段口径以 D-22 为准,发放模式以 D-31/D-33/D-35 为准。完整目录见 <a href="309-doc.html" target="_blank">309-doc.html ↗</a>。</div>
+
+  <div class="act">
+    <ul>
+      <li>底部导航 <b>Activity</b>:其下任一活动「有奖励待领取」或「满足参与条件」→ 显示红点(聚合)。</li>
+      <li>Activity <b>二级导航 icon</b>:每个活动入口独立判断,有奖励待领 / 可参与 → 显红点(多项可领显数字角标)。</li>
+      <li>数据支撑:奖励中心 <code>GetRewardCenterList</code> 的 <code>ReceiveStatus</code>(可领)+ <code>MaxRewardableAmount</code>(可参与)聚合。</li>
+      <li>底部导航沿用 V2 现状(home/activity/<b>promotion 中间</b>/wallet/main),仅在 Activity 加聚合红点,不改中间为 Deposit(deposit 已移出 309)。</li>
+    </ul>
+    <div class="links"><a class="go prim" href="reward-reddot.html" target="_blank">领奖红点提示 前端原型 ↗</a></div>
+  </div>
+
+  <div class="sub" style="margin-top:20px">说明:本页为 309-doc.html #s2 的独立摘录页,内容以主文档为准,如有更新请同步查看 <a href="309-doc.html#s2" target="_blank">309-doc.html#s2 ↗</a>。</div>
+</div>
+</body>
+</html>
